@@ -1,0 +1,117 @@
+{
+  "conversation_id": "147",
+  "created_at": "2025-11-05 10:11:02",
+  "turns": [
+    {
+      "timestamp": "2025-11-05 10:11:02",
+      "turn_number": 1
+    }
+  ],
+  "layers": {
+    "layer1": {
+      "events": []
+    },
+    "layer2": {
+      "events": [
+        {
+          "event_type": "orchestrator_initialized",
+          "timestamp": "2025-11-05 10:11:02",
+          "data": {
+            "type": "zero_shot",
+            "model": "openai/gpt-oss-120b",
+            "mcp_server": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp",
+            "static_prefix_length": 18554,
+            "timestamp": 1762326662.757806
+          }
+        },
+        {
+          "event_type": "query_received",
+          "timestamp": "2025-11-05 10:11:02",
+          "data": {
+            "user_query": "How many projects in each status for 2027?",
+            "conversation_id": 147,
+            "conversation_history_length": 1,
+            "timestamp": 1762326662.7583892
+          }
+        },
+        {
+          "event_type": "groq_api_request",
+          "timestamp": "2025-11-05 10:11:02",
+          "data": {
+            "endpoint": "https://api.groq.com/openai/v1/responses",
+            "method": "POST",
+            "model": "openai/gpt-oss-120b",
+            "input_length": 19102,
+            "tools": [
+              {
+                "type": "mcp",
+                "server_label": "Neo4j Database",
+                "server_url": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp"
+              }
+            ],
+            "conversation_id": 147
+          }
+        },
+        {
+          "event_type": "groq_api_response",
+          "timestamp": "2025-11-05 10:11:07",
+          "data": {
+            "status_code": 200,
+            "prompt_tokens": 0,
+            "cached_tokens": 0,
+            "cache_rate": "0.0%",
+            "completion_tokens": 0,
+            "total_tokens": 11238,
+            "answer_length": 2132,
+            "elapsed_time": 4.981688737869263
+          }
+        },
+        {
+          "event_type": "validation_warning",
+          "timestamp": "2025-11-05 10:11:07",
+          "data": {
+            "missing_fields": [
+              "insights"
+            ],
+            "response_keys": [
+              "answer",
+              "analysis",
+              "data",
+              "visualizations",
+              "cypher_executed",
+              "data_source",
+              "confidence"
+            ]
+          }
+        },
+        {
+          "event_type": "response_parsed",
+          "timestamp": "2025-11-05 10:11:07",
+          "data": {
+            "answer_length": 103,
+            "insights_count": 0,
+            "visualizations_count": 1,
+            "confidence": 0.97,
+            "total_elapsed": 4.985596179962158
+          }
+        },
+        {
+          "event_type": "zero_shot_success",
+          "timestamp": "2025-11-05 10:11:07",
+          "data": {
+            "insights_count": 3,
+            "visualizations_count": 1,
+            "confidence": 0.97,
+            "cypher_executed": "MATCH (p:EntityProject) WHERE p.year = 2027 RETURN p.status AS status, COUNT(p) AS count ORDER BY status ASC"
+          }
+        }
+      ]
+    },
+    "layer3": {
+      "events": []
+    },
+    "layer4": {
+      "events": []
+    }
+  }
+}

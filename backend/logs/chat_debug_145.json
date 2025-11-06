@@ -1,0 +1,117 @@
+{
+  "conversation_id": "145",
+  "created_at": "2025-11-05 10:08:50",
+  "turns": [
+    {
+      "timestamp": "2025-11-05 10:08:50",
+      "turn_number": 1
+    }
+  ],
+  "layers": {
+    "layer1": {
+      "events": []
+    },
+    "layer2": {
+      "events": [
+        {
+          "event_type": "orchestrator_initialized",
+          "timestamp": "2025-11-05 10:08:50",
+          "data": {
+            "type": "zero_shot",
+            "model": "openai/gpt-oss-120b",
+            "mcp_server": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp",
+            "static_prefix_length": 18554,
+            "timestamp": 1762326530.8434765
+          }
+        },
+        {
+          "event_type": "query_received",
+          "timestamp": "2025-11-05 10:08:50",
+          "data": {
+            "user_query": "Show me 3 projects from 2026",
+            "conversation_id": 145,
+            "conversation_history_length": 1,
+            "timestamp": 1762326530.845296
+          }
+        },
+        {
+          "event_type": "groq_api_request",
+          "timestamp": "2025-11-05 10:08:50",
+          "data": {
+            "endpoint": "https://api.groq.com/openai/v1/responses",
+            "method": "POST",
+            "model": "openai/gpt-oss-120b",
+            "input_length": 19074,
+            "tools": [
+              {
+                "type": "mcp",
+                "server_label": "Neo4j Database",
+                "server_url": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp"
+              }
+            ],
+            "conversation_id": 145
+          }
+        },
+        {
+          "event_type": "groq_api_response",
+          "timestamp": "2025-11-05 10:08:56",
+          "data": {
+            "status_code": 200,
+            "prompt_tokens": 0,
+            "cached_tokens": 0,
+            "cache_rate": "0.0%",
+            "completion_tokens": 0,
+            "total_tokens": 11164,
+            "answer_length": 1872,
+            "elapsed_time": 5.236370086669922
+          }
+        },
+        {
+          "event_type": "validation_warning",
+          "timestamp": "2025-11-05 10:08:56",
+          "data": {
+            "missing_fields": [
+              "insights"
+            ],
+            "response_keys": [
+              "answer",
+              "analysis",
+              "data",
+              "visualizations",
+              "cypher_executed",
+              "data_source",
+              "confidence"
+            ]
+          }
+        },
+        {
+          "event_type": "response_parsed",
+          "timestamp": "2025-11-05 10:08:56",
+          "data": {
+            "answer_length": 43,
+            "insights_count": 0,
+            "visualizations_count": 0,
+            "confidence": 0.97,
+            "total_elapsed": 5.240360736846924
+          }
+        },
+        {
+          "event_type": "zero_shot_success",
+          "timestamp": "2025-11-05 10:08:56",
+          "data": {
+            "insights_count": 3,
+            "visualizations_count": 0,
+            "confidence": 0.97,
+            "cypher_executed": "MATCH (p:EntityProject) WHERE p.year = 2026 RETURN p.id AS id, p.name AS name, p.status AS status, p.progress_percentage AS progress, p.start_date AS start_date ORDER BY p.name ASC LIMIT 3"
+          }
+        }
+      ]
+    },
+    "layer3": {
+      "events": []
+    },
+    "layer4": {
+      "events": []
+    }
+  }
+}
