@@ -13,6 +13,7 @@ fi
 
 echo "Starting backend using backend/run_groq_server.sh (background)..."
 chmod +x "$ROOT_DIR/backend/run_groq_server.sh"
+mkdir -p "$ROOT_DIR/logs"
 nohup "$ROOT_DIR/backend/run_groq_server.sh" > "$ROOT_DIR/logs/backend_start.log" 2>&1 &
 BACKEND_PID=$!
 echo "backend pid=$BACKEND_PID (logs: $ROOT_DIR/logs/backend_start.log)"
