@@ -20,6 +20,9 @@ class DebugLogger:
             try:
                 with open(self.log_file, 'r') as f:
                     self.log_data = json.load(f)
+                # Ensure events array exists (for backward compatibility)
+                if "events" not in self.log_data:
+                    self.log_data["events"] = []
                 # Add metadata for this turn
                 if "turns" not in self.log_data:
                     self.log_data["turns"] = []
@@ -38,7 +41,7 @@ class DebugLogger:
         self._write_to_file()
     
     def _initialize_fresh_log_data(self):
-        """Initialize fresh log data structure"""
+        """Initialize fresh log data structure (flat events for new logs)"""
         self.log_data = {
             "conversation_id": self.conversation_id,
             "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -46,13 +49,35 @@ class DebugLogger:
                 "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 "turn_number": 1
             }],
-            "layers": {
-                "layer1": {"events": []},
-                "layer2": {"events": []},
-                "layer3": {"events": []},
-                "layer4": {"events": []}
-            }
+            # New format: flat events array
+            "events": []
         }
+    def log_event(self, event_type: str, data: Any):
+        """
+        Log a flat event (for new logs).
+        Args:
+            event_type: 'llm_request', 'llm_response', etc.
+            data: RAW data to log (unfiltered)
+        """
+        event_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        event_data = data if isinstance(data, (str, dict, list)) else str(data)
+        self.log_data["events"].append({
+            "event_type": event_type,
+            "timestamp": event_time,
+            "data": event_data
+        })
+        self._write_to_file()
+        print(f"\n{'='*80}")
+        print(f"🔍 DEBUG [EVENT] - {event_type}")
+        print(f"{'='*80}")
+        if isinstance(data, str):
+            if len(data) > 2000:
+                print(data[:2000] + f"\n... [TRUNCATED - Full data in log file] ...")
+            else:
+                print(data)
+        else:
+            print(json.dumps(data, indent=2)[:2000])
+        print(f"{'='*80}\n")
     
     def log_layer(self, layer_num: int, event_type: str, data: Any):
         """
@@ -93,9 +118,18 @@ class DebugLogger:
         # Write immediately to file
         self._write_to_file()
         
+        # Human-friendly layer names for console output (keeps numeric layers in file)
+        layer_names = {
+            1: "Layer 1 - Intent",
+            2: "Orchestrator (Zero-Shot)",
+            3: "Layer 3 - Tool Execution",
+            4: "Layer 4 - Response Formatter"
+        }
+        human_layer = layer_names.get(layer_num, layer_key)
+
         # Print to console
         print(f"\n{'='*80}")
-        print(f"🔍 DEBUG [{layer_key.upper()}] - {event_type}")
+        print(f"🔍 DEBUG [{human_layer}] - {event_type}")
         print(f"{'='*80}")
         if isinstance(data, str):
             # Truncate very long strings for console (but save full to file)
@@ -149,6 +183,23 @@ def get_debug_logs(conversation_id: str) -> Dict[str, Any]:
     
     try:
         with open(log_file, 'r') as f:
-            return json.load(f)
+            log_data = json.load(f)
+        
+        # Convert flat events format to layered format for frontend compatibility
+        if "events" in log_data:
+            return {
+                "conversation_id": log_data.get("conversation_id"),
+                "created_at": log_data.get("created_at"),
+                "layers": {
+                    "layer2": {
+                        "events": log_data["events"]
+                    }
+                }
+            }
+        else:
+            # Fallback for old format
+            return log_data
+    except Exception as e:
+        return {"error": f"Failed to load logs: {str(e)}", "layers": {}}
     except Exception as e:
         return {"error": f"Failed to read log file: {str(e)}", "layers": {}}

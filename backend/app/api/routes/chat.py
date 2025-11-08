@@ -294,12 +294,17 @@ async def send_message(
                     description=f"Data table with {len(rows)} rows and {len(columns)} columns"
                 ))
         
-        # Log zero-shot success
-        debug_logger.log_layer(2, "zero_shot_success", {
-            "insights_count": len(insights),
-            "visualizations_count": len(visualizations),
-            "confidence": zero_shot_result.get("confidence", 0.0),
-            "cypher_executed": zero_shot_result.get("cypher_executed", "")
+        # Log LLM request and response (flat events)
+        debug_logger.log_event("llm_request", {
+            "history": conversation_context,
+            "question": request.query,
+            "conversation_id": conversation_id
+        })
+        debug_logger.log_event("llm_response", {
+            "answer": answer,
+            "insights": insights,
+            "artifacts": [art.title for art in artifacts],
+            "confidence": zero_shot_result.get("confidence", 0.0)
         })
         
         orchestrator_result = {
@@ -479,6 +484,7 @@ async def get_debug_logs(conversation_id: str):
     
     try:
         logs = get_debug_logs(conversation_id)
-        return {"conversation_id": conversation_id, "logs": logs}
+        # Return the logs structure directly (already contains conversation_id, layers, etc.)
+        return logs
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load debug logs: {str(e)}")
