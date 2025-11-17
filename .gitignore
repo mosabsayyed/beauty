@@ -55,3 +55,32 @@ htmlcov/
 *.orig
 *.rej
 integrate/
+
+#sync jobs
+backend/embeddings_scripts
+
+# Frontend2 (excluded per request)
+frontend2/
+
+# Keys / certificates
+*.pem
+*.key
+*.p12
+*.jks
+*.crt
+*.der
+
+# Local dotenv overrides
+.env.local
+.env.*.local
+
+# Backend logs and uploads (may contain sensitive data)
+/backend/logs/
+/uploads/
+/backend/uploads/
+
+# Generic secrets/credentials files
+credentials
+*.credentials
+secrets
+secrets.*
