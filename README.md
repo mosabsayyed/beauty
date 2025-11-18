@@ -38,7 +38,7 @@
 - **Dependencies:**
   - Listed in `backend/requirements.txt` (FastAPI, SQLAlchemy, asyncpg, supabase, neo4j, etc.)
 - **Run:**
-  - Typically started via a script (e.g., `run_dev.sh`, `run_groq_server.sh`)
+  - Typically started via a script (e.g., `sb.sb.sh`, `sf1.sh`, `sf2.sh`)
   - Serves API on configured port (default: 8008)
 
 ## Integration: How Frontend & Backend Work Together
@@ -54,6 +54,12 @@
   2. Frontend sends request to backend API
   3. Backend processes request, interacts with Supabase/Neo4j, generates response
   4. Response (including artifacts) is sent back to frontend and displayed
+
+  ## Streaming Cognitive Digital Twin (Experimental)
+
+  - The backend exposes a streaming endpoint at `/api/chat/message/stream` which returns Server-Sent Events (SSE) for real-time "thinking" updates from the Cognitive Digital Twin orchestrator.
+  - The frontend includes helpers to consume SSE (`frontend/src/utils/streaming.ts`) and a `MessageBubble` component to render the real-time `thought_trace` while the model is streaming.
+  - See `docs/streaming_protocol.md` and `docs/streaming_caveats.md` for details on framing, proxy configuration, and testing tips.
 
 ## Configuration Files & References
 

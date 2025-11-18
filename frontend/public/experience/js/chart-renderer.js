@@ -79,6 +79,17 @@ class ChartRenderer {
         const chartData = artifact.content;
         const chartContainerId = `chart-${Date.now()}`;
         
+        // Allow host page to opt-out of rendering legacy action buttons (React SPA will provide its own).
+        const showActions = !!window.USE_LEGACY_CANVAS_ACTIONS;
+        const actionsHTML = showActions ? `
+                    <div class="artifact-actions">
+                        <button class="export-btn secondary" onclick="canvasManager.closeArtifact()">← Back to List</button>
+                        <button class="export-btn" onclick="chartRenderer.exportChart('png')">📥 Export PNG</button>
+                        <button class="export-btn secondary" onclick="chartRenderer.exportChart('svg')">📥 Export SVG</button>
+                        <button class="export-btn secondary" onclick="canvasManager.closeCanvas()">✕ Close Canvas</button>
+                    </div>
+                ` : '';
+
         container.innerHTML = `
             <div class="artifact-container">
                 <div class="artifact-header">
@@ -93,12 +104,7 @@ class ChartRenderer {
                             <span>Created: ${new Date(artifact.created_at).toLocaleDateString()}</span>
                         </div>
                     </div>
-                    <div class="artifact-actions">
-                        <button class="export-btn secondary" onclick="canvasManager.closeArtifact()">← Back to List</button>
-                        <button class="export-btn" onclick="chartRenderer.exportChart('png')">📥 Export PNG</button>
-                        <button class="export-btn secondary" onclick="chartRenderer.exportChart('svg')">📥 Export SVG</button>
-                        <button class="export-btn secondary" onclick="canvasManager.closeCanvas()">✕ Close Canvas</button>
-                    </div>
+                    ${actionsHTML}
                 </div>
                 <div class="chart-container" id="${chartContainerId}" style="min-height: 500px;">
                     <div class="canvas-loading">

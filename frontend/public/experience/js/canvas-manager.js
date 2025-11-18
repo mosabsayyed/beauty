@@ -3,6 +3,17 @@
  * Modes: collapsed (25%), expanded (70%), fullscreen (100%)
  */
 
+// Minimal sanitizer to strip tags from untrusted artifact fields.
+// This defends against injected HTML like buttons or scripts in title/metadata.
+function sanitizeText(s) {
+    try {
+        if (s === null || s === undefined) return '';
+        return String(s).replace(/<\/?[^>]+(>|$)/g, '').trim();
+    } catch (e) {
+        return String(s || '');
+    }
+}
+
 class CanvasManager {
     constructor() {
         this.currentMode = 'hidden'; // hidden, collapsed, expanded, fullscreen
@@ -278,71 +289,87 @@ class CanvasManager {
         
         const { columns = [], rows = [], total_rows = 0 } = artifact.content;
         
-        // Build table HTML
-        let tableHTML = `
+        // Build table HTML (sanitize title/description and omit action buttons
+        // to avoid duplicate UI when other renderers provide controls).
+        const safeTitle = sanitizeText(artifact.title) || 'Data Table';
+        const safeDesc = sanitizeText(artifact.description) || `${total_rows} rows × ${columns.length} columns`;
+
+        // Build table header cells safely (columns content assumed trusted strings, but still escape)
+        const headerCells = columns.map(col => `
+            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #2c3e50; position: sticky; top: 0; background-color: #34495e;">
+                ${sanitizeText(col)}
+            </th>
+        `).join('');
+
+        const bodyRows = rows.map((row, idx) => `
+            <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8f9fa'};">
+                ${row.map(cell => `
+                    <td style="padding: 10px; border-bottom: 1px solid #dee2e6; color: #2c3e50;">
+                        ${cell !== null && cell !== undefined ? sanitizeText(cell) : ''}
+                    </td>
+                `).join('')}
+            </tr>
+        `).join('');
+
+        const tableHTML = `
             <div class="artifact-container">
                 <div class="artifact-header">
-                    <div class="artifact-title-main">${artifact.title || 'Data Table'}</div>
+                    <div class="artifact-title-main">${safeTitle}</div>
                     <div class="artifact-meta-row">
                         <div class="artifact-meta-item">
                             <span>📋</span>
-                            <span>${artifact.description || `${total_rows} rows × ${columns.length} columns`}</span>
+                            <span>${safeDesc}</span>
                         </div>
                     </div>
-                    <div class="artifact-actions">
-                        <button class="export-btn secondary" onclick="canvasManager.closeArtifact()">← Back to List</button>
-                        <button class="export-btn secondary" onclick="canvasManager.toggleCanvas()">✕ Close Canvas</button>
-                    </div>
+                    <!-- Intentionally omitted artifact-actions to avoid duplicate buttons -->
                 </div>
                 <div style="overflow-x: auto; max-height: calc(100vh - 250px);">
                     <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
                         <thead>
                             <tr style="background-color: #34495e; color: white;">
-                                ${columns.map(col => `
-                                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #2c3e50; position: sticky; top: 0; background-color: #34495e;">
-                                        ${col}
-                                    </th>
-                                `).join('')}
+                                ${headerCells}
                             </tr>
                         </thead>
                         <tbody>
-                            ${rows.map((row, idx) => `
-                                <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8f9fa'};">
-                                    ${row.map(cell => `
-                                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; color: #2c3e50;">
-                                            ${cell !== null && cell !== undefined ? cell : ''}
-                                        </td>
-                                    `).join('')}
-                                </tr>
-                            `).join('')}
+                            ${bodyRows}
                         </tbody>
                     </table>
                 </div>
             </div>
         `;
-        
+
         contentContainer.innerHTML = tableHTML;
     }
     
     renderPlaceholder(artifact, message) {
         const contentContainer = document.getElementById('canvasContent');
+        const safeTitle = sanitizeText(artifact.title) || '';
+        const safeType = sanitizeText(artifact.artifact_type) || '';
+        const safeCreated = (() => {
+            try {
+                return new Date(artifact.created_at).toLocaleDateString();
+            } catch (e) {
+                return sanitizeText(artifact.created_at);
+            }
+        })();
+
         contentContainer.innerHTML = `
             <div class="artifact-container">
                 <div class="artifact-header">
-                    <div class="artifact-title-main">${artifact.title}</div>
+                    <div class="artifact-title-main">${safeTitle}</div>
                     <div class="artifact-meta-row">
                         <div class="artifact-meta-item">
                             <span>📅</span>
-                            <span>Created: ${new Date(artifact.created_at).toLocaleDateString()}</span>
+                            <span>Created: ${safeCreated}</span>
                         </div>
                         <div class="artifact-meta-item">
                             <span>📦</span>
-                            <span>Type: ${artifact.artifact_type}</span>
+                            <span>Type: ${safeType}</span>
                         </div>
                     </div>
                 </div>
                 <div class="artifact-body">
-                    <p>${message}</p>
+                    <p>${sanitizeText(message)}</p>
                 </div>
             </div>
         `;

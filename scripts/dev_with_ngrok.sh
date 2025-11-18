@@ -28,14 +28,20 @@ if [ -f ".venv/bin/activate" ]; then
   source .venv/bin/activate
 fi
 # Start uvicorn; output goes to log files (backgrounded in current shell so $! is available)
-nohup uvicorn app.main:app --host 0.0.0.0 --port 8008 --reload > "$ROOT_DIR/logs/uvicorn.log" 2>&1 &
+nohup uvicorn app.main:app --host 0.0.0.0 --port 8008 --reload 2>&1 | python3 -u -c "import sys,time
+for l in sys.stdin:
+  sys.stdout.write(time.strftime('[%Y-%m-%d %H:%M:%S] ')+l)
+  sys.stdout.flush()" >> "$ROOT_DIR/logs/uvicorn.log" 2>/dev/null &
 UVICORN_PID=$!
 echo "uvicorn started (pid $UVICORN_PID) - logs: $ROOT_DIR/logs/uvicorn.log"
 popd >/dev/null
 
 # Start ngrok and point it at 8008
 echo "Starting ngrok to expose port 8008..."
-nohup ngrok http 8008 --log=stdout > "$ROOT_DIR/logs/ngrok.log" 2>&1 &
+nohup ngrok http 8008 --log=stdout 2>&1 | python3 -u -c "import sys,time
+for l in sys.stdin:
+  sys.stdout.write(time.strftime('[%Y-%m-%d %H:%M:%S] ')+l)
+  sys.stdout.flush()" >> "$ROOT_DIR/logs/ngrok.log" 2>/dev/null &
 NGROK_PID=$!
 
 # Ensure we clean up children on exit

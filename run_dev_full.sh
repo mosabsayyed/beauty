@@ -39,7 +39,10 @@ MCP_PORT=${NEO4J_MCP_SERVER_PORT:-8080}
 export NEO4J_MCP_SERVER_PORT="$MCP_PORT"
 echo "Starting ngrok to expose MCP (port ${MCP_PORT}) (web UI should be on 127.0.0.1:4040)..."
 # Start ngrok first (required by Groq/MCP flow). Write its PID to PID_FILE.
-nohup ngrok http "$MCP_PORT" > "$ROOT_DIR/logs/ngrok.log" 2>&1 &
+nohup ngrok http "$MCP_PORT" 2>&1 | python3 -u -c "import sys,time
+for l in sys.stdin:
+  sys.stdout.write(time.strftime('[%Y-%m-%d %H:%M:%S] ')+l)
+  sys.stdout.flush()" >> "$ROOT_DIR/logs/ngrok.log" 2>/dev/null &
 echo $! >> "$PID_FILE"
 sleep 1
 
@@ -47,33 +50,45 @@ sleep 1
 NGROK_API="http://127.0.0.1:4040/api/tunnels"
 for i in 1 2 3 4 5; do
   if curl -s "$NGROK_API" | grep -q "public_url"; then
-    echo "ngrok tunnels:" > "$ROOT_DIR/logs/ngrok_tunnels.log"
-    curl -s "$NGROK_API" | jq '.' >> "$ROOT_DIR/logs/ngrok_tunnels.log" 2>/dev/null || true
-    echo "Wrote ngrok tunnels to $ROOT_DIR/logs/ngrok_tunnels.log"
+  # Append ngrok tunnels info (do not overwrite existing logs)
+  echo "ngrok tunnels:" >> "$ROOT_DIR/logs/ngrok_tunnels.log"
+  curl -s "$NGROK_API" | jq '.' >> "$ROOT_DIR/logs/ngrok_tunnels.log" 2>/dev/null || true
+  echo "Appended ngrok tunnels to $ROOT_DIR/logs/ngrok_tunnels.log"
     break
   fi
   sleep 1
 done
 
 echo "Starting MCP server (HTTP) on 127.0.0.1:${MCP_PORT}/mcp/..."
-nohup "$ROOT_DIR/.venv/bin/mcp-neo4j-cypher" \
-  --transport http \
-  --server-host 127.0.0.1 \
-  --server-port "$MCP_PORT" \
-  --server-path /mcp/ \
-  --db-url "$NEO4J_URI" --username "$NEO4J_USERNAME" --password "$NEO4J_PASSWORD" --database "$NEO4J_DATABASE" \
-  > "$ROOT_DIR/backend/logs/mcp_server.log" 2>&1 &
-echo $! >> "$PID_FILE"
-sleep 1
+# If MCP port already in use, skip starting a new instance to avoid bind errors
+if ss -ltnp 2>/dev/null | grep -q "127.0.0.1:$MCP_PORT"; then
+  echo "MCP port $MCP_PORT already in use; skipping starting a new MCP instance."
+else
+  nohup "$ROOT_DIR/.venv/bin/mcp-neo4j-cypher" \
+    --transport http \
+    --server-host 127.0.0.1 \
+    --server-port "$MCP_PORT" \
+    --server-path /mcp/ \
+    --db-url "$NEO4J_URI" --username "$NEO4J_USERNAME" --password "$NEO4J_PASSWORD" --database "$NEO4J_DATABASE" \
+    2>&1 | python3 -u -c "import sys,time\nfor l in sys.stdin:\n    sys.stdout.write(time.strftime('[%Y-%m-%d %H:%M:%S] ')+l)\n    sys.stdout.flush()" >> "$ROOT_DIR/backend/logs/mcp_server.log" 2>/dev/null &
+  echo $! >> "$PID_FILE"
+  sleep 1
+fi
 
 echo "Starting backend (uvicorn) via backend/run_groq_server.sh..."
 chmod +x "$ROOT_DIR/backend/run_groq_server.sh"
-nohup "$ROOT_DIR/backend/run_groq_server.sh" > "$ROOT_DIR/logs/backend_start.log" 2>&1 &
+nohup "$ROOT_DIR/backend/run_groq_server.sh" 2>&1 | python3 -u -c "import sys,time
+for l in sys.stdin:
+  sys.stdout.write(time.strftime('[%Y-%m-%d %H:%M:%S] ')+l)
+  sys.stdout.flush()" >> "$ROOT_DIR/logs/backend_start.log" 2>/dev/null &
 echo $! >> "$PID_FILE"
 sleep 1
 
 echo "Starting frontend dev server (npm start) in background..."
-nohup npm --prefix "$ROOT_DIR/frontend" start > "$ROOT_DIR/frontend/logs/frontend.log" 2>&1 &
+nohup npm --prefix "$ROOT_DIR/frontend" start 2>&1 | python3 -u -c "import sys,time
+for l in sys.stdin:
+  sys.stdout.write(time.strftime('[%Y-%m-%d %H:%M:%S] ')+l)
+  sys.stdout.flush()" >> "$ROOT_DIR/frontend/logs/frontend.log" 2>/dev/null &
 echo $! >> "$PID_FILE"
 
 echo "All PIDs written to $PID_FILE"

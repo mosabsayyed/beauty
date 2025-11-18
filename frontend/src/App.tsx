@@ -1,119 +1,109 @@
-import React, { useState, useEffect } from 'react';
-import './App.css';
-import './index.css';
-import './canvas.css';
+import { useState, useEffect } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
+import { Language } from "./types";
+import ChatAppPage from "./pages/ChatAppPage";
+import { LoginPage } from "./pages/LoginPage";
+import WelcomeEntry from './pages/WelcomeEntry';
+import { AuthProvider } from './contexts/AuthContext';
 
-import Header from './components/Header';
-import ConversationsSidebar from './components/ConversationsSidebar';
-import DebugPanel from './components/DebugPanel';
-import { ChatRebuild } from './components/Chat/Chat';
-import { CanvasRebuild } from './components/Canvas/CanvasManager';
-import { Artifact } from './types/chat';
+function ScrollToTop() {
+  const location = useLocation();
 
-function App() {
-  const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
-  const [isDebugPanelOpen, setIsDebugPanelOpen] = useState(false);
-  const [isCanvasOpen, setIsCanvasOpen] = useState(false);
-  const [isConversationsOpen, setIsConversationsOpen] = useState(false);
-  const [artifacts, setArtifacts] = useState<Artifact[]>([]);
-
-  // Initialize conversation from URL or localStorage
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const convId = urlParams.get('conversation_id') || localStorage.getItem('last_conversation_id');
-    
-    if (convId) {
-      const id = parseInt(convId);
-      setActiveConversationId(id);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [location.pathname]);
+
+  return null;
+}
+
+function AppContent() {
+  const location = useLocation();
+  const isWelcomePage = location.pathname === '/';
+  
+  const [language, setLanguage] = useState<Language>(() => {
+    try {
+      const saved = localStorage.getItem("josoor_language");
+      return (saved as Language) || "en";
+    } catch {
+      return "en";
     }
-  }, []);
+  });
 
-  // Listen for canvas state changes from Canvas component
-  useEffect(() => {
-    const handleCanvasStateChanged = (event: Event) => {
-      const detail = (event as CustomEvent).detail;
-      if (detail && typeof detail.isOpen === 'boolean') {
-        setIsCanvasOpen(detail.isOpen);
+  const [isAuthenticated, setIsAuthenticated] =
+    useState<boolean>(() => {
+      try {
+        const saved = localStorage.getItem(
+          "josoor_authenticated",
+        );
+        return saved === "true";
+      } catch {
+        return false;
       }
-    };
+    });
 
-    window.addEventListener('canvasStateChanged', handleCanvasStateChanged);
-    return () => {
-      window.removeEventListener('canvasStateChanged', handleCanvasStateChanged);
-    };
-  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem("josoor_language", language);
+    } catch {
+      // localStorage not available
+    }
+    document.documentElement.lang = language;
+    document.documentElement.dir =
+      language === "ar" ? "rtl" : "ltr";
+  }, [language]);
 
-  const handleConversationSelected = (id: number) => {
-    setActiveConversationId(id);
-    // Update URL and localStorage
-    window.history.pushState({}, '', `?conversation_id=${id}`);
-    localStorage.setItem('last_conversation_id', id.toString());
-    // Dispatch event to notify Chat component
-    window.dispatchEvent(new CustomEvent('conversationSelected', { detail: { conversationId: id } }));
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    try {
+      localStorage.setItem("josoor_authenticated", "true");
+    } catch {
+      // localStorage not available
+    }
   };
 
-  const handleNewConversation = () => {
-    setActiveConversationId(null);
-    setArtifacts([]);
-    // Clear URL and localStorage
-    window.history.pushState({}, '', window.location.pathname);
-    localStorage.removeItem('last_conversation_id');
-    // Notify Chat component to clear messages
-    window.dispatchEvent(new Event('newChat'));
+  const handleSkip = () => {
+    setIsAuthenticated(true);
+    // Persist guest flag so a reload doesn't redirect back to the welcome page
+    try {
+      localStorage.setItem('josoor_authenticated', 'true');
+    } catch {
+      // ignore localStorage errors
+    }
   };
-
-  const handleToggleDebug = () => {
-    setIsDebugPanelOpen(!isDebugPanelOpen);
-  };
-
-  const handleToggleCanvas = () => {
-    const newState = !isCanvasOpen;
-    setIsCanvasOpen(newState);
-    // Dispatch event for Canvas component to listen
-    window.dispatchEvent(new CustomEvent('toggleCanvas', { detail: { isOpen: newState } }));
-  };
-
-  const handleToggleConversations = () => {
-    setIsConversationsOpen(!isConversationsOpen);
-  };
-
-  // Removed unused handleArtifactCreate function
 
   return (
-    <div className="container">
-      <Header
-        onNewConversation={handleNewConversation}
-        onToggleDebug={handleToggleDebug}
-        onToggleCanvas={handleToggleCanvas}
-        onToggleConversations={handleToggleConversations}
-        isDebugOpen={isDebugPanelOpen}
-        isCanvasOpen={isCanvasOpen}
-        isConversationsOpen={isConversationsOpen}
-      />
-      
-      <div className="main-content">
-        <ConversationsSidebar
-          activeConversationId={activeConversationId}
-          onConversationSelected={handleConversationSelected}
-          isOpen={isConversationsOpen}
-          onClose={() => setIsConversationsOpen(false)}
+    <div className={isWelcomePage ? "" : "min-h-screen bg-slate-100"}>
+      <ScrollToTop />
+
+      <Routes>
+        <Route
+          path="/"
+          element={<WelcomeEntry/>}
         />
 
-        <div className="chat-section">
-          <div className="chat-container" id="chatContainer">
-            <ChatRebuild conversationId={activeConversationId} />
-          </div>
-        </div>
+        <Route path="/chat" element={<ChatAppPage language={language} />} />
 
-        <DebugPanel
-          conversationId={activeConversationId}
-          isOpen={isDebugPanelOpen}
-        />
-      </div>
+        <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
 
-      <CanvasRebuild isOpen={isCanvasOpen} conversationId={activeConversationId} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+
     </div>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}

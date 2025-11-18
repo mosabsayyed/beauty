@@ -1,8 +1,7 @@
 /* Main app container */
 .container {
-  width: 95%;
-  max-width: 1800px;
-  height: 90vh;
+
+  height: 80vh;
   background: var(--card, #11161b);
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);

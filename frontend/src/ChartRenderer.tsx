@@ -7,6 +7,7 @@ import { Artifact, ChartData } from './types/chat';
 
 interface ChartRendererProps {
   artifact: Artifact;
+  showHeader?: boolean;
 }
 
 declare global {
@@ -15,7 +16,7 @@ declare global {
   }
 }
 
-const ChartRenderer: React.FC<ChartRendererProps> = ({ artifact }) => {
+const ChartRenderer: React.FC<ChartRendererProps> = ({ artifact, showHeader = true }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -474,27 +475,29 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ artifact }) => {
 
   return (
     <div className="artifact-container">
-      <div className="artifact-header">
-        <div className="artifact-title-main">{artifact.title}</div>
-        <div className="artifact-meta-row">
-          <div className="artifact-meta-item">
-            <span>📊</span>
-            <span>Chart Type: {getChartTypeLabel(artifact.content.type)}</span>
+      {showHeader && (
+        <div className="artifact-header">
+          <div className="artifact-title-main">{artifact.title}</div>
+          <div className="artifact-meta-row">
+            <div className="artifact-meta-item">
+              <span>📊</span>
+              <span>Chart Type: {getChartTypeLabel(artifact.content.type)}</span>
+            </div>
+            <div className="artifact-meta-item">
+              <span>📅</span>
+              <span>Created: {formatDate(artifact.created_at)}</span>
+            </div>
           </div>
-          <div className="artifact-meta-item">
-            <span>📅</span>
-            <span>Created: {formatDate(artifact.created_at)}</span>
+          <div className="artifact-actions">
+            <button className="export-btn secondary" onClick={() => exportChart('svg')}>
+              📥 Export SVG
+            </button>
+            <button className="export-btn" onClick={() => exportChart('png')}>
+              📥 Export PNG
+            </button>
           </div>
         </div>
-        <div className="artifact-actions">
-          <button className="export-btn secondary" onClick={() => exportChart('svg')}>
-            📥 Export SVG
-          </button>
-          <button className="export-btn" onClick={() => exportChart('png')}>
-            📥 Export PNG
-          </button>
-        </div>
-      </div>
+      )}
       
       <div className="chart-container" style={{ minHeight: '500px' }}>
         {isLoading && (

@@ -107,17 +107,22 @@ fi
 
 # 3. Start MCP Server (Neo4j Cypher)
 # This is the service the LLM will call via ngrok.
-MCP_CMD="${VENV_ACTIVATE}.venv/bin/mcp-neo4j-cypher --transport http --server-host 127.0.0.1 --server-port $MCP_PORT --server-path /mcp/ --db-url $NEO4J_URI --username $NEO4J_USERNAME --password $NEO4J_PASSWORD --database $NEO4J_DATABASE > $BACKEND_DIR/logs/mcp_server.log 2>&1"
-if [ -f ".venv/bin/mcp-neo4j-cypher" ]; then
-    start_service "MCP Server (Neo4j)" "$MCP_CMD" "."
+MCP_CMD="${VENV_ACTIVATE}.venv/bin/mcp-neo4j-cypher --transport http --server-host 127.0.0.1 --server-port $MCP_PORT --server-path /mcp/ --db-url $NEO4J_URI --username $NEO4J_USERNAME --password $NEO4J_PASSWORD --database $NEO4J_DATABASE 2>&1 | python3 -u -c \"import sys,time\nfor l in sys.stdin:\n    sys.stdout.write(time.strftime('[%Y-%m-%d %H:%M:%S] ')+l)\n    sys.stdout.flush()\" >> \"$BACKEND_DIR/logs/mcp_server.log\""
+if ss -ltnp 2>/dev/null | grep -q "127.0.0.1:$MCP_PORT"; then
+    echo "MCP port $MCP_PORT already in use; skipping start to avoid duplicate bind. Check existing process." 
 else
-    echo "Error: MCP server executable not found. Please ensure it is installed in the venv."
-    exit 1
+    if [ -f ".venv/bin/mcp-neo4j-cypher" ]; then
+        start_service "MCP Server (Neo4j)" "$MCP_CMD" "."
+    else
+        echo "Error: MCP server executable not found. Please ensure it is installed in the venv."
+        exit 1
+    fi
 fi
 
 # 4. Start ngrok to expose MCP (port $MCP_PORT)
 if command -v ngrok >/dev/null 2>&1; then
-    start_service "Ngrok Tunnel (MCP)" "ngrok http $MCP_PORT --log=stdout > logs/ngrok.log 2>&1" "."
+    # Pipe ngrok output through timestamping and append to log (do not overwrite)
+    start_service "Ngrok Tunnel (MCP)" "ngrok http $MCP_PORT --log=stdout 2>&1 | python3 -u -c \"import sys,time\nfor l in sys.stdin:\n    sys.stdout.write(time.strftime('[%Y-%m-%d %H:%M:%S] ')+l)\n    sys.stdout.flush()\" >> logs/ngrok.log" "."
 else
     echo "Error: ngrok not found. Please install ngrok and authenticate it."
     exit 1
@@ -137,13 +142,13 @@ echo "✅ NGROK_PUBLIC_URL exported: $NGROK_PUBLIC_URL"
 
 # 6. Start Backend FastAPI (uvicorn)
 # The backend needs NGROK_PUBLIC_URL to pass to the LLM for tool calling.
-BACKEND_CMD="${VENV_ACTIVATE}uvicorn app.main:app --host 0.0.0.0 --port $BACKEND_PORT --reload > logs/uvicorn.log 2>&1"
+BACKEND_CMD="${VENV_ACTIVATE}uvicorn app.main:app --host 0.0.0.0 --port $BACKEND_PORT --reload 2>&1 | python3 -u -c \"import sys,time\nfor l in sys.stdin:\n    sys.stdout.write(time.strftime('[%Y-%m-%d %H:%M:%S] ')+l)\n    sys.stdout.flush()\" >> logs/uvicorn.log"
 start_service "Backend FastAPI" "$BACKEND_CMD" "$BACKEND_DIR"
 
 # 7. Start Frontend (Vite)
 # Frontend needs to know the local backend URL (port 8008)
 # Set PORT=3001 to avoid conflicts with other services defaulting to 3000
-start_service "Frontend (Vite)" "PORT=3000 REACT_APP_API_URL=http://localhost:$BACKEND_PORT/api/v1/chat/message npm start > $FRONTEND_DIR/logs/frontend.log 2>&1" "$FRONTEND_DIR"
+start_service "Frontend (Vite)" "PORT=3000 REACT_APP_API_URL=http://localhost:$BACKEND_PORT/api/v1/chat/message npm start 2>&1 | python3 -u -c \"import sys,time\nfor l in sys.stdin:\n    sys.stdout.write(time.strftime('[%Y-%m-%d %H:%M:%S] ')+l)\n    sys.stdout.flush()\" >> $FRONTEND_DIR/logs/frontend.log" "$FRONTEND_DIR"
 
 echo -e "\nAll services started. Press Ctrl+C to stop them."
 

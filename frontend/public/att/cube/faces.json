@@ -1,0 +1,18 @@
+{
+  "version": "v1",
+  "description": "AI Twin Tech Cube Face Spec: Procedural gold sticker faces for Rubiks cube",
+  "palette": ["#D4AF37", "#E5C158", "#B8960F", "#C9A844", "#D4AF37", "#E5C158"],
+  "faces": [
+    { "id": 0, "pattern": "grid", "description": "Subtle grid with white lines on gold gradient" },
+    { "id": 1, "pattern": "stripes", "description": "Diagonal stripes with white strokes" },
+    { "id": 2, "pattern": "ring", "description": "Concentric rings with white outlines" },
+    { "id": 3, "pattern": "chevron", "description": "Chevron patterns with white lines" },
+    { "id": 4, "pattern": "hex", "description": "Hexagonal grid with white edges" },
+    { "id": 5, "pattern": "wave", "description": "Sinusoidal waves with white strokes" }
+  ],
+  "phaseRules": {
+    "fadeInTransform": "Phase 4 only",
+    "opacity": "Solid 1.0 except Phase 4 fade",
+    "depth": "No z-fighting, correct polygon offset"
+  }
+}

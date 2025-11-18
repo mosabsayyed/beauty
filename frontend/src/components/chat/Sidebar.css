@@ -1,0 +1,49 @@
+.sidebar-newchat-icon {
+  display: inline;
+  font-weight: 600;
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+}
+
+.sidebar-quickaction-icon {
+  display: block;
+  border-radius: 4px;
+  font-weight: 600;
+  height: 35px;
+  object-fit: cover;
+  vertical-align: middle;
+  width: 35px;
+}
+
+.sidebar-quickactions-card {
+  /* default kept in inline styles; this class enables responsive override */
+}
+
+.sidebar-hamburger-third {
+  display: block;
+}
+
+@media (max-width: 991px) {
+  .sidebar-newchat-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .sidebar-quickaction-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+
+  .sidebar-hamburger-third:last-child {
+    background-image: url(https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2F8943a0e6569a48b6be2490eb6f9c1034);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    width: 35px !important;
+    height: 35px !important;
+    border-radius: 2px;
+    background-color: transparent;
+  }
+}

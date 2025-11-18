@@ -1,7 +1,8 @@
 # backend/app/api/routes/chat.py
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 import json
 from app.db.supabase_client import supabase_client
 from app.services.supabase_conversation_manager import SupabaseConversationManager
@@ -11,6 +12,15 @@ from app.utils.debug_logger import init_debug_logger
 
 router = APIRouter()
 sql_executor = SQLExecutorService()
+
+# Lazy orchestrator instance to avoid import-time environment variable errors
+_orchestrator_instance: Optional[OrchestratorZeroShot] = None
+
+def get_orchestrator_instance() -> OrchestratorZeroShot:
+    global _orchestrator_instance
+    if _orchestrator_instance is None:
+        _orchestrator_instance = OrchestratorZeroShot()
+    return _orchestrator_instance
 
 
 
@@ -64,12 +74,22 @@ def _generate_artifacts_from_specs(artifact_specs: List[dict], tool_results: Lis
         columns = list(data[0].keys()) if data else []
         
         if artifact_type == "TABLE":
+            # Normalize table artifact to include explicit rows (array of arrays), columns, and total_rows
+            rows = []
+            # data may be list[dict] or list[list]
+            if isinstance(data, list) and len(data) > 0:
+                if isinstance(data[0], dict):
+                    rows = [[row.get(col, "") for col in columns] for row in data[:100]]
+                elif isinstance(data[0], list):
+                    rows = data[:100]
+
             artifacts.append({
                 "artifact_type": "TABLE",
                 "title": title,
                 "content": {
                     "columns": columns,
-                    "data": data[:100]
+                    "rows": rows,
+                    "total_rows": len(data)
                 },
                 "description": description
             })
@@ -101,16 +121,17 @@ def _generate_artifacts_from_specs(artifact_specs: List[dict], tool_results: Lis
                     "data": [float(row.get(col, 0)) if row.get(col) is not None else 0 for row in data]
                 })
             
+            # Produce Highcharts-style configuration expected by the frontend contract
             artifacts.append({
                 "artifact_type": "CHART",
                 "title": title,
                 "content": {
-                    "type": chart_type,
-                    "chart_title": title,
-                    "categories": categories,
+                    "chart": {"type": chart_type},
+                    "title": {"text": title},
+                    "xAxis": {"categories": categories},
+                    "yAxis": {"title": {"text": "Value"}},
                     "series": series,
-                    "x_axis_label": category_col.replace('_', ' ').title() if category_col else "Category",
-                    "y_axis_label": "Value"
+                    "legend": {"enabled": True}
                 },
                 "description": description
             })
@@ -166,6 +187,42 @@ class MessageResponse(BaseModel):
 class ConversationDetailResponse(BaseModel):
     conversation: dict
     messages: List[MessageResponse]
+
+
+class StreamChatRequest(BaseModel):
+    message: str
+    history: Optional[List[Dict[str, str]]] = []
+    conversation_id: Optional[str] = None
+
+
+@router.post("/message/stream")
+async def chat_stream(request: StreamChatRequest):
+    """
+    Streaming endpoint for Cognitive Digital Twin.
+    Returns Server-Sent Events (SSE) containing JSON tokens.
+    """
+    try:
+        orchestrator = get_orchestrator_instance()
+
+        # Use the generator method we created in the orchestrator
+        stream_generator = orchestrator.stream_query(
+            user_query=request.message,
+            conversation_history=request.history,
+        )
+
+        # return StreamingResponse with text/event-stream media type and anti-buffer headers
+        return StreamingResponse(
+            stream_generator,
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+                "Connection": "keep-alive",
+            },
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/message", response_model=ChatResponse)
@@ -372,23 +429,30 @@ async def send_message(
 
 @router.get("/conversations", response_model=ConversationListResponse)
 async def list_conversations(
+    user_id: int = 1,
+    limit: int = 50,
     conversation_manager: SupabaseConversationManager = Depends(get_conversation_manager)
 ):
     """List all conversations for current user"""
-    user_id = 1  # Demo user
-    
     try:
         conversations = await conversation_manager.list_conversations(
             user_id=user_id,
-            limit=50
+            limit=limit
         )
         
         summaries = []
         for conv in conversations:
+            # Attempt to compute message count for each conversation
+            try:
+                msgs = await conversation_manager.get_messages(conv['id'])
+                msg_count = len(msgs) if msgs is not None else 0
+            except Exception:
+                msg_count = 0
+
             summaries.append(ConversationSummary(
                 id=conv['id'],
                 title=conv['title'],
-                message_count=0,  # TODO: Add message count
+                message_count=msg_count,
                 created_at=conv['created_at'],
                 updated_at=conv['updated_at']
             ))
@@ -422,7 +486,9 @@ async def get_conversation_detail(
             conversation={
                 "id": conversation['id'],
                 "title": conversation['title'],
-                "created_at": conversation['created_at']
+                "created_at": conversation['created_at'],
+                "updated_at": conversation['updated_at'], # Added
+                "user_id": conversation['user_id'] # Added
             },
             messages=[MessageResponse(
                 id=msg['id'],
@@ -437,7 +503,11 @@ async def get_conversation_detail(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.delete("/conversations/{conversation_id}")
+class DeleteConversationResponse(BaseModel):
+    success: bool
+    message: str
+
+@router.delete("/conversations/{conversation_id}", response_model=DeleteConversationResponse)
 async def delete_conversation(
     conversation_id: int,
     conversation_manager: SupabaseConversationManager = Depends(get_conversation_manager)
@@ -454,7 +524,7 @@ async def delete_conversation(
         if not deleted:
             raise HTTPException(status_code=404, detail="Conversation not found")
         
-        return {"message": "Conversation deleted successfully"}
+        return DeleteConversationResponse(success=True, message="Conversation deleted successfully")
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

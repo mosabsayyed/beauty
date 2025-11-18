@@ -39,6 +39,11 @@ class Settings:
     OPENAI_BASE_URL = os.getenv("AI_INTEGRATIONS_OPENAI_BASE_URL") or os.getenv("OPENAI_BASE_URL")
     EMBEDDING_MODEL = "text-embedding-3-small"
     
+    # JWT Authentication Settings
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "super-secret-key") # CHANGE THIS IN PRODUCTION!
+    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
+    
     # Current year for filters
     CURRENT_YEAR = 2025
     

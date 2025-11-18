@@ -148,6 +148,6 @@ class IngestionResponse(BaseModel):
 class HealthCheckResponse(BaseModel):
     status: str  # "healthy", "degraded", "critical"
     health_score: int
-    warnings: Dict[str, int]
+    warnings: Dict[str, Any]  # allow string messages or structured warnings
     data_completeness: Dict[str, Any]
     last_check: datetime

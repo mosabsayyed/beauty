@@ -5,6 +5,7 @@ from datetime import datetime
 
 router = APIRouter()
 
+@router.get("/", response_model=HealthCheckResponse)
 @router.get("/check", response_model=HealthCheckResponse)
 async def health_check():
     """Check system health using Supabase REST API"""
