@@ -1,170 +1,134 @@
 /**
- * CanvasPanel Component
+ * CanvasPanel Component - PREMIUM UPGRADE
  * 
- * Slide-out panel for viewing artifacts:
- * - Slides in from right (LTR) or left (RTL)
- * - Width: 50% of viewport (min 480px)
- * - Black header with controls
- * - White content area
- * - Minimize/Maximize/Close controls
+ * Slide-out panel for viewing artifacts with:
+ * - Glassmorphism effects
+ * - Framer Motion animations
+ * - Action buttons (Share, Print, Save, Download)
+ * - Responsive inline/overlay modes
  */
 
-import { useState, useEffect } from 'react';
-import { X, Download } from 'lucide-react';
-import { ArtifactRenderer } from './ArtifactRenderer';
-import { ScrollArea } from '../ui/scroll-area';
-import type { Artifact } from '../../types/api';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { UniversalCanvas } from './UniversalCanvas';
+import { CanvasHeader } from './CanvasHeader';
+import { CommentsSection } from './CommentsSection';
+import { Artifact } from '../../types/api';
+import { shareArtifact, printArtifact, saveArtifact, downloadArtifact } from '../../utils/canvasActions';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 interface CanvasPanelProps {
   artifacts: Artifact[];
-  isOpen: boolean;
-  onClose: () => void;
-  language?: 'en' | 'ar';
-  /**
-   * If true, render the panel inline as a right-side flex child (squeezes the chat area).
-   * Otherwise render as overlay (backdrop + fixed panel).
-   */
-  inline?: boolean;
-  /**
-   * Whether the canvas is expanded to full page
-   */
-  isExpanded?: boolean;
-  /**
-   * Toggle the expanded state
-   */
-  onToggleExpand?: (value: boolean) => void;
+  onClose?: () => void;
+  mode?: 'inline' | 'overlay';
+  isOpen?: boolean;
+  initialIndex?: number;
 }
 
-export function CanvasPanel({
-  artifacts,
-  isOpen,
-  onClose,
-  language = 'en',
-  inline = false,
-  isExpanded = false,
-  onToggleExpand,
+export function CanvasPanel({ 
+  artifacts = [], 
+  onClose, 
+  mode = 'overlay',
+  isOpen = true,
+  initialIndex = 0
 }: CanvasPanelProps) {
-  const [selectedArtifactIndex, setSelectedArtifactIndex] = useState(0);
-  const [isNarrow, setIsNarrow] = useState(typeof window !== 'undefined' ? window.innerWidth <= 991 : false);
-  const [contentHeight, setContentHeight] = useState<number>(() => (typeof window !== 'undefined' ? Math.max(360, window.innerHeight - 104) : 360));
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [isZenMode, setIsZenMode] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
-  const isRTL = language === 'ar';
-
-  // Track viewport width to apply responsive styles similar to @media (max-width: 991px)
+  // Update current index when initialIndex changes
   useEffect(() => {
-    function onResize() {
-      setIsNarrow(window.innerWidth <= 991);
-      setContentHeight(Math.max(400, window.innerHeight - 120));
+    if (initialIndex >= 0 && initialIndex < artifacts.length) {
+      setCurrentIndex(initialIndex);
     }
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
+  }, [initialIndex, artifacts.length]);
 
-  // Reset selected artifact when list changes (must be called before any early return to satisfy Hooks rules)
-  useEffect(() => {
-    setSelectedArtifactIndex(0);
-  }, [artifacts]);
+  const currentArtifact = artifacts[currentIndex];
+  const hasMultiple = artifacts.length > 1;
 
-  if (!isOpen) return null;
-
-  const hasArtifacts = artifacts && artifacts.length > 0;
-  const currentArtifact = hasArtifacts ? artifacts[selectedArtifactIndex] : null;
-
-  const translations = {
-    close: language === 'ar' ? 'إغلاق' : 'Close',
-    maximize: language === 'ar' ? 'تكبير' : 'Maximize',
-    download: language === 'ar' ? 'تحميل' : 'Download',
-    artifactsCount: (current: number, total: number) =>
-      language === 'ar' ? `${current} من ${total}` : `${current} of ${total}`,
-    emptyTitle: language === 'ar' ? 'لوحة' : 'Canvas',
-    emptyMessage: language === 'ar' ? 'لا توجد عناصر للعرض' : 'No artifacts to display',
+  const handleNext = () => {
+    if (currentIndex < artifacts.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    }
   };
 
-  // Always black header with white font
-  const headerBaseStyle: React.CSSProperties = { padding: '8px 12px', borderBottom: '1px solid rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#000', color: '#fff' };
-  const headerMobileOverrides: React.CSSProperties = isNarrow ? { maxWidth: '100%', borderRadius: '5px', overflow: 'hidden', backgroundColor: '#000', color: '#fff', border: '1px solid rgba(0,0,0,1)' } : {};
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+    }
+  };
 
-  const controlButtonBase: React.CSSProperties = { width: 32, height: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 6, borderRadius: 6, background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', color: '#fff' };
-  const controlButtonMobile: React.CSSProperties = isNarrow ? { backgroundColor: '#000', fontWeight: 500, padding: '4px 6px', border: '1px solid rgba(74,74,74,1)', color: '#fff' } : {};
+  const toggleZenMode = () => setIsZenMode(!isZenMode);
+  const toggleComments = () => setShowComments(!showComments);
 
-  // Inline mode: render as a non-fixed flex child so the main layout can shrink.
-  if (inline) {
-    const baseWidth = 420;
-    const expandedWidth = 840;
-    const widthValue = isExpanded ? expandedWidth : baseWidth;
-    const style: React.CSSProperties = {
-      width: `${widthValue}px`,
-      minWidth: `${widthValue}px`,
-      height: '100vh',
-      backgroundColor: 'rgb(255, 255, 255)',
-      borderLeft: isRTL ? undefined : '1px solid rgb(229, 231, 235)',
-      borderRight: isRTL ? '1px solid rgb(229, 231, 235)' : undefined,
-      boxShadow: '-2px 0 8px rgba(0, 0, 0, 0.04)',
-      display: 'flex',
-      flexDirection: 'column',
-      transition: 'width 0.3s ease',
-      zIndex: 30,
-      overflowY: 'auto',
-    };
+  const handleAction = (action: 'share' | 'print' | 'save' | 'download') => {
+    if (!currentArtifact) return;
+    
+    switch (action) {
+      case 'share': shareArtifact(currentArtifact); break;
+      case 'print': printArtifact(); break;
+      case 'save': saveArtifact(currentArtifact); break;
+      case 'download': downloadArtifact(currentArtifact); break;
+    }
+  };
 
+  const NavigationControls = () => (
+    <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-200">
+      <button
+        onClick={handlePrev}
+        disabled={currentIndex === 0}
+        className={`p-1 rounded-full ${currentIndex === 0 ? 'text-gray-300' : 'text-gray-600 hover:bg-gray-200'}`}
+      >
+        <ChevronLeftIcon className="w-5 h-5" />
+      </button>
+      <span className="text-xs text-gray-500 font-medium">
+        {currentIndex + 1} / {artifacts.length}
+      </span>
+      <button
+        onClick={handleNext}
+        disabled={currentIndex === artifacts.length - 1}
+        className={`p-1 rounded-full ${currentIndex === artifacts.length - 1 ? 'text-gray-300' : 'text-gray-600 hover:bg-gray-200'}`}
+      >
+        <ChevronRightIcon className="w-5 h-5" />
+      </button>
+    </div>
+  );
+
+  // Inline Mode
+  if (mode === 'inline') {
     return (
-      <div style={style} dir={isRTL ? 'rtl' : 'ltr'}>
-        {/* Header */}
-        <div style={{...headerBaseStyle, ...headerMobileOverrides}}>
-          <div style={{display:'flex', alignItems:'center', gap:12}}>
-            <h2 style={{fontSize:16, fontWeight:600, color:'#fff'}}>{currentArtifact ? currentArtifact.title : translations.emptyTitle}</h2>
-            {hasArtifacts && artifacts.length > 1 && (
-              <span style={{fontSize:13, color:'#fff'}}>
-                {translations.artifactsCount(selectedArtifactIndex + 1, artifacts.length)}
-              </span>
+      <div className={`border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col max-w-5xl ${isZenMode ? 'fixed inset-0 z-50 m-0 rounded-none h-full w-full' : 'h-full w-[45%] min-w-[600px]'}`}>
+        <CanvasHeader 
+          title={currentArtifact?.title || 'Canvas'} 
+          onClose={onClose}
+          onZenToggle={toggleZenMode}
+          isZenMode={isZenMode}
+          onAction={handleAction}
+          hideClose={!onClose}
+          onToggleComments={toggleComments}
+          showComments={showComments}
+        />
+        {hasMultiple && <NavigationControls />}
+        <div className="flex-1 flex overflow-hidden relative">
+          <div className={`flex-1 overflow-y-auto bg-gray-50 transition-all duration-300 ${showComments ? 'w-2/3' : 'w-full'}`}>
+            {currentArtifact ? (
+              <div className="h-full w-full p-6">
+                <UniversalCanvas 
+                  content={currentArtifact.content} 
+                  title={currentArtifact.title}
+                  type={currentArtifact.artifact_type?.toLowerCase()}
+                />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-400">
+                Select an item to view details
+              </div>
             )}
           </div>
-
-          <div style={{display:'flex', alignItems:'center', gap:8}}>
-            {/* Expand / Collapse */}
-            {typeof onToggleExpand === 'function' && (
-              <button
-                onClick={() => { onToggleExpand(!isExpanded); setTimeout(() => window.dispatchEvent(new Event('resize')), 300); }}
-                title={translations.maximize}
-                style={{...controlButtonBase, ...(isNarrow ? controlButtonMobile : {})}}
-              >
-                <span style={{fontSize:14, lineHeight:0}}>⇔</span>
-              </button>
-            )}
-
-            <button onClick={onClose} title={translations.close} style={{...controlButtonBase, ...(isNarrow ? controlButtonMobile : {})}}>
-              <X style={{ width: 16, height: 16, color: '#fff' }} />
-            </button>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        {hasArtifacts && artifacts.length > 1 && (
-          <div style={{display:'flex', gap:8, padding:'12px 16px', borderBottom:'1px solid rgba(0,0,0,0.04)', overflowX:'auto', backgroundColor: '#000'}}>
-            {artifacts.map((artifact, index) => (
-              <button key={index} onClick={() => setSelectedArtifactIndex(index)} style={{padding:'8px 12px', fontSize:13, borderBottom: index === selectedArtifactIndex ? '2px solid rgb(212,175,55)' : '2px solid transparent', background:'transparent', cursor:'pointer', color:'#fff'}}>
-                {artifact.title}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Content */}
-        <div style={{flex:1, overflowY:'auto', padding:16}}>
-          {hasArtifacts ? (
-            <div>
-              {currentArtifact?.description && (
-                <p style={{fontSize:13, color:'rgb(107,114,128)', marginBottom:16}}>{currentArtifact.description}</p>
-              )}
-              <div style={{height: isExpanded ? `calc(100vh - 96px)` : '400px'}}>
-                <ArtifactRenderer artifact={currentArtifact as Artifact} language={language} fullHeight={isExpanded ? contentHeight : 400} />
-              </div>
-            </div>
-          ) : (
-            <div style={{display:'flex', alignItems:'center', justifyContent:'center', height:'100%'}}>
-              <div style={{textAlign:'center', color:'rgb(107,114,128)'}}>
-                <p style={{fontSize:16, marginBottom:8}}>{translations.emptyMessage}</p>
-              </div>
+          {showComments && (
+            <div className="w-1/3 border-l border-gray-200 bg-white h-full overflow-hidden transition-all duration-300">
+               <CommentsSection artifactId={currentArtifact?.title || 'demo'} />
             </div>
           )}
         </div>
@@ -172,92 +136,77 @@ export function CanvasPanel({
     );
   }
 
-  const HEADER_HEIGHT = 48;
-  const TABS_HEIGHT = artifacts.length > 1 ? 40 : 0;
-
-  // Default overlay mode (existing behavior)
+  // Overlay Mode
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        onClick={onClose}
-        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.2)', zIndex: 40 }}
-      />
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+          />
+          
+          {/* Panel */}
+          <motion.div
+            ref={panelRef}
+            initial={{ x: '100%', opacity: 0.5 }}
+            animate={{ 
+              x: 0, 
+              opacity: 1,
+              width: isZenMode ? '100vw' : (showComments ? '60%' : '45%'),
+              maxWidth: isZenMode ? '100vw' : '1200px'
+            }}
+            exit={{ x: '100%', opacity: 0.5 }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
+            className={`fixed top-0 right-0 h-full bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200 ${
+              isZenMode ? 'glass-panel' : ''
+            }`}
+            style={{
+               // Width handled by motion.div animate prop
+            }}
+          >
+            {/* Header */}
+            <CanvasHeader 
+              title={currentArtifact?.title || 'Canvas'} 
+              onClose={onClose}
+              onZenToggle={toggleZenMode}
+              isZenMode={isZenMode}
+              onAction={handleAction}
+              onToggleComments={toggleComments}
+              showComments={showComments}
+            />
+            {hasMultiple && <NavigationControls />}
 
-      {/* Panel */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: isRTL ? 0 : undefined,
-          right: isRTL ? undefined : 0,
-          height: '100vh',
-          display: 'block',
-          transition: 'all 0.3s ease',
-          width: isExpanded ? '70vw' : '50vw',
-          minWidth: isExpanded ? '360px' : '480px',
-          zIndex: isExpanded ? 60 : 50,
-        }}
-        dir={isRTL ? 'rtl' : 'ltr'}
-      >
-        {/* Header (fixed) */}
-        <div style={{...headerBaseStyle, ...headerMobileOverrides, position: 'fixed', top: 0, left: 0, right: 0, height: HEADER_HEIGHT, zIndex: 80}}>
-          <div style={{display:'flex', alignItems:'center', gap:12}}>
-            <h2 style={{fontSize:18, fontWeight:700, color:'#fff'}}>{currentArtifact ? currentArtifact.title : translations.emptyTitle}</h2>
-            {artifacts.length > 1 && (
-              <span style={{fontSize:13, color:'#fff'}}>
-                {translations.artifactsCount(selectedArtifactIndex + 1, artifacts.length)}
-              </span>
-            )}
-          </div>
-
-          <div style={{display:'flex', alignItems:'center', gap:8}}>
-            <button title={translations.download} style={{...controlButtonBase, ...(isNarrow ? controlButtonMobile : {})}}>
-              <Download style={{ width: 16, height: 16, color: '#fff' }} />
-            </button>
-
-            {typeof onToggleExpand === 'function' && (
-              <button onClick={() => { onToggleExpand(!isExpanded); setTimeout(() => window.dispatchEvent(new Event('resize')), 300); }} title={translations.maximize} style={{...controlButtonBase, ...(isNarrow ? controlButtonMobile : {})}}>
-                <span style={{fontSize:14, lineHeight:0}}>⇔</span>
-              </button>
-            )}
-
-            <button onClick={onClose} title={translations.close} style={{...controlButtonBase, ...(isNarrow ? controlButtonMobile : {})}}>
-              <X style={{ width: 16, height: 16, color: '#fff' }} />
-            </button>
-          </div>
-        </div>
-
-        {/* Tabs (fixed under header) */}
-        {artifacts.length > 1 && (
-          <div style={{position:'fixed', left:0, right:0, top: HEADER_HEIGHT, height: TABS_HEIGHT, display:'flex', gap:8, padding:'8px 16px', background:'#000', alignItems:'center', borderBottom:'1px solid rgba(0,0,0,0.04)', zIndex:79, overflowX:'auto'}}>
-            {artifacts.map((artifact, index) => (
-              <button key={index} onClick={() => setSelectedArtifactIndex(index)} style={{padding:'8px 12px', fontSize:13, borderBottom: index === selectedArtifactIndex ? '2px solid rgb(212,175,55)' : '2px solid transparent', background:'transparent', cursor:'pointer', color:'#fff'}}>
-                {artifact.title}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Content area positioned below header+tabs */}
-        <div style={{position:'absolute', top: HEADER_HEIGHT + TABS_HEIGHT, left:0, right:0, bottom:0, overflow:'auto', padding: isExpanded ? 20 : 12}}>
-          {currentArtifact?.description && (
-            <p style={{fontSize:14, color:'rgb(107,114,128)', marginBottom:16}}>
-              {currentArtifact.description}
-            </p>
-          )}
-
-          {hasArtifacts ? (
-            <div style={{height:'100%'}}>
-              <ArtifactRenderer artifact={currentArtifact as Artifact} language={language} fullHeight={isExpanded ? contentHeight : 400} />
+            {/* Content */}
+            <div className="flex-1 flex overflow-hidden">
+              <div className="flex-1 overflow-y-auto bg-gray-50">
+                {currentArtifact ? (
+                  <div className="h-full w-full p-6">
+                    <UniversalCanvas 
+                      content={currentArtifact.content} 
+                      title={currentArtifact.title}
+                      type={currentArtifact.artifact_type?.toLowerCase()}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-400">
+                    No content to display
+                  </div>
+                )}
+              </div>
+              {showComments && (
+                <div className="w-80 border-l border-gray-200 bg-gray-50 h-full overflow-hidden flex-shrink-0">
+                   <CommentsSection artifactId={currentArtifact?.title || 'demo'} />
+                </div>
+              )}
             </div>
-          ) : (
-            <div style={{textAlign:'center', color:'rgb(107,114,128)'}}>
-              <p style={{fontSize:16, marginBottom:8}}>{translations.emptyMessage}</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

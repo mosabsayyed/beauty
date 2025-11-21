@@ -32,6 +32,7 @@ export function MessageBubble({
   onEdit,
   onFeedback,
   onOpenArtifact,
+  onRetry,
   language = 'en',
   showAvatar = true,
 }: MessageBubbleProps) {
@@ -297,7 +298,7 @@ export function MessageBubble({
 
         {!isUser && message.metadata?.artifacts && message.metadata.artifacts.length > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-            {message.metadata.artifacts.map((artifact, index) => (
+            {message.metadata.artifacts.map((artifact: any, index: number) => (
               <div
                 key={index}
                 role="button"
@@ -314,7 +315,7 @@ export function MessageBubble({
                 }}
                 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, padding: '6px 8px', borderRadius: 8, background: 'rgba(247,248,250,1)', border: '1px solid rgba(229,231,235)', maxWidth: 320, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', cursor: 'pointer' }}
               >
-                <ArtifactIcon type={artifact.artifact_type} size={16} color={'#D4AF37'} />
+                <ArtifactIcon type={artifact.artifact_type || artifact.type || 'unknown'} size={16} color={'#D4AF37'} />
                 <span style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis' }}>{artifact.title}</span>
               </div>
             ))}
@@ -355,8 +356,18 @@ export function MessageBubble({
 function ArtifactIcon({ type, size = 16, color }: { type: string; size?: number; color?: string }) {
   const commonStyle = { width: size, height: size, flexShrink: 0, color: color || 'rgba(107,114,128,1)' } as any;
 
-  switch (type) {
+  switch ((type || '').toUpperCase()) { // Convert type to uppercase for case-insensitive matching
     case 'CHART':
+    case 'CHART_BAR':
+    case 'CHART_LINE':
+    case 'CHART_PIE':
+    case 'PIE':
+    case 'COLUMN':
+    case 'LINE':
+    case 'RADAR':
+    case 'BUBBLE':
+    case 'BULLET':
+    case 'COMBO':
       return (
         <svg style={commonStyle} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -381,7 +392,12 @@ function ArtifactIcon({ type, size = 16, color }: { type: string; size?: number;
         </svg>
       );
     default:
-      return null;
+      // Fallback icon for unknown types - a generic file icon
+      return (
+        <svg style={commonStyle} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      );
   }
 }
 

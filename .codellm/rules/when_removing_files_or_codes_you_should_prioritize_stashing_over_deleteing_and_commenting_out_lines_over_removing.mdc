@@ -1,0 +1,7 @@
+---
+description: Everything
+globs: *
+alwaysApply: true
+---
+
+when removing files or codes you should prioritize stashing over deletein and commenting out lines over removing

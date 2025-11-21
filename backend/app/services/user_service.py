@@ -11,17 +11,21 @@ logger = logging.getLogger(__name__)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 class User(BaseModel):
     id: Optional[int] = None
     email: EmailStr
-    password: str
+    password: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
+    supabase_id: Optional[str] = None
+    full_name: Optional[str] = None
+
 
 class UserService:
     def __init__(self, supabase_client: SupabaseClient):
         self.client = supabase_client
-        self.table_name = "users" # Assuming a 'users' table in Supabase
+        self.table_name = "users"  # Assuming a 'users' table in Supabase
 
     def get_password_hash(self, password: str) -> str:
         return pwd_context.hash(password)
@@ -35,7 +39,7 @@ class UserService:
            - If stored hash looks like an MD5 hex (32 chars), compare md5(password).
            - As a last resort, compare plaintext equality (only for legacy migration).
         3. If a legacy check succeeds, re-hash the password with current scheme and
-           update the record in Supabase to migrate to `password_hash` modern format.
+           update the record in Supabase to migrate to modern format.
 
         Returns True if password matches, False otherwise.
         """
@@ -55,7 +59,6 @@ class UserService:
                     if user_email:
                         new_hash = self.get_password_hash(plain_password)
                         try:
-                            # Schedule async migration update (don't block verification)
                             asyncio.create_task(self.client.table_update(self.table_name, {"password": new_hash}, {"email": user_email}))
                         except Exception as e:
                             logger.error(f"Failed to schedule migration of legacy password for {user_email}: {e}")
@@ -93,7 +96,7 @@ class UserService:
             return User(**users[0])
         return None
 
-    async def create_user(self, email: str, password: Optional[str] = None, supabase_id: Optional[str] = None) -> Optional[User]:
+    async def create_user(self, email: str, password: Optional[str] = None, supabase_id: Optional[str] = None, full_name: Optional[str] = None) -> Optional[User]:
         """
         Create a user record in the users table. If supabase_id is provided, store it in the record to link
         local users to Supabase auth users. Password may be None for OAuth-created users.
@@ -104,6 +107,8 @@ class UserService:
         }
         if password is not None:
             user_data["password"] = password
+        if full_name is not None:
+            user_data["full_name"] = full_name
         if supabase_id is not None:
             user_data["supabase_id"] = supabase_id
         try:
@@ -121,5 +126,6 @@ class UserService:
         if users:
             return User(**users[0])
         return None
+
 
 user_service = UserService(supabase_client)

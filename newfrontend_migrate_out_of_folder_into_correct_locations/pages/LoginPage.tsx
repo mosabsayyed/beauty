@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Language } from '../types';
 import { Button } from '../components/ui/button';
@@ -7,7 +8,7 @@ import { Label } from '../components/ui/label';
 import { Card } from '../components/ui/card';
 import { CheckCircle2 } from 'lucide-react';
 import { Footer } from '../components/Footer';
-import josoorLogo from 'figma:asset/2c14eebd5b8a5df63fd7bfe674c59ce7b12ed179.png';
+const josoorLogo = 'https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2Fefbe50adfc8743cfa8a2c93570680bae';
 
 interface LoginPageProps {
   language: Language;
@@ -22,6 +23,29 @@ export function LoginPage({ language, onLanguageChange, onSkip, onLogin }: Login
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
 
+  // Inject responsive CSS similar to the requested diff
+  useEffect(() => {
+    const css = `
+      @media (max-width: 991px) {
+        .login-card-left { background-color: rgba(0,0,0,1) !important; color: #fff !important; }
+        .login-title { color: #fff !important; }
+        .login-subtitle { color: #fff !important; }
+        .feature-icon, svg { stroke: rgb(255,255,255) !important; color: rgb(255,255,255) !important; }
+        .login-form { display: flex !important; flex-direction: column !important; align-items: stretch !important; gap: 10px !important; }
+        .label-col { width: 30% !important; }
+        .input-field { margin-left: 10px !important; }
+        .helper-box { background-color: rgba(0,0,0,1) !important; width: 50% !important; height: 100% !important; }
+        .features-list { display: flex !important; flex-direction: row !important; }
+        .feature-text { margin-left: 20px !important; width: 100% !important; }
+      }
+    `;
+    const style = document.createElement('style');
+    style.setAttribute('data-generated', 'login-responsive');
+    style.appendChild(document.createTextNode(css));
+    document.head.appendChild(style);
+    return () => { document.head.removeChild(style); };
+  }, []);
+
   const content = {
     en: {
       title: 'Welcome to TwinLife',
@@ -35,7 +59,7 @@ export function LoginPage({ language, onLanguageChange, onSkip, onLogin }: Login
         'Live Transformation Simulation',
         'Re-imagined True-Intelligence Dashboards',
         'Full Multi-Media Body of Knowledge',
-        'Working Space for Your Organization\'s First DT Use Case'
+        'Working Space for UC 001'
       ],
       login: 'Login',
       register: 'Register',
@@ -113,12 +137,13 @@ export function LoginPage({ language, onLanguageChange, onSkip, onLogin }: Login
           
           {/* Left Column - Information */}
           <motion.div
+            id="login-page"
             initial={{ opacity: 0, x: language === 'ar' ? 30 : -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
             className={language === 'ar' ? 'lg:col-start-2' : ''}
           >
-            <Card className="p-8 bg-white border-2 border-[#1A2435]/10 h-full">
+            <Card className="p-8 bg-white border-2 border-[#1A2435]/10 h-full login-card-left" style={{ padding: 24 }}>
               <div className="space-y-6">
                 
                 <div>
@@ -137,9 +162,9 @@ export function LoginPage({ language, onLanguageChange, onSkip, onLogin }: Login
                   <h3 className="text-[#D4AF37] mb-4">{t.whatYouGet}</h3>
                   <div className="space-y-3">
                     {t.features.map((feature, i) => (
-                      <div key={i} className={`flex items-start gap-3 ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
-                        <CheckCircle2 className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
-                        <span className="text-slate-700">{feature}</span>
+                      <div key={i} className={`flex items-start gap-3 ${language === 'ar' ? 'flex-row-reverse' : ''} features-list`}>
+                        <CheckCircle2 className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5 feature-icon" />
+                        <span className="text-slate-700 feature-text">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -157,7 +182,7 @@ export function LoginPage({ language, onLanguageChange, onSkip, onLogin }: Login
             className={language === 'ar' ? 'lg:col-start-1 lg:row-start-1' : ''}
           >
             <Card className="p-8 bg-white border-2 border-[#D4AF37]/30">
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="login-form" style={{ display: 'grid', gap: 16 }}>
                 
                 <div className="text-center mb-6">
                   <h2 className="text-primary-dark mb-2">
@@ -180,28 +205,28 @@ export function LoginPage({ language, onLanguageChange, onSkip, onLogin }: Login
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-[#1A2435]">{t.email}</Label>
+                <div className="space-y-2" style={{ display: 'flex', alignItems: 'center' }}>
+                  <Label htmlFor="email" className="text-[#1A2435] label-col">{t.email}</Label>
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="border-[#1A2435]/20 focus:border-[#D4AF37]"
+                    className="border-[#1A2435]/20 focus:border-[#D4AF37] input-field"
                     dir="ltr"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-[#1A2435]">{t.password}</Label>
+                <div className="space-y-2" style={{ display: 'flex', alignItems: 'center' }}>
+                  <Label htmlFor="password" className="text-[#1A2435] label-col">{t.password}</Label>
                   <Input
                     id="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="border-[#1A2435]/20 focus:border-[#D4AF37]"
+                    className="border-[#1A2435]/20 focus:border-[#D4AF37] input-field"
                     dir="ltr"
                   />
                 </div>
@@ -251,7 +276,9 @@ export function LoginPage({ language, onLanguageChange, onSkip, onLogin }: Login
           </div>
         </div>
       </div>
-      
+
+      <div className="helper-box" style={{ display: 'flex', flexDirection: 'column', position: 'relative', marginTop: 20, height: 200 }} />
+
       <Footer language={language} onLanguageChange={onLanguageChange} />
     </div>
   );

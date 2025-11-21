@@ -1,4 +1,5 @@
 import { ChatRequest, ChatResponse, Conversation, ChatMessage, DebugLogs } from '../types/chat';
+import { safeJsonParse } from '../utils/streaming';
 
 // Use REACT_APP_API_URL (recommended) or REACT_APP_API_BASE for backwards compatibility.
 // If not set, fall back to relative API paths under /api/v1 so development setups using
@@ -80,15 +81,38 @@ class ChatService {
   }
 
   private adaptChartArtifact(artifact: any): any {
+    console.log('[adaptChartArtifact] CALLED with artifact:', JSON.stringify(artifact, null, 2));
     const content = artifact.content || {};
-    // Support both legacy flattened chart content and Highcharts-style content
-    const chartType = content.chart?.type || content.type || 'bar';
+    
+    // TRUST THE BACKEND: If config exists, use it.
+    if (content.config) {
+      console.log('[adaptChartArtifact] Has config, using config path');
+      // CRITICAL: Preserve the type field from the artifact root if it exists
+      // Backend sends visualizations with type at root level: {type: "column", title: "...", config: {...}}
+      const chartType = artifact.type || content.chart?.type || content.type || 'bar';
+      console.log('[adaptChartArtifact] Extracted chartType:', chartType);
+      return {
+        ...artifact,
+        content: {
+          ...content,
+          chart: { type: chartType },
+          // Ensure config is preserved exactly as is
+          config: content.config
+        }
+      };
+    }
+
+    // Fallback for legacy/other formats
+    console.log('[adaptChartArtifact] No config, using fallback path');
+    // Check artifact.type first (from backend visualizations), then content.chart.type, then content.type
+    const chartType = artifact.type || content.chart?.type || content.type || 'bar';
+    console.log('[adaptChartArtifact] Extracted chartType:', chartType);
     const titleText = content.title?.text || content.chart_title || artifact.title || '';
     const xCategories = content.xAxis?.categories || content.categories || [];
     const yAxis = content.yAxis || (content.y_axis_label ? { title: { text: content.y_axis_label } } : undefined);
     const series = content.series || [];
 
-    return {
+    const result = {
       ...artifact,
       content: {
         chart: { type: chartType },
@@ -98,6 +122,8 @@ class ChatService {
         series,
       }
     };
+    console.log('[adaptChartArtifact] Returning:', JSON.stringify(result, null, 2));
+    return result;
   }
 
   async sendMessage(request: ChatRequest): Promise<ChatResponse> {
@@ -108,7 +134,28 @@ class ChatService {
     });
 
     const data = await response.json();
-    return this.adaptArtifacts(data);
+
+    // Native pass-through mode: the backend now returns a mandated `llm_payload`
+    // block (if available) and the full `raw_response`. Do NOT normalize or
+    // remap fields—return the payload as-is so the UI can consume the exact
+    // block the LLM produced.
+    if (data && data.llm_payload) {
+      const out: any = {
+        conversation_id: data.conversation_id,
+        llm_payload: data.llm_payload,
+        raw_response: data.raw_response,
+      };
+
+      // If artifacts live inside the llm_payload, adapt them for frontend
+      if (out.llm_payload && out.llm_payload.artifacts) {
+        out.llm_payload.artifacts = this.adaptArtifacts(out.llm_payload).artifacts || out.llm_payload.artifacts;
+      }
+
+      return out;
+    }
+
+    // Fallback: return the whole response untouched
+    return data;
   }
 
   async getConversations(userId: number = 1, limit: number = 50): Promise<{ conversations: Conversation[] }> {
@@ -122,7 +169,25 @@ class ChatService {
     const response = await this.fetchWithErrorHandling(
       buildUrl(`/chat/conversations/${conversationId}/messages`)
     );
-    return response.json();
+    const data = await response.json();
+    
+    // Adapt artifacts in historical messages too
+    if (data.messages && Array.isArray(data.messages)) {
+      data.messages = data.messages.map((msg: any) => {
+        // Check if message has metadata with artifacts or visualizations
+        if (msg.metadata) {
+          if (msg.metadata.artifacts) {
+            msg.metadata.artifacts = this.adaptArtifacts({ artifacts: msg.metadata.artifacts }).artifacts;
+          }
+          if (msg.metadata.visualizations) {
+            msg.metadata.visualizations = this.adaptArtifacts({ artifacts: msg.metadata.visualizations }).artifacts;
+          }
+        }
+        return msg;
+      });
+    }
+    
+    return data;
   }
 
   async getDebugLogs(conversationId: number): Promise<DebugLogs> {
@@ -149,71 +214,16 @@ class ChatService {
 
     const body = (error as any).body;
 
-    // Utility: robust attempt to parse JSON from a string, handling nested and double-escaped JSON
-    const tryParseJSON = (value: any, maxDepth = 10): any => {
-      if (value === null || value === undefined) return null;
-      if (typeof value === 'object') return value;
-      if (typeof value !== 'string') return null;
-
-      const unescapeCommon = (s: string) => String(s).replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\\\/g, '\\');
-
-      const extractJsonSubstrings = (s: string) => {
-        const matches: string[] = [];
-        const re = /\{[\s\S]*?\}/g;
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(s)) !== null) matches.push(m[0]);
-        return matches;
-      };
-
-      let candidate: any = value;
-      for (let depth = 0; depth < maxDepth; depth++) {
-        if (typeof candidate !== 'string') return candidate;
-        // Quick parse attempt
-        try {
-          const parsed = JSON.parse(candidate);
-          candidate = parsed;
-          if (typeof candidate !== 'string') return candidate;
-          continue;
-        } catch (e) {
-          // Remove surrounding quotes if the entire string is quoted
-          const stripped = String(candidate).replace(/^\s*"([\s\S]*)"\s*$/,'$1');
-          if (stripped !== candidate) candidate = stripped;
-
-          // Unescape common sequences
-          const un = unescapeCommon(candidate);
-          if (un !== candidate) candidate = un;
-
-          // Extract any JSON-like substrings and try parsing them
-          const subs = extractJsonSubstrings(candidate);
-          if (subs.length > 0) {
-            for (const sub of subs) {
-              try {
-                const p = JSON.parse(sub);
-                return p;
-              } catch (_) {
-                try {
-                  const p2 = JSON.parse(unescapeCommon(sub));
-                  return p2;
-                } catch (_) {
-                  // continue trying other substrings
-                }
-              }
-            }
-            // if substrings exist but none parsed, set candidate to first substring and continue
-            candidate = subs[0];
-            continue;
-          }
-
-          // nothing left to try
-          return null;
-        }
+    // Use shared safeJsonParse that handles Markdown-wrapped JSON and noisy LLM output
+    const tryParseJSON = (value: any) => {
+      try {
+        if (value === null || value === undefined) return null;
+        if (typeof value === 'object') return value;
+        if (typeof value !== 'string') return null;
+        return safeJsonParse(value);
+      } catch (e) {
+        return null;
       }
-
-      // Final attempt
-      if (typeof candidate === 'string') {
-        try { return JSON.parse(candidate); } catch (_) { return null; }
-      }
-      return candidate;
     };
 
     // Recursively search for a key in an object

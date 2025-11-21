@@ -6,6 +6,7 @@ from app.services.user_service import UserService, user_service, User # Import U
 from app.utils import auth_utils # Import auth_utils
 from datetime import timedelta
 import logging
+import uuid
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -81,7 +82,8 @@ async def register_user(request: RegisterRequest, user_service: UserService = De
     # Create user in Supabase (store hashed password in `password` column)
     new_user = await user_service.create_user(
         email=request.email,
-        password=hashed
+        password=hashed,
+        full_name=request.name
     )
 
     if not new_user:
@@ -140,6 +142,52 @@ async def sync_supabase_user(payload: dict):
     except Exception as e:
         logger.error(f"Error syncing supabase user: {e}")
         raise HTTPException(status_code=500, detail='internal error')
+
+
+@router.post("/guest", response_model=dict)
+async def create_guest_user(user_service: UserService = Depends(lambda: user_service)):
+    """
+    Create a lightweight guest user and return an access token that maps to the app user id.
+    The guest account uses an email of the form `guest+{uuid}@guest.local` and `role='guest'`.
+    """
+    # Per `docs/MULTI-USER_SUPPORT.md` Step 3 (Guest mode): guest interactions
+    # must be local-only and must not persist to the backend. The presence of
+    # this endpoint contradicts the document's requirement. To avoid accidental
+    # persistence during development we disable this endpoint and return a
+    # clear status explaining the project policy.
+    raise HTTPException(
+        status_code=410,
+        detail=(
+            "Guest persistence via backend is disabled per docs/MULTI-USER_SUPPORT.md. "
+            "Frontend must keep guest chat state in localStorage only (see docs)."
+        ),
+    )
+
+
+class TransferGuestRequest(BaseModel):
+    guest_user_id: int
+    guest_token: str
+
+
+@router.post("/transfer_guest", response_model=dict)
+async def transfer_guest_conversations(
+    body: TransferGuestRequest,
+    current_user: User = Depends(auth_utils.get_current_user)
+):
+    """
+    Transfer conversations from a guest app user to the currently authenticated user.
+    Requires both the registered user's auth (current_user) and the guest token to prove ownership.
+    """
+    # Transfer functionality is intentionally disabled because guest mode is
+    # specified to be local-only in `docs/MULTI-USER_SUPPORT.md`. To avoid
+    # accidental backend reassignments, we return a 410 explaining the policy.
+    raise HTTPException(
+        status_code=410,
+        detail=(
+            "Guest transfer via backend is disabled per docs/MULTI-USER_SUPPORT.md. "
+            "To persist or transfer guest history, follow the frontend local-only transfer flow described in the docs."
+        ),
+    )
 
 # --- Future: Token Refresh, Logout, etc. ---
 # @router.post("/refresh")

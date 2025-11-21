@@ -67,6 +67,21 @@
   --shadow-popover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
   --shadow-none: none;
 
+  /* PREMIUM: Glassmorphism & Advanced Shadows */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-bg-dark: rgba(0, 0, 0, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-blur: blur(12px);
+  --shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-glow: 0 0 20px rgba(212, 175, 55, 0.3);
+
+  /* PREMIUM: Animation Timing */
+  --timing-fast: 150ms;
+  --timing-base: 250ms;
+  --timing-slow: 350ms;
+  --easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
   /* LEGACY COMPATIBILITY (for ShadCN components) */
   --background: #FFFFFF;
   --foreground: #111827;
@@ -416,4 +431,68 @@ img, svg {
 
 svg {
   shape-rendering: geometricPrecision;
+}
+
+/* ===================================
+   PREMIUM DESIGN SYSTEM UTILITIES
+   For the "WOW" upgrade
+   =================================== */
+
+/* Glassmorphism Effects */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-dark {
+  background: var(--glass-bg-dark);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Premium Shadows */
+.shadow-elevated {
+  box-shadow: var(--shadow-elevated);
+}
+
+.shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+/* Smooth Transitions */
+.transition-smooth {
+  transition: all var(--timing-base) var(--easing-smooth);
+}
+
+.transition-bounce {
+  transition: all var(--timing-base) var(--easing-bounce);
+}
+
+/* Premium Gradients */
+.gradient-gold {
+  background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-hover) 100%);
+}
+
+.gradient-subtle {
+  background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(249,250,251,1) 100%);
+}
+
+/* Glass Panel - Specific for Zen Mode Overlay */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-left: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode support for glass panel if needed later */
+@media (prefers-color-scheme: dark) {
+  .glass-panel {
+    background: rgba(20, 20, 20, 0.85);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+  }
 }

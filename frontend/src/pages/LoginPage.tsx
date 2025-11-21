@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Language } from '../types';
@@ -10,7 +10,7 @@ import { CheckCircle2 } from 'lucide-react';
 // Use public logo asset instead of figma: URI (build can't handle figma: scheme)
 import { register as apiRegister, signInWithProvider } from '../services/authService';
 import { useAuth } from '../contexts/AuthContext';
-const josoorLogo = '/logo192.png';
+const josoorLogo = 'https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2Fefbe50adfc8743cfa8a2c93570680bae';
 
 
 interface LoginPageProps {
@@ -29,7 +29,7 @@ export function LoginPage({ language: propLanguage, onLanguageChange, onSkip, on
 
   const content = {
     en: {
-      title: 'Welcome to TwinLife',
+      title: 'Welcome to JOSOOR',
       subtitle: 'Your Gateway to Cognitive Transformation',
       whyRegister: 'Why Register?',
       free: 'Registration is FREE & Optional',
@@ -40,7 +40,7 @@ export function LoginPage({ language: propLanguage, onLanguageChange, onSkip, on
         'Live Transformation Simulation',
         'Re-imagined True-Intelligence Dashboards',
         'Full Multi-Media Body of Knowledge',
-        'Working Space for Your Organization\'s First DT Use Case'
+        'Working Space for UC 001'
       ],
       login: 'Login',
       register: 'Register',
@@ -62,7 +62,7 @@ export function LoginPage({ language: propLanguage, onLanguageChange, onSkip, on
       free: 'التسجيل مجاني واختياري',
       purpose: 'الهدف',
       purposeDesc: 'احفظ جلستك مع نور، تتبع تقدم التعلم، واحتفظ بنتائج العمل التي تنشئها.',
-      whatYouGet: 'ما يقدمه هذا القسم',
+      whatYouGet: 'ما يقدمه هذا القس��',
       features: [
         'محاكاة التحول المباشرة',
         'لوحات معلومات الذكاء الحقيقي المعاد تصورها',
@@ -99,6 +99,31 @@ export function LoginPage({ language: propLanguage, onLanguageChange, onSkip, on
 
   const auth = useAuth();
 
+  // Inject responsive CSS for the login page to match requested diff
+  useEffect(() => {
+    const css = `
+      @media (max-width: 991px) {
+        #login-page .card-base { background-color: rgba(0,0,0,1) !important; color: #fff; }
+        #login-page .login-title { color: #fff !important; }
+        #login-page .login-subtitle { color: #fff !important; }
+        #login-page .feature-icon, #login-page svg { stroke: rgb(255,255,255) !important; color: rgb(255,255,255) !important; }
+        #login-page .login-form { display: flex !important; flex-direction: column !important; align-items: stretch !important; gap: 10px !important; }
+        #login-page .label-col { width: 30% !important; }
+        #login-page .input-field { margin-left: 10px !important; }
+        #login-page .helper-box { background-color: rgba(0,0,0,1) !important; width: 50% !important; height: 100% !important; }
+        #login-page .features-list { display: flex !important; flex-direction: row !important; }
+        #login-page .feature-text { margin-left: 20px !important; width: 100% !important; }
+      }
+    `;
+    const style = document.createElement('style');
+    style.setAttribute('data-generated', 'login-responsive');
+    style.appendChild(document.createTextNode(css));
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -126,12 +151,12 @@ export function LoginPage({ language: propLanguage, onLanguageChange, onSkip, on
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 pt-32 pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Logo and Title */}
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
+          <motion.div id="login-page" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
               <img src={josoorLogo} alt="JOSOOR" style={{ width: 80, height: 80, objectFit: 'contain', filter: 'drop-shadow(0 0 20px rgba(212,175,55,0.3))' }} />
             </div>
-            <h1 className="mb-3">{t.title}</h1>
-            <p style={{ color: 'var(--text-secondary)' }}>{t.subtitle}</p>
+            <h1 className="mb-3 login-title">{t.title}</h1>
+            <p className="login-subtitle" style={{ color: 'var(--text-secondary)' }}>{t.subtitle}</p>
           </motion.div>
 
           {/* Two Column Layout */}
@@ -153,10 +178,11 @@ export function LoginPage({ language: propLanguage, onLanguageChange, onSkip, on
               <div className="space-y-6">
                 
                 <div>
-                  <h2 className="text-primary-dark mb-3">{t.whyRegister}</h2>
-                  <div className="inline-block px-4 py-2 bg-gradient-to-r from-[#D4AF37]/10 to-[#B8960F]/10 border border-[#D4AF37]/30 mb-4">
-                    <p className="text-[#1A2435]">{t.free}</p>
-                  </div>
+                  <h2 style={{ margin: 0 }}>
+                    <span style={{ fontSize: 14 }}>
+                      <span style={{ fontWeight: 700 }}>{t.free}</span>
+                    </span>
+                  </h2>
                 </div>
 
                 <div>
@@ -168,9 +194,9 @@ export function LoginPage({ language: propLanguage, onLanguageChange, onSkip, on
                   <h3 className="text-[#D4AF37] mb-4">{t.whatYouGet}</h3>
                   <div className="space-y-3">
                     {t.features.map((feature, i) => (
-                      <div key={i} className={`flex items-start gap-3 ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
-                        <CheckCircle2 className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
-                        <span className="text-slate-700">{feature}</span>
+                      <div key={i} className={`flex items-start gap-3 ${language === 'ar' ? 'flex-row-reverse' : ''} features-list`}>
+                        <CheckCircle2 className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5 feature-icon" />
+                        <span className="text-slate-700 feature-text">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -183,7 +209,7 @@ export function LoginPage({ language: propLanguage, onLanguageChange, onSkip, on
           {/* Right Column - Login/Register Form */}
           <motion.div initial={{ opacity: 0, x: language === 'ar' ? -30 : 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className={language === 'ar' ? 'lg:col-start-1 lg:row-start-1' : ''}>
             <Card className="card-base" style={{ padding: 24 }}>
-              <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 16 }}>
+              <form onSubmit={handleSubmit} className="login-form" style={{ display: 'grid', gap: 16 }}>
                 
                 <div className="text-center mb-6">
                   <h2 className="text-primary-dark mb-2">
@@ -198,13 +224,13 @@ export function LoginPage({ language: propLanguage, onLanguageChange, onSkip, on
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-[#1A2435]">{t.email}</Label>
+                <div className="space-y-2" style={{ display: 'flex', alignItems: 'center' }}>
+                  <Label htmlFor="email" className="text-[#1A2435] label-col">{t.email}</Label>
                   <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="input-field" dir="ltr" />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-[#1A2435]">{t.password}</Label>
+                <div className="space-y-2" style={{ display: 'flex', alignItems: 'center' }}>
+                  <Label htmlFor="password" className="text-[#1A2435] label-col">{t.password}</Label>
                   <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="input-field" dir="ltr" />
                 </div>
 
@@ -251,8 +277,11 @@ export function LoginPage({ language: propLanguage, onLanguageChange, onSkip, on
           </div>
         </div>
       </div>
-      
-      
+
+      <div className="helper-box" style={{ display: 'flex', flexDirection: 'column', position: 'relative', marginTop: 20, height: 200 }}>
+        {/* Responsive helper box */}
+      </div>
+
     </div>
   );
 }

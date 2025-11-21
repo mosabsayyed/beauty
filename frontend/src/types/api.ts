@@ -21,6 +21,9 @@ export type ArtifactType = 'CHART' | 'TABLE' | 'REPORT' | 'DOCUMENT';
  * All artifact types extend this base structure
  */
 export interface BaseArtifact {
+  id?: string;
+  created_at?: string;
+  groupId?: number;
   artifact_type: ArtifactType;
   title: string;
   description?: string;

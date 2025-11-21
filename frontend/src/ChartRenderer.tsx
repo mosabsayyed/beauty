@@ -168,7 +168,7 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ artifact, showHeader = tr
       }
 
       // Ensure all series have supported types and valid data
-      const supportedTypes = ['line', 'spline', 'area', 'areaspline', 'column', 'bar', 'pie', 'scatter', 'bubble', 'bullet'];
+      const supportedTypes = ['line', 'spline', 'area', 'areaspline', 'column', 'bar', 'pie', 'scatter', 'bubble', 'bullet', 'radar', 'spider', 'combo'];
       const validatedSeries = config.series.map((series: any) => {
         const validType = supportedTypes.includes(series.type) ? series.type : 'column';
         return {

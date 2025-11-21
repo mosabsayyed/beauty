@@ -4,6 +4,7 @@ import { Language } from '../../types';
 import { cleanJsonString, parseSseMessages } from '../../utils/streaming';
 import MessageBubble from '../../components/MessageBubble';
 
+
 interface Message {
   id: string;
   role: 'user' | 'noor';
@@ -16,9 +17,11 @@ interface ChatInterfaceProps {
   messages: Message[];
   onSendMessage: (message: string) => void;
   isProcessing?: boolean;
+  conversationId?: number;
+  onReceiveAssistant?: (message: { content: string; metadata?: any }) => void;
 }
 
-export function ChatInterface({ language, messages, onSendMessage, isProcessing = false }: ChatInterfaceProps) {
+export function ChatInterface({ language, messages, onSendMessage, isProcessing = false, conversationId, onReceiveAssistant }: ChatInterfaceProps) {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -59,22 +62,72 @@ export function ChatInterface({ language, messages, onSendMessage, isProcessing 
     setIsStreaming(true);
 
     try {
-      await handleStreamRequest(
-        userMessage,
-        [],
-        (thought) => {
-          setStreamingThinking(thought);
-        },
-        (answer) => {
-          setStreamingAnswer(answer);
-          setIsStreaming(false);
-        },
-        (acc) => {
-          // optional accumulated chunk callback
-        }
-      );
+      const bodyPayload: any = { query: userMessage }; // Use 'query' for non-streaming endpoint
+      if (conversationId) bodyPayload.conversation_id = conversationId;
+
+      const response = await fetch('/api/v1/chat/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyPayload),
+      });
+
+      if (!response.ok) throw new Error('Server error');
+
+      const data = await response.json();
+      
+      let ans = "";
+      let artifacts: any[] = [];
+      let llmPayload = data.llm_payload || data;
+
+      // If llm_payload is a string, try to parse it
+      if (typeof llmPayload === 'string') {
+        try {
+          llmPayload = JSON.parse(llmPayload);
+        } catch (e) {}
+      }
+
+      if (llmPayload) {
+        ans = llmPayload.answer || llmPayload.message || "";
+        if (llmPayload.visualizations) artifacts = llmPayload.visualizations;
+      }
+
+      if (!ans) {
+        ans = data.message || data.answer || "";
+      }
+      if (artifacts.length === 0 && data.artifacts) {
+        artifacts = data.artifacts;
+      }
+
+      // Try to parse ans if it looks like JSON
+      if (typeof ans === 'string' && (ans.trim().startsWith('{') || ans.trim().startsWith('['))) {
+        try {
+           const parsed = JSON.parse(ans);
+           if (parsed.answer) ans = parsed.answer;
+           if (parsed.visualizations) artifacts = parsed.visualizations;
+           if (!llmPayload || typeof llmPayload !== 'object') llmPayload = parsed;
+        } catch (e) {}
+      }
+
+      setStreamingAnswer(ans);
+      
+      // Build metadata payload
+      const metadata: any = {};
+      if (artifacts.length > 0) metadata.visualizations = artifacts;
+      
+      // Other metadata fields
+      if (llmPayload.insights) metadata.analysis = llmPayload.insights;
+      if (llmPayload.memory_process) metadata.memory_process = llmPayload.memory_process;
+      
+      metadata.raw_response = data;
+
+      // call parent callback
+      if (onReceiveAssistant) {
+        onReceiveAssistant({ content: ans, metadata });
+      }
+
     } catch (e) {
-      console.error('Streaming failed', e);
+      console.error('Request failed', e);
+    } finally {
       setIsStreaming(false);
     }
   };
@@ -190,7 +243,7 @@ export async function handleStreamRequest(
   onAnswer?: (answer: string) => void,
   onChunk?: (accumulatedRaw: string) => void
 ) {
-  const response = await fetch('/api/chat/message/stream', {
+  const response = await fetch('/api/v1/chat/message/stream', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message: userMessage, history }),
@@ -201,6 +254,7 @@ export async function handleStreamRequest(
   const reader = response.body.getReader();
   const decoder = new TextDecoder('utf-8');
   let accumulatedRaw = '';
+  let buffer = '';
 
   let thoughtTrace = '';
   let finalAnswer = '';
@@ -211,17 +265,24 @@ export async function handleStreamRequest(
     if (done) break;
 
     const chunk = decoder.decode(value, { stream: true });
+    buffer += chunk;
 
-    // Split SSE messages
-    const messages = parseSseMessages(chunk);
-    for (const msg of messages) {
-      let line = msg;
+    // Split by double newline to get complete SSE messages
+    const parts = buffer.split(/\r?\n\r?\n/);
+    
+    // The last part might be incomplete, so we keep it in the buffer
+    // If the chunk ended exactly with \n\n, parts.pop() will be empty string, which is fine.
+    buffer = parts.pop() || '';
+
+    for (const msg of parts) {
+      let line = msg.trim();
+      if (!line) continue;
+
       if (line.startsWith('data:')) {
         line = line.replace(/^data:\s*/i, '').trim();
       }
 
       if (line === '[DONE]') {
-        // stream finished
         isThinking = false;
         break;
       }
@@ -233,8 +294,8 @@ export async function handleStreamRequest(
           accumulatedRaw += payload.token;
         }
       } catch (e) {
-        // treat as raw text
-        accumulatedRaw += line;
+        // treat as raw text if it's not JSON
+        // accumulatedRaw += line; // Optional: decide if we want to accumulate raw non-JSON lines
       }
 
       // Partial parsing for thought_trace

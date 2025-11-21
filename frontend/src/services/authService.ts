@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabaseClient';
 const LS_TOKEN = 'josoor_token';
 const LS_USER = 'josoor_user';
 const LS_AUTH = 'josoor_authenticated';
+const LS_GUEST_ID = 'josoor_guest_id';
+const LS_GUEST_CONVOS = 'josoor_guest_conversations';
 
 function emitAuthChange() {
   try {
@@ -22,53 +24,36 @@ export function persistSession(session: any | null) {
     if (session) {
       localStorage.setItem(LS_AUTH, 'true');
     }
-  } catch {}
-
-  // Attempt best-effort sync to backend app users table
-  (async () => {
-    try {
-      if (session && session.user) {
-        const token = session.access_token;
-        await fetch('/api/v1/auth/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify(session.user),
-        });
+      if (session) {
+        try {
+          localStorage.removeItem(LS_GUEST_ID);
+          localStorage.removeItem(LS_GUEST_CONVOS);
+        } catch {}
       }
-    } catch (err) {
-      // ignore sync errors - not critical for frontend auth
-      console.debug('auth sync failed', err);
-    }
-  })();
+  } catch {}
 
   emitAuthChange();
 }
 
-// Login using Supabase Auth (email + password)
 export async function login(email: string, password: string) {
   const resp = await supabase.auth.signInWithPassword({ email, password });
   if (resp.error) throw resp.error;
   const session = resp.data.session;
   if (!session) throw new Error('No session returned from Supabase');
-  // Persist session and emit event so UI updates in same tab
   persistSession(session);
   return { access_token: session.access_token, user: session.user };
 }
 
-// Register using Supabase Auth (creates a user in auth.users)
 export async function register(email: string, password: string, full_name?: string) {
   const resp = await supabase.auth.signUp({ email, password, options: { data: { full_name } } });
   if (resp.error) throw resp.error;
-  // When using email confirm flow, session may be null until verified.
   if (resp.data?.session) persistSession(resp.data.session);
   return resp.data;
 }
 
 export async function signInWithProvider(provider: 'google' | 'apple') {
-  // Redirect-based OAuth flow. Adjust `options.redirectTo` if needed.
   const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: window.location.origin + '/chat' } });
   if (error) throw error;
-  // OAuth will redirect; session handled on return.
   return true;
 }
 
@@ -93,7 +78,49 @@ export function getUser(): any | null {
   return v ? JSON.parse(v) : null;
 }
 
-// Fetch canonical profile from backend (maps auth.uid -> users table)
+export function startGuestSession(): string {
+  try {
+    let gid = localStorage.getItem(LS_GUEST_ID);
+    if (gid) return gid;
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      gid = crypto.randomUUID();
+    } else {
+      gid = 'guest-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+    }
+    localStorage.setItem(LS_GUEST_ID, gid);
+    localStorage.setItem(LS_GUEST_CONVOS, JSON.stringify([]));
+    localStorage.setItem(LS_AUTH, 'false');
+    return gid;
+  } catch {
+    return '';
+  }
+}
+
+export function isGuestMode(): boolean {
+  try {
+    const token = getToken();
+    const gid = localStorage.getItem(LS_GUEST_ID);
+    return !token && !!gid;
+  } catch {
+    return false;
+  }
+}
+
+export function saveGuestConversations(convos: any[]) {
+  try {
+    localStorage.setItem(LS_GUEST_CONVOS, JSON.stringify(convos || []));
+  } catch {}
+}
+
+export function getGuestConversations(): any[] {
+  try {
+    const v = localStorage.getItem(LS_GUEST_CONVOS);
+    return v ? JSON.parse(v) : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchAppUser() {
   try {
     const token = getToken();

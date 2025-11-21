@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 // Using image assets for sidebar icons (PNG/JPG). Avoiding SVG icon components as requested.
-import { ScrollArea } from '../ui/scroll-area';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,10 +8,10 @@ import {
 } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
 import type { ConversationSummary } from '../../types/api';
-import type { Language } from '../../types';
 import './Sidebar.css';
 import { useNavigate } from 'react-router-dom';
 import { getUser, logout as authLogout } from '../../services/authService';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface QuickAction {
   id: string;
@@ -49,7 +48,6 @@ interface SidebarProps {
   onQuickAction: (command: string) => void;
   isCollapsed?: boolean; // optional initial state
   onRequestToggleCollapse?: () => void; // notify parent to toggle sidebar width
-  language: Language;
 }
 
 export function Sidebar({
@@ -61,8 +59,8 @@ export function Sidebar({
   onQuickAction,
   isCollapsed = false,
   onRequestToggleCollapse,
-  language,
 }: SidebarProps) {
+  const { language, setLanguage, isRTL } = useLanguage();
   const [showConversations, setShowConversations] = useState(() => conversations.length > 0);
   const [collapsed, setCollapsed] = useState<boolean>(!!isCollapsed);
 
@@ -75,7 +73,6 @@ export function Sidebar({
     setCollapsed(!!isCollapsed);
   }, [isCollapsed]);
 
-  const isRTL = language === 'ar';
   const [currentUser, setCurrentUser] = useState<any | null>(() => getUser());
   const [showProfile, setShowProfile] = useState(false);
 
@@ -98,7 +95,7 @@ export function Sidebar({
     newChat: language === 'ar' ? 'محادثة جديدة' : 'New Chat',
     quickActions: language === 'ar' ? 'إجراءات سريعة' : 'Quick Actions',
     conversations: language === 'ar' ? 'المحادثات' : 'Conversations',
-    guestMode: language === 'ar' ? 'وضع الضي��' : 'Guest Mode',
+    guestMode: language === 'ar' ? 'وضع الضيف' : 'Guest Mode',
     loginToSave: language === 'ar' ? 'سجل الدخول للحفظ' : 'Login to save',
     messagesCount: (count: number) => (language === 'ar' ? `${count} رسالة` : `${count} messages`),
     deleteConversation: language === 'ar' ? 'حذف' : 'Delete',
@@ -114,7 +111,7 @@ export function Sidebar({
 
     if (diffMins < 1) return language === 'ar' ? 'الآن' : 'Now';
     if (diffMins < 60) return language === 'ar' ? `${diffMins} د` : `${diffMins}m`;
-    if (diffHours < 24) return language === 'ar' ? `${diffHours} ��` : `${diffHours}h`;
+    if (diffHours < 24) return language === 'ar' ? `${diffHours} س` : `${diffHours}h`;
     if (diffDays < 7) return language === 'ar' ? `${diffDays} ي` : `${diffDays}d`;
 
     return date.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
@@ -169,8 +166,7 @@ export function Sidebar({
           borderRight: '0.8px solid rgb(229,231,235)',
           height: '100%',
           boxShadow: 'rgba(0,0,0,0.04) 2px 0px 8px 0px',
-          position: 'relative',
-          zIndex: 30,
+          flexShrink: 0,
         }}
         dir={isRTL ? 'rtl' : 'ltr'}
       >
@@ -195,7 +191,7 @@ export function Sidebar({
                     padding: 0,
                   }}
                 >
-                  <img src="https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2F8943a0e6569a48b6be2490eb6f9c1034" alt={item.alt} className="sidebar-quickaction-icon" />
+                  <img src="https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2F8943a0e6569a48b6be2490eb6f9c1034" alt={item.alt} className="sidebar-quickaction-icon" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
                 </button>
               );
             }
@@ -227,7 +223,7 @@ export function Sidebar({
                   padding: 0,
                 }}
               >
-                <img src={item.src} alt={item.alt} className="sidebar-quickaction-icon" />
+                <img src={item.src} alt={item.alt} className="sidebar-quickaction-icon" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
               </button>
             );
           })}
@@ -270,8 +266,7 @@ export function Sidebar({
         borderRight: '0.8px solid rgb(229, 231, 235)',
         boxShadow: 'rgba(0, 0, 0, 0.04) 2px 0px 8px 0px',
         transitionDuration: '0.3s',
-        position: 'relative',
-        zIndex: 30,
+        flexShrink: 0,
         overflow: 'hidden',
       }}
       dir={isRTL ? 'rtl' : 'ltr'}
@@ -335,13 +330,13 @@ export function Sidebar({
               padding: 0,
             }}
           >
-            <img src="https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2F8943a0e6569a48b6be2490eb6f9c1034" alt="Toggle sidebar" className="sidebar-quickaction-icon" />
+            <img src="https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2F8943a0e6569a48b6be2490eb6f9c1034" alt="Toggle sidebar" className="sidebar-quickaction-icon" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
           </button>
 
           {/* Reduced New Chat */}
           <div style={{ flex: 1 }}>
             <Button onClick={onNewChat} style={{ width: '100%', padding: '8px 10px', fontSize: 14 }} variant="default">
-              <img src="https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2F99ca5bf048b1493e9a7cd183b2487fe4" alt="new chat" style={{ marginRight: 8 }} className="sidebar-newchat-icon" />
+              <img src="https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2F99ca5bf048b1493e9a7cd183b2487fe4" alt="new chat" style={{ marginRight: 8, width: '16px', height: '16px', objectFit: 'contain' }} className="sidebar-newchat-icon" />
               <span style={{ fontSize: 14 }}>{translations.newChat}</span>
             </Button>
           </div>
@@ -396,10 +391,10 @@ export function Sidebar({
                     return (
                       <button
                         key={action.id}
-                        onClick={() => onQuickAction(action.command[language])}
+                        onClick={() => onQuickAction(action.command[language as 'en' | 'ar'])}
                         style={{
                           width: '100%',
-                          display: 'inline-block',
+
                           borderColor: 'rgb(0, 0, 0)',
                           fontFamily: 'Arial',
                           fontWeight: '600',
@@ -415,8 +410,8 @@ export function Sidebar({
                           gap: 8,
                         }}
                       >
-                        <img src={action.icon} alt="icon" className="sidebar-quickaction-icon" />
-                        <span style={{ fontWeight: 'normal', fontSize: itemFontSize }}><span style={{ color: 'rgb(255, 255, 255)' }}><font face="IBM Plex Sans, sans-serif">{overrideLabel}</font></span></span>
+                        <img src={action.icon} alt="icon" className="sidebar-quickaction-icon" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                        <span style={{ fontWeight: 'normal', fontSize: itemFontSize }}><span style={{ color: 'rgb(255, 255, 255)' }}><span style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>{overrideLabel}</span></span></span>
                       </button>
                     );
                   })}
@@ -473,9 +468,9 @@ export function Sidebar({
             >
               <span style={{ color: 'rgb(255, 255, 255)', fontSize: '18px' }}>{translations.conversations}</span>
               {showConversations ? (
-                <img src="https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2F07de9d8efdc441be8374d494e265c8d3" alt="collapse" style={{ width: '35px' }} />
+                <img src="https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2F07de9d8efdc441be8374d494e265c8d3" alt="collapse" style={{ width: '35px', height: '35px', objectFit: 'contain' }} />
               ) : (
-                <img src="https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2F07de9d8efdc441be8374d494e265c8d3" alt="expand" style={{ width: '35px' }} />
+                <img src="https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2F07de9d8efdc441be8374d494e265c8d3" alt="expand" style={{ width: '35px', height: '35px', objectFit: 'contain' }} />
               )}
             </button>
 
@@ -534,6 +529,7 @@ export function Sidebar({
             </div>
           </div>
         ) : (
+
           <button
             style={{
               width: '100%',
@@ -569,6 +565,31 @@ export function Sidebar({
             </div>
           </button>
         )}
+        
+        {/* Language Toggle */}
+        <div style={{ marginTop: 12, borderTop: '1px solid rgba(229, 231, 235, 1)', paddingTop: 12 }}>
+          <button
+            onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+            style={{
+              width: '100%',
+              padding: '8px',
+              borderRadius: '6px',
+              border: '1px solid rgba(229, 231, 235, 1)',
+              background: 'transparent',
+              cursor: 'pointer',
+              fontSize: '13px',
+              color: 'rgba(107, 114, 128, 1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8
+            }}
+          >
+            <span>{language === 'en' ? '🇺🇸 English' : '🇸🇦 العربية'}</span>
+            <span>⇄</span>
+            <span>{language === 'en' ? 'العربية' : 'English'}</span>
+          </button>
+        </div>
       </div>
 
       {showProfile && (

@@ -8,7 +8,7 @@
  * - Welcome screen (when no messages)
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { MessageBubble, ThinkingIndicator } from './MessageBubble';
 import { ChatInput } from './ChatInput';
 import { ScrollArea } from '../ui/scroll-area';
@@ -25,6 +25,7 @@ interface ChatContainerProps {
   onToggleSidebar?: () => void;
   onToggleCanvas?: () => void;
   onOpenArtifact?: (artifact: any, artifacts?: any[]) => void;
+  streamingMessage?: APIMessage | null;
 }
 
 export function ChatContainer({
@@ -37,14 +38,19 @@ export function ChatContainer({
   onToggleSidebar,
   onToggleCanvas,
   onOpenArtifact,
+  streamingMessage,
 }: ChatContainerProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const isRTL = language === 'ar';
+
+  // Combine regular messages with streaming message
+  const displayMessages = useMemo(() => {
+    return streamingMessage ? [...messages, streamingMessage] : messages;
+  }, [messages, streamingMessage]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+  }, [displayMessages, isLoading]);
 
   const translations = {
     welcomeTitle: language === 'ar' ? 'مرحباً بك في نور' : 'Welcome to Noor',
@@ -80,7 +86,7 @@ export function ChatContainer({
     ],
   };
 
-  const hasMessages = messages.length > 0;
+  const hasMessages = displayMessages.length > 0;
 
   return (
     <div
@@ -90,6 +96,8 @@ export function ChatContainer({
         flex: 1,
         minHeight: 0,
         backgroundColor: 'rgb(249, 250, 251)',
+        minWidth: 0,
+        overflow: 'hidden',
       }}
     >
       {/* Messages Area - Takes remaining space */}
@@ -302,7 +310,7 @@ export function ChatContainer({
                       // Copy handled internally in MessageBubble
                     }}
                     onFeedback={(isPositive) => {
-                      console.log(`Feedback for message ${message.id}:`, isPositive ? 'positive' : 'negative');
+
                     }}
                     onOpenArtifact={(artifact, artifacts) => {
                       if (onOpenArtifact) onOpenArtifact(artifact, artifacts);

@@ -57,7 +57,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), user_service: Us
         if not SUPABASE_URL:
             raise credentials_exception
         try:
-            headers = {"Authorization": f"Bearer {token}"}
+            headers = {"Authorization": f"Bearer {token}", "apikey": settings.SUPABASE_ANON_KEY}
             user_resp = requests.get(f"{SUPABASE_URL}/auth/v1/user", headers=headers, timeout=5)
             if user_resp.status_code != 200:
                 raise credentials_exception
@@ -72,9 +72,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme), user_service: Us
                 local_user = await user_service.get_user_by_email(supa_email)
             if not local_user:
                 # create a lightweight local user record mapping to supabase id
-                # Note: user_service.create_user should accept supabase_id optional param - fallback to create with email and supabase id
+                # If Supabase provides a `user_metadata` or `full_name`, persist it when creating local user
                 try:
-                    new_local = await user_service.create_user(email=supa_email, password=None, supabase_id=supa_user_id)
+                    user_metadata = user_json.get('user_metadata') or {}
+                    full_name = user_metadata.get('full_name') or user_json.get('user_metadata', {}).get('full_name') if isinstance(user_json, dict) else None
+                    new_local = await user_service.create_user(email=supa_email, password=None, supabase_id=supa_user_id, full_name=full_name)
                     return new_local
                 except Exception:
                     # if creation fails, deny access

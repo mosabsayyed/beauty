@@ -1,16 +1,18 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   BrowserRouter,
   Routes,
   Route,
   useLocation,
   Navigate,
+  useNavigate,
 } from "react-router-dom";
-import { Language } from "./types";
 import ChatAppPage from "./pages/ChatAppPage";
 import { LoginPage } from "./pages/LoginPage";
 import WelcomeEntry from './pages/WelcomeEntry';
+import CanvasTestPage from './pages/CanvasTestPage';
 import { AuthProvider } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 function ScrollToTop() {
   const location = useLocation();
@@ -22,59 +24,16 @@ function ScrollToTop() {
   return null;
 }
 
-function AppContent() {
+function AppRoutes() {
+  const navigate = useNavigate();
   const location = useLocation();
-  const isWelcomePage = location.pathname === '/';
-  
-  const [language, setLanguage] = useState<Language>(() => {
-    try {
-      const saved = localStorage.getItem("josoor_language");
-      return (saved as Language) || "en";
-    } catch {
-      return "en";
-    }
-  });
-
-  const [isAuthenticated, setIsAuthenticated] =
-    useState<boolean>(() => {
-      try {
-        const saved = localStorage.getItem(
-          "josoor_authenticated",
-        );
-        return saved === "true";
-      } catch {
-        return false;
-      }
-    });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("josoor_language", language);
-    } catch {
-      // localStorage not available
-    }
-    document.documentElement.lang = language;
-    document.documentElement.dir =
-      language === "ar" ? "rtl" : "ltr";
-  }, [language]);
+  const isWelcomePage = location.pathname === "/";
 
   const handleLogin = () => {
-    setIsAuthenticated(true);
     try {
       localStorage.setItem("josoor_authenticated", "true");
-    } catch {
-      // localStorage not available
-    }
-  };
-
-  const handleSkip = () => {
-    setIsAuthenticated(true);
-    // Persist guest flag so a reload doesn't redirect back to the welcome page
-    try {
-      localStorage.setItem('josoor_authenticated', 'true');
-    } catch {
-      // ignore localStorage errors
-    }
+    } catch {}
+    navigate('/chat', { replace: true });
   };
 
   return (
@@ -87,7 +46,9 @@ function AppContent() {
           element={<WelcomeEntry/>}
         />
 
-        <Route path="/chat" element={<ChatAppPage language={language} />} />
+        <Route path="/chat" element={<ChatAppPage />} />
+
+        <Route path="/canvas-test" element={<CanvasTestPage />} />
 
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
 
@@ -102,7 +63,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppContent />
+        <LanguageProvider>
+          <AppRoutes />
+        </LanguageProvider>
       </AuthProvider>
     </BrowserRouter>
   );

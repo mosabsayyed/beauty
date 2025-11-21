@@ -1,0 +1,661 @@
+import React from "react";
+/**
+ * ArtifactRenderer Component - CORRECTED VERSION
+ * 
+ * Extends the Mono-Functional SaaS design system to artifacts:
+ * - Monochrome palette with gold accent
+ * - Proper color hierarchy
+ * - Clean, professional styling
+ * 
+ * Renders different artifact types:
+ * - CHART: Recharts visualizations (translates from Highcharts config)
+ * - TABLE: Interactive data tables
+ * - REPORT: Markdown/JSON formatted reports
+ * - DOCUMENT: HTML/Markdown documents
+ */
+
+import { useState, useMemo } from 'react';
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ScatterChart,
+  Scatter,
+  XAxis,
+  YAxis,
+  ZAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+} from 'recharts';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import type {
+  Artifact,
+  ChartArtifact,
+  TableArtifact,
+  ReportArtifact,
+  DocumentArtifact,
+} from '../../types/api';
+
+// Design System Color Palette for Charts
+// Primary: Black (#000000) - main data series
+// Accent: Gold (#D4AF37) - highlight/important data
+// Gray scale: #6B7280, #9CA3AF, #D1D5DB - supporting data
+const CHART_COLORS = {
+  primary: '#000000',      // Black - primary data
+  gold: '#D4AF37',         // Gold - accent/highlight
+  gray1: '#374151',        // Dark gray
+  gray2: '#6B7280',        // Medium gray
+  gray3: '#9CA3AF',        // Light gray
+  gray4: '#D1D5DB',        // Very light gray
+};
+
+const COLOR_SEQUENCE = [
+  CHART_COLORS.primary,
+  CHART_COLORS.gold,
+  CHART_COLORS.gray1,
+  CHART_COLORS.gray2,
+  CHART_COLORS.gray3,
+];
+
+interface ArtifactRendererProps {
+  artifact: Artifact;
+  language?: 'en' | 'ar';
+  /** If true or a number, the renderer should expand to fill available height (100%) or use pixel height */
+  fullHeight?: boolean | number;
+}
+
+export function ArtifactRenderer({ artifact, language = 'en', fullHeight = false }: ArtifactRendererProps) {
+  switch (artifact.artifact_type) {
+    case 'CHART':
+      return <ChartRenderer artifact={artifact} language={language} fullHeight={fullHeight} />;
+    case 'TABLE':
+      return <TableRenderer artifact={artifact} language={language} fullHeight={fullHeight} />;
+    case 'REPORT':
+      return <ReportRenderer artifact={artifact} language={language} fullHeight={fullHeight} />;
+    case 'DOCUMENT':
+      return <DocumentRenderer artifact={artifact} language={language} fullHeight={fullHeight} />;
+    default:
+      return <div style={{color:'rgb(107,114,128)'}}>Unsupported artifact type</div>;
+  }
+}
+
+// ============================================================================
+// CHART RENDERER
+// ============================================================================
+
+function ChartRenderer({ artifact, language, fullHeight = false }: { artifact: ChartArtifact; language: 'en' | 'ar'; fullHeight?: boolean | number }) {
+  const { content } = artifact;
+  const chartType = content.chart.type;
+
+  // Transform Highcharts data to Recharts format
+  const data = transformChartData(content);
+
+  const commonProps = {
+    margin: { top: 20, right: 30, left: 20, bottom: 20 },
+  };
+
+  // Custom tooltip styling
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+    <div className="w-full overflow-auto rounded-lg" style={{ border: "1px solid rgba(226,232,240,1)", padding: 8, maxHeight: fullHeight ? "100%" : "400px" }}>
+      {normalizedColumns.length === 0 || displayRows.length === 0 ? (
+        <div style={{ padding: "20px", textAlign: "center", color: "#6B7280" }}>
+          No data available
+        </div>
+      ) : (
+        <div style={{ background: 'var(--canvas-card-bg)', border: '1px solid var(--border-default)', borderRadius: 12, boxShadow: 'var(--shadow-card)', padding: 12 }}>
+          <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} style={{ margin: 0, fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}>
+              <span style={{ fontWeight: 600, color: entry.color }}>
+                {entry.name}:
+              </span>{' '}
+              {typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className="w-full overflow-auto rounded-lg" style={{ border: "1px solid rgba(226,232,240,1)", padding: 8, maxHeight: fullHeight ? "100%" : "400px" }}>
+      {normalizedColumns.length === 0 || displayRows.length === 0 ? (
+        <div style={{ padding: "20px", textAlign: "center", color: "#6B7280" }}>
+          No data available
+        </div>
+      ) : (
+    <div style={{ width: '100%' }}>
+      {content.title && (
+        <h3 style={{ margin: 0, marginBottom: 8, textAlign: 'center', color: 'var(--text-primary)', fontSize: 16 }}>{content.title.text}</h3>
+      )}
+      {content.subtitle && (
+        <p style={{ marginTop: 8, marginBottom: 24, textAlign: 'center', color: 'var(--text-secondary)', fontSize: 13 }}>
+          {content.subtitle.text}
+        </p>
+      )}
+
+      <ResponsiveContainer width="100%" height={360}>
+        {chartType === 'bar' || chartType === 'column' ? (
+          <BarChart data={data} {...commonProps}>
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke={CHART_COLORS.gray4}
+              vertical={false}
+            />
+            <XAxis
+              dataKey="name"
+              stroke={CHART_COLORS.gray2}
+              fontSize={12}
+              tickLine={false}
+              axisLine={{ stroke: CHART_COLORS.gray4 }}
+            />
+            <YAxis
+              stroke={CHART_COLORS.gray2}
+              fontSize={12}
+              tickLine={false}
+              axisLine={{ stroke: CHART_COLORS.gray4 }}
+              domain={[content.yAxis?.min || 0, content.yAxis?.max || 'auto']}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            {content.legend?.enabled !== false && (
+              <Legend 
+                wrapperStyle={{ fontSize: '12px', color: CHART_COLORS.gray2 }}
+              />
+            )}
+            {content.series.map((series, index) => (
+              <Bar
+                key={index}
+                dataKey={series.name}
+                fill={series.color || COLOR_SEQUENCE[index % COLOR_SEQUENCE.length]}
+                radius={[4, 4, 0, 0]}
+              />
+            ))}
+          </BarChart>
+        ) : chartType === 'line' ? (
+          <LineChart data={data} {...commonProps}>
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke={CHART_COLORS.gray4}
+              vertical={false}
+            />
+            <XAxis 
+              dataKey="name" 
+              stroke={CHART_COLORS.gray2} 
+              fontSize={12} 
+              tickLine={false}
+              axisLine={{ stroke: CHART_COLORS.gray4 }}
+            />
+            <YAxis 
+              stroke={CHART_COLORS.gray2} 
+              fontSize={12} 
+              tickLine={false}
+              axisLine={{ stroke: CHART_COLORS.gray4 }}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            {content.legend?.enabled !== false && (
+              <Legend 
+                wrapperStyle={{ fontSize: '12px', color: CHART_COLORS.gray2 }}
+              />
+            )}
+            {content.series.map((series, index) => (
+              <Line
+                key={index}
+                type="monotone"
+                dataKey={series.name}
+                stroke={series.color || COLOR_SEQUENCE[index % COLOR_SEQUENCE.length]}
+                strokeWidth={2}
+                dot={{ r: 4, fill: series.color || COLOR_SEQUENCE[index % COLOR_SEQUENCE.length] }}
+                activeDot={{ r: 6 }}
+              />
+            ))}
+          </LineChart>
+        ) : chartType === 'area' ? (
+          <AreaChart data={data} {...commonProps}>
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke={CHART_COLORS.gray4}
+              vertical={false}
+            />
+            <XAxis 
+              dataKey="name" 
+              stroke={CHART_COLORS.gray2} 
+              fontSize={12} 
+              tickLine={false}
+              axisLine={{ stroke: CHART_COLORS.gray4 }}
+            />
+            <YAxis 
+              stroke={CHART_COLORS.gray2} 
+              fontSize={12} 
+              tickLine={false}
+              axisLine={{ stroke: CHART_COLORS.gray4 }}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            {content.legend?.enabled !== false && (
+              <Legend 
+                wrapperStyle={{ fontSize: '12px', color: CHART_COLORS.gray2 }}
+              />
+            )}
+            {content.series.map((series, index) => (
+              <Area
+                key={index}
+                type="monotone"
+                dataKey={series.name}
+                stroke={series.color || COLOR_SEQUENCE[index % COLOR_SEQUENCE.length]}
+                fill={series.color || COLOR_SEQUENCE[index % COLOR_SEQUENCE.length]}
+                fillOpacity={0.15}
+                strokeWidth={2}
+              />
+            ))}
+          </AreaChart>
+        ) : chartType === 'radar' ? (
+          <AreaChart data={data} {...commonProps}>
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke={CHART_COLORS.gray4}
+              vertical={false}
+            />
+            <XAxis 
+              dataKey="name" 
+              stroke={CHART_COLORS.gray2} 
+              fontSize={12} 
+              tickLine={false}
+              axisLine={{ stroke: CHART_COLORS.gray4 }}
+            />
+            <YAxis 
+              stroke={CHART_COLORS.gray2} 
+              fontSize={12} 
+              tickLine={false}
+              axisLine={{ stroke: CHART_COLORS.gray4 }}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            {content.legend?.enabled !== false && (
+              <Legend 
+                wrapperStyle={{ fontSize: '12px', color: CHART_COLORS.gray2 }}
+              />
+            )}
+            {content.series.map((series, index) => (
+              <Area
+                key={index}
+                type="monotone"
+                dataKey={series.name}
+                stroke={series.color || COLOR_SEQUENCE[index % COLOR_SEQUENCE.length]}
+                fill={series.color || COLOR_SEQUENCE[index % COLOR_SEQUENCE.length]}
+                fillOpacity={0.3}
+                strokeWidth={2}
+              />
+            ))}
+          </AreaChart>
+        ) : chartType === 'radar' || chartType === 'spider' ? (
+          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data} {...commonProps}>
+            <PolarGrid stroke={CHART_COLORS.gray4} />
+            <PolarAngleAxis 
+              dataKey="name" 
+              stroke={CHART_COLORS.gray2}
+              fontSize={12}
+            />
+            <PolarRadiusAxis 
+              stroke={CHART_COLORS.gray2}
+              fontSize={12}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            {content.legend?.enabled !== false && (
+              <Legend 
+                wrapperStyle={{ fontSize: '12px', color: CHART_COLORS.gray2 }}
+              />
+            )}
+            {content.series.map((series, index) => (
+              <Radar
+                key={index}
+                name={series.name}
+                dataKey={series.name}
+                stroke={series.color || COLOR_SEQUENCE[index % COLOR_SEQUENCE.length]}
+                fill={series.color || COLOR_SEQUENCE[index % COLOR_SEQUENCE.length]}
+                fillOpacity={0.3}
+                strokeWidth={2}
+              />
+            ))}
+          </RadarChart>
+        ) : chartType === 'bubble' ? (
+          <div style={{ textAlign: 'center', padding: 40, color: CHART_COLORS.gray2 }}>
+            Bubble charts require recharts ScatterChart (not yet implemented)
+          </div>
+        ) : chartType === 'bullet' ? (
+          <div style={{ textAlign: 'center', padding: 40, color: CHART_COLORS.gray2 }}>
+            Bullet charts require custom implementation (not yet implemented)
+          </div>
+        ) : chartType === 'combo' ? (
+          <BarChart data={data} {...commonProps}>
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke={CHART_COLORS.gray4}
+              vertical={false}
+            />
+            <XAxis
+              dataKey="name"
+              stroke={CHART_COLORS.gray2}
+              fontSize={12}
+              tickLine={false}
+              axisLine={{ stroke: CHART_COLORS.gray4 }}
+            />
+            <YAxis
+              stroke={CHART_COLORS.gray2}
+              fontSize={12}
+              tickLine={false}
+              axisLine={{ stroke: CHART_COLORS.gray4 }}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            {content.legend?.enabled !== false && (
+              <Legend 
+                wrapperStyle={{ fontSize: '12px', color: CHART_COLORS.gray2 }}
+              />
+            )}
+            {content.series.map((series, index) => {
+              const seriesType = series.type || 'column';
+              if (seriesType === 'line') {
+                return (
+    <div className="w-full overflow-auto rounded-lg" style={{ border: "1px solid rgba(226,232,240,1)", padding: 8, maxHeight: fullHeight ? "100%" : "400px" }}>
+      {normalizedColumns.length === 0 || displayRows.length === 0 ? (
+        <div style={{ padding: "20px", textAlign: "center", color: "#6B7280" }}>
+          No data available
+        </div>
+      ) : (
+                  <Line
+                    key={index}
+                    type="monotone"
+                    dataKey={series.name}
+                    stroke={series.color || COLOR_SEQUENCE[index % COLOR_SEQUENCE.length]}
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                  />
+                );
+              }
+              return (
+    <div className="w-full overflow-auto rounded-lg" style={{ border: "1px solid rgba(226,232,240,1)", padding: 8, maxHeight: fullHeight ? "100%" : "400px" }}>
+      {normalizedColumns.length === 0 || displayRows.length === 0 ? (
+        <div style={{ padding: "20px", textAlign: "center", color: "#6B7280" }}>
+          No data available
+        </div>
+      ) : (
+                <Bar
+                  key={index}
+                  dataKey={series.name}
+                  fill={series.color || COLOR_SEQUENCE[index % COLOR_SEQUENCE.length]}
+                  radius={[4, 4, 0, 0]}
+                />
+              );
+            })}
+          </BarChart>
+        ) : chartType === 'pie' ? (
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={({ name, percent }) => `${name}: ${percent !== undefined ? (percent * 100).toFixed(0) : '0'}%`}
+              outerRadius={120}
+              dataKey="value"
+            >
+              {data.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={COLOR_SEQUENCE[index % COLOR_SEQUENCE.length]} 
+                />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomTooltip />} />
+          </PieChart>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-secondary)' }}>
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ fontSize: 14 }}>Chart type "{chartType}" not supported</p>
+              <p style={{ fontSize: 12, marginTop: 6, color: 'var(--text-tertiary)' }}>Supported: bar, column, line, area, pie, radar, bubble, bullet, combo</p>
+            </div>
+          </div>
+        )}
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function transformChartData(content: ChartArtifact['content']) {
+  const categories = content.xAxis?.categories || [];
+  const series = content.series;
+
+  if (content.chart.type === 'pie') {
+    // Pie chart data format
+    return series[0].data.map((value, index) => ({
+      name: categories[index] || `Item ${index + 1}`,
+      value: typeof value === 'number' ? value : value.y,
+    }));
+  }
+
+  // Bar, Line, Area chart format
+  return categories.map((category, index) => {
+    const dataPoint: any = { name: category };
+    series.forEach((s) => {
+      const value = s.data[index];
+      dataPoint[s.name] = typeof value === 'number' ? value : value?.y || 0;
+    });
+    return dataPoint;
+  });
+}
+
+// ============================================================================
+// TABLE RENDERER
+// ============================================================================
+
+function TableRenderer({ artifact, language, fullHeight }: { artifact: TableArtifact; language: 'en' | 'ar'; fullHeight?: boolean | number }) {
+  const { content } = artifact;
+  const [sortColumn, setSortColumn] = useState<number | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  const normalizedColumns = normalizedData.columns.map(col => 
+    typeof col === 'string' ? col : (col.headerName || col.field || String(col))
+  );
+
+  const handleSort = (columnIndex: number) => {
+    if (sortColumn === columnIndex) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(columnIndex);
+      setSortDirection('asc');
+    }
+  };
+
+  let displayRows = [...normalizedData.rows];
+  if (sortColumn !== null) {
+    displayRows.sort((a, b) => {
+      const aVal = a[sortColumn];
+      const bVal = b[sortColumn];
+      
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      
+      const aStr = String(aVal);
+      const bStr = String(bVal);
+      return sortDirection === 'asc' 
+        ? aStr.localeCompare(bStr)
+        : bStr.localeCompare(aStr);
+    });
+  }
+
+  return (
+    <div className="w-full overflow-auto rounded-lg" style={{ border: "1px solid rgba(226,232,240,1)", padding: 8, maxHeight: fullHeight ? "100%" : "400px" }}>
+      {normalizedColumns.length === 0 || displayRows.length === 0 ? (
+        <div style={{ padding: "20px", textAlign: "center", color: "#6B7280" }}>
+          No data available
+        </div>
+      ) : (
+    <div className="w-full overflow-auto rounded-lg" style={{ border: '1px solid rgba(226,232,240,1)', padding: 8 }}>
+      <Table>
+        <TableHeader>
+          <TableRow style={{ background: 'transparent' }}>
+            {normalizedColumns.map((column, index) => (
+              <TableHead
+                key={index}
+                onClick={() => handleSort(index)}
+                style={{ cursor: 'pointer', padding: '10px 12px', fontWeight: 700, borderBottom: '1px solid rgba(226,232,240,1)', background: 'transparent', color: '#111827' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span>{column}</span>
+                  {sortColumn === index && (
+                    <span style={{ fontSize: 12, color: '#6B7280' }}>
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {displayRows.map((row, rowIndex) => (
+            <TableRow
+              key={rowIndex}
+              style={{ background: rowIndex % 2 === 0 ? '#ffffff' : 'rgba(249,250,251,1)' }}
+            >
+              {row.map((cell, cellIndex) => (
+                <TableCell key={cellIndex} style={{ padding: '10px 12px', borderBottom: '1px solid rgba(226,232,240,1)', color: '#111827' }}>
+                  {typeof cell === 'number' ? cell.toLocaleString() : String(cell)}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// REPORT RENDERER
+// ============================================================================
+
+function ReportRenderer({ artifact, language, fullHeight }: { artifact: ReportArtifact; language: 'en' | 'ar'; fullHeight?: boolean | number }) {
+  const { content } = artifact;
+  const isRTL = language === 'ar';
+
+  if (content.format === 'markdown') {
+    return (
+    <div className="w-full overflow-auto rounded-lg" style={{ border: "1px solid rgba(226,232,240,1)", padding: 8, maxHeight: fullHeight ? "100%" : "400px" }}>
+      {normalizedColumns.length === 0 || displayRows.length === 0 ? (
+        <div style={{ padding: "20px", textAlign: "center", color: "#6B7280" }}>
+          No data available
+        </div>
+      ) : (
+      <div
+        className="prose prose-sm max-w-none prose-headings:text-text-primary prose-p:text-text-primary prose-strong:text-text-primary prose-li:text-text-primary prose-a:text-interactive-primary-default"
+        dir={isRTL ? 'rtl' : 'ltr'}
+        dangerouslySetInnerHTML={{ __html: parseMarkdown(content.body) }}
+      />
+    );
+  }
+
+  return (
+    <div className="w-full overflow-auto rounded-lg" style={{ border: "1px solid rgba(226,232,240,1)", padding: 8, maxHeight: fullHeight ? "100%" : "400px" }}>
+      {normalizedColumns.length === 0 || displayRows.length === 0 ? (
+        <div style={{ padding: "20px", textAlign: "center", color: "#6B7280" }}>
+          No data available
+        </div>
+      ) : (
+    <pre className="whitespace-pre-wrap text-sm text-text-primary bg-canvas-page p-4 rounded-lg overflow-auto border border-border-default">
+      {content.body}
+    </pre>
+  );
+}
+
+// ============================================================================
+// DOCUMENT RENDERER
+// ============================================================================
+
+function DocumentRenderer({ artifact, language, fullHeight }: { artifact: DocumentArtifact; language: 'en' | 'ar'; fullHeight?: boolean | number }) {
+  const { content } = artifact;
+  const isRTL = language === 'ar';
+
+  if (content.format === 'html') {
+    return (
+    <div className="w-full overflow-auto rounded-lg" style={{ border: "1px solid rgba(226,232,240,1)", padding: 8, maxHeight: fullHeight ? "100%" : "400px" }}>
+      {normalizedColumns.length === 0 || displayRows.length === 0 ? (
+        <div style={{ padding: "20px", textAlign: "center", color: "#6B7280" }}>
+          No data available
+        </div>
+      ) : (
+      <div
+        className="prose prose-sm max-w-none prose-headings:text-text-primary prose-p:text-text-primary prose-strong:text-text-primary prose-li:text-text-primary prose-a:text-interactive-primary-default"
+        dir={isRTL ? 'rtl' : 'ltr'}
+        dangerouslySetInnerHTML={{ __html: content.body }}
+      />
+    );
+  }
+
+  return (
+    <div className="w-full overflow-auto rounded-lg" style={{ border: "1px solid rgba(226,232,240,1)", padding: 8, maxHeight: fullHeight ? "100%" : "400px" }}>
+      {normalizedColumns.length === 0 || displayRows.length === 0 ? (
+        <div style={{ padding: "20px", textAlign: "center", color: "#6B7280" }}>
+          No data available
+        </div>
+      ) : (
+    <div
+      className="prose prose-sm max-w-none prose-headings:text-text-primary prose-p:text-text-primary prose-strong:text-text-primary prose-li:text-text-primary prose-a:text-interactive-primary-default"
+      dir={isRTL ? 'rtl' : 'ltr'}
+      dangerouslySetInnerHTML={{ __html: parseMarkdown(content.body) }}
+    />
+  );
+}
+
+// ============================================================================
+// UTILITIES
+// ============================================================================
+
+/**
+ * Simple markdown parser
+ * In production, use a library like react-markdown
+ */
+function parseMarkdown(markdown: string): string {
+  let html = markdown
+    // Headers
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    // Bold
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    // Italic
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    // Lists
+    .replace(/^- (.*$)/gim, '<li>$1</li>')
+    .replace(/^\d+\. (.*$)/gim, '<li>$1</li>')
+    // Line breaks
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br>');
+
+  // Wrap in paragraphs, but avoid wrapping block-level elements (h1-6, ul, ol, pre, blockquote)
+  html = '<p>' + html + '</p>';
+
+  // Remove paragraph tags that directly wrap block-level elements introduced above
+  html = html.replace(/<p>\s*(<(?:(?:h[1-6])|ul|ol|pre|blockquote)[\s\S]*?>)/g, '$1');
+  html = html.replace(/(<\/(?:(?:h[1-6])|ul|ol|pre|blockquote)>)[\s\S]*?<\/p>/g, '$1');
+
+  // Wrap list items (make sure to wrap all occurrences)
+  html = html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
+
+  return html;
+}

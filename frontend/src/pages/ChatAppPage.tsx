@@ -8,163 +8,187 @@
  * 
  * ✅ FIXED: Integrates all Phase 2 components with REAL BACKEND API (chatService)
  * ✅ FIXED: Implements proper Claude-style slide functionality
+ * ✅ FIXED: Native streaming support without JSON normalization
  */
 
-import { useState, useEffect } from 'react';
-import { Sidebar, ChatContainer, CanvasPanel } from '../components/chat';
-import { chatService } from '../services/chatService';
-import { getUser } from '../services/authService';
+import { useState, useEffect, useCallback, memo } from "react";
+import { Sidebar, ChatContainer } from "../components/chat";
+import { CanvasManager } from "../components/chat/CanvasManager";
+import { chatService } from "../services/chatService";
+import { useLanguage } from "../contexts/LanguageContext";
 import type {
   ConversationSummary,
   Message as APIMessage,
-  Artifact,
-  ChatMessageRequest,
-} from '../types/api';
+} from "../types/api";
+import { safeJsonParse } from "../utils/streaming";
 
-interface ChatAppPageProps {
-  language?: 'en' | 'ar';
-}
+// Memoized child components for performance
+const MemoizedSidebar = memo(Sidebar);
+const MemoizedChatContainer = memo(ChatContainer);
+const MemoizedCanvasManager = memo(CanvasManager);
 
-export default function ChatAppPage({ language = 'en' }: ChatAppPageProps) {
+export default function ChatAppPage() {
   // State
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
   const [messages, setMessages] = useState<APIMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [canvasArtifacts, setCanvasArtifacts] = useState<Artifact[]>([]);
+  const [canvasArtifacts, setCanvasArtifacts] = useState<any[]>([]);
   const [isCanvasOpen, setIsCanvasOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isCanvasExpanded, setIsCanvasExpanded] = useState(false);
+  const [streamingMessage, setStreamingMessage] = useState<APIMessage | null>(null);
 
   // Load conversations on mount
   useEffect(() => {
-    loadConversations();
+    const timer = setTimeout(() => {
+      loadConversations();
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   // Load messages when conversation changes
   useEffect(() => {
     if (activeConversationId) {
       loadConversationMessages(activeConversationId);
-    } else {
-      setMessages([]);
     }
   }, [activeConversationId]);
 
   // ============================================================================
-  // API INTERACTIONS (USING REAL BACKEND)
+  // API METHODS
   // ============================================================================
 
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
     try {
-      // Use authenticated user id when available, fallback to demo user_id=1
-      const currentUser = getUser();
-      const userId = currentUser && currentUser.id ? currentUser.id : 1;
-      const response = await chatService.getConversations(userId);
-      // Adapt backend Conversation type to frontend ConversationSummary
-      const adapted = response.conversations.map(conv => ({
-        id: conv.id,
-        title: conv.title || 'Untitled Conversation',
-        message_count: conv.message_count || 0,
-        created_at: conv.created_at || new Date().toISOString(),
-        updated_at: conv.updated_at || new Date().toISOString(),
+      const data = await chatService.getConversations();
+      const adaptedConversations = (data.conversations || []).map((c: any) => ({
+        ...c,
+        title: c.title || "New Chat",
+        created_at: c.created_at || new Date().toISOString(),
+        updated_at: c.updated_at || new Date().toISOString(),
       }));
-      setConversations(adapted);
+      setConversations(adaptedConversations);
     } catch (error) {
-      console.error('Failed to load conversations:', error);
+      console.error("Failed to load conversations:", error);
     }
-  };
+  }, []);
 
-  const loadConversationMessages = async (conversationId: number) => {
+  const loadConversationMessages = useCallback(async (conversationId: number) => {
     try {
-      const response = await chatService.getConversationMessages(conversationId);
-
-      // Helper: robustly parse nested or double-escaped JSON strings into objects
-      const tryParseJSON = (v: any, maxDepth = 10) => {
-        if (v === null || v === undefined) return null;
-        if (typeof v === 'object') return v;
-        if (typeof v !== 'string') return null;
-
-        const unescapeCommon = (s: string) => String(s).replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\\\/g, '\\');
-        const extractJsonSubstrings = (s: string) => {
-          const matches: string[] = [];
-          const re = /\{[\s\S]*?\}/g;
-          let m: RegExpExecArray | null;
-          while ((m = re.exec(s)) !== null) matches.push(m[0]);
-          return matches;
-        };
-
-        let candidate: any = v;
-        for (let depth = 0; depth < maxDepth; depth++) {
-          if (typeof candidate !== 'string') return candidate;
-          try {
-            const parsed = JSON.parse(candidate);
-            candidate = parsed;
-            if (typeof candidate !== 'string') return candidate;
-            continue;
-          } catch (e) {
-            const stripped = String(candidate).replace(/^\s*"([\s\S]*)"\s*$/,'$1');
-            if (stripped !== candidate) candidate = stripped;
-            const un = unescapeCommon(candidate);
-            if (un !== candidate) candidate = un;
-            const subs = extractJsonSubstrings(candidate);
-            if (subs.length > 0) {
-              for (const sub of subs) {
-                try { return JSON.parse(sub); } catch (_) {
-                  try { return JSON.parse(unescapeCommon(sub)); } catch (_) {}
-                }
-              }
-              candidate = subs[0];
-              continue;
-            }
-            return null;
-          }
-        }
-        if (typeof candidate === 'string') {
-          try { return JSON.parse(candidate); } catch (_) { return null; }
-        }
-        return candidate;
-      };
-
-      // Adapt backend ChatMessage to frontend Message (timestamp → created_at)
-      const adapted = response.messages.map(msg => {
-        const base: any = {
-          id: msg.id ? parseInt(msg.id as string) : 0,
+      const data = await chatService.getConversationMessages(conversationId);
+      const adapted = (data.messages || []).map((msg: any) => {
+        const base = {
+          id: msg.id,
           role: msg.role,
           content: msg.content,
-          created_at: msg.timestamp || new Date().toISOString(),
-          metadata: msg.metadata,
+          created_at: msg.created_at || msg.timestamp || new Date().toISOString(),
+          metadata: msg.metadata || {},
         };
 
-        // If this message looks like an error (either metadata.error or contains JSON/error text), format it for display
+        // Handle different response formats
         const hasErrorFlag = msg.metadata && (msg.metadata.error === true || msg.metadata.is_error === true);
-        const contentLooksLikeJSON = typeof msg.content === 'string' && /\{[\s\S]*\}/.test(msg.content);
+        const contentLooksLikeJSON = typeof msg.content === "string" && /\{[\s\S]*\}/.test(msg.content);
 
-        if (hasErrorFlag || contentLooksLikeJSON) {
+        if (hasErrorFlag) {
           try {
-            const err = new Error(typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content));
-            // Attach body from metadata if available, otherwise attempt to parse JSON from content
-            (err as any).body = msg.metadata || tryParseJSON(msg.content) || undefined;
+            const err = new Error(typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content));
+            (err as any).body = msg.metadata || safeJsonParse(msg.content) || undefined;
             base.content = chatService.formatErrorMessage(err as Error);
             base.metadata = { ...(base.metadata || {}), error: true };
           } catch (e) {
             // fallback - leave content as-is
           }
+        } else if (contentLooksLikeJSON) {
+          // NATIVE STREAMING SUPPORT: Parse JSON but preserve original structure
+          let parsed = null;
+          try {
+            parsed = safeJsonParse(msg.content);
+          } catch (e) {
+            // If parsing fails, try to extract JSON block
+            const start = msg.content.indexOf("{");
+            const end = msg.content.lastIndexOf("}");
+            if (start !== -1 && end !== -1) {
+              const extractedBlock = msg.content.substring(start, end + 1);
+              try {
+                parsed = safeJsonParse(extractedBlock);
+              } catch (e2) {
+                parsed = null;
+              }
+            }
+          }
+          
+          // If we have a valid assistant payload, preserve it natively
+          const hasAssistantFields = parsed && (parsed.answer || parsed.memory_process || parsed.analysis || parsed.visualizations || parsed.data);
+          if (hasAssistantFields) {
+            // Preserve the structured payload exactly as received from streaming
+            base.content = parsed.answer || parsed.message || parsed; // Extract answer string if available
+            base.metadata = { 
+              ...(base.metadata || {}), 
+              llm_payload: parsed,
+              artifacts: parsed.visualizations || parsed.artifacts || [] 
+            };
+          } else {
+            // Not a recognized assistant payload - treat as error
+            try {
+              const err = new Error(typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content));
+              (err as any).body = msg.metadata || parsed || undefined;
+              base.content = chatService.formatErrorMessage(err as Error);
+              base.metadata = { ...(base.metadata || {}), error: true };
+            } catch (e) {
+              // fallback - leave content as-is
+            }
+          }
+        } else if (msg.metadata && (msg.metadata.answer || msg.metadata.memory_process || msg.metadata.analysis || msg.metadata.visualizations || msg.metadata.data)) {
+          // Backend sometimes stores the structured assistant payload in metadata
+          const parsed = msg.metadata as any;
+          base.content = parsed.answer || parsed.message || base.content;
+          base.metadata = { 
+            ...(base.metadata || {}), 
+            ...(parsed || {}),
+            artifacts: parsed.visualizations || parsed.artifacts || [] // Explicitly extract artifacts
+          };
         }
 
         return base;
       });
 
       setMessages(adapted as any);
-    } catch (error) {
-      console.error('Failed to load messages:', error);
-    }
-  };
 
+      // Check for artifacts in the last message to auto-open Canvas
+      if (adapted.length > 0) {
+        const lastMsg = adapted[adapted.length - 1];
+        let artifacts: any[] = [];
+        
+        // Check metadata for artifacts/visualizations
+        if (lastMsg.metadata?.visualizations) {
+          artifacts = lastMsg.metadata.visualizations;
+        } else if (lastMsg.metadata?.artifacts) {
+          artifacts = lastMsg.metadata.artifacts;
+        } 
+        // Check if content itself is a structured payload with visualizations
+        else if (typeof lastMsg.content === 'object' && lastMsg.content?.visualizations) {
+          artifacts = lastMsg.content.visualizations;
+        }
+
+        if (artifacts.length > 0) {
+          setCanvasArtifacts(artifacts);
+          setIsCanvasOpen(true);
+          // Ensure sidebar stays open or adjusts based on screen size if needed
+          if (window.innerWidth > 1024) {
+             setIsSidebarOpen(true);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load messages:", error);
+    }
+  }, []);
+
+  // NATIVE STREAMING IMPLEMENTATION
   const handleSendMessage = async (messageText: string) => {
     // Optimistically show the user's message immediately for better UX
     const tempMessage = {
       id: `temp-${Date.now()}`,
-      role: 'user',
+      role: "user",
       content: messageText,
       created_at: new Date().toISOString(),
       metadata: {},
@@ -174,45 +198,123 @@ export default function ChatAppPage({ language = 'en' }: ChatAppPageProps) {
     setIsLoading(true);
 
     try {
-      // Convert null to undefined for backend API
-      const request = {
-        query: messageText,
-        conversation_id: activeConversationId === null ? undefined : activeConversationId,
-      };
+      // Use non-streaming endpoint
+      const response = await fetch("/api/v1/chat/message", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("josoor_token") || ""}`
+        },
+        body: JSON.stringify({ 
+          query: messageText, // Note: The non-streaming endpoint expects 'query', not 'message'
+          conversation_id: activeConversationId === null ? undefined : activeConversationId
+        }),
+      });
 
-      const response = await chatService.sendMessage(request as any);
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Extract the actual content from the response
+      let content = "";
+      let artifacts: any[] = [];
+      let llmPayload = data.llm_payload || data;
+
+      // If llm_payload is a string, try to parse it
+      if (typeof llmPayload === 'string') {
+        try {
+          llmPayload = JSON.parse(llmPayload);
+        } catch (e) {
+          // keep as string
+        }
+      }
+
+      // 1. Try to get content from llm_payload
+      if (llmPayload) {
+        content = llmPayload.answer || llmPayload.message || "";
+        if (llmPayload.visualizations) {
+          artifacts = llmPayload.visualizations;
+        }
+      }
+
+      // 2. Fallback to top-level fields
+      if (!content) {
+        content = data.message || data.answer || "";
+      }
+      if (artifacts.length === 0 && data.artifacts) {
+        artifacts = data.artifacts;
+      }
+
+      // 3. If content looks like a JSON string, try to parse it one more time
+      // This handles the case where the backend returns a stringified JSON as the message
+      if (typeof content === 'string' && (content.trim().startsWith('{') || content.trim().startsWith('['))) {
+        try {
+           const parsed = JSON.parse(content);
+           if (parsed.answer) content = parsed.answer;
+           if (parsed.visualizations) artifacts = parsed.visualizations;
+           // Update llmPayload with the parsed content if it wasn't already valid
+           if (!llmPayload || typeof llmPayload !== 'object') llmPayload = parsed;
+        } catch (e) {
+           // Not valid JSON, treat as text
+        }
+      }
+
+      console.log('[ChatAppPage] handleSendMessage response processed:', {
+        contentLength: content?.length,
+        artifactsCount: artifacts?.length,
+        hasLlmPayload: !!llmPayload,
+        dataKeys: Object.keys(data)
+      });
+
+      // Create assistant message from response
+      const assistantMsg = {
+        id: `msg-${Date.now()}`,
+        role: "assistant",
+        content: content, 
+        created_at: new Date().toISOString(),
+        metadata: { 
+          llm_payload: llmPayload,
+          artifacts: artifacts, // Explicitly pass artifacts to metadata
+          ...data 
+        },
+      } as any;
+
+      setMessages(prev => [...prev.filter((m: any) => !String(m.id).startsWith("temp-")), assistantMsg]);
+
+      // Handle artifacts for canvas
+      if (artifacts.length > 0) {
+         setCanvasArtifacts(artifacts);
+         setIsCanvasOpen(true);
+      }
 
       // Update or set active conversation
-      if (!activeConversationId) {
-        setActiveConversationId(response.conversation_id);
+      if (data.conversation_id && !activeConversationId) {
+        setActiveConversationId(data.conversation_id);
       }
 
-      // Reload conversations list and messages from server to ensure canonical state
+      // Reload conversations list to ensure canonical state
       await loadConversations();
-      await loadConversationMessages(response.conversation_id);
-
-      // Handle artifacts
-      if (response.artifacts && response.artifacts.length > 0) {
-        setCanvasArtifacts(response.artifacts);
-        setIsCanvasOpen(true);
-      }
+      
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error("Failed to send message:", error);
       try {
         const formatted = chatService.formatErrorMessage(error as Error);
         const errorMsg = {
           id: Date.now(),
-          role: 'assistant',
+          role: "assistant",
           content: formatted,
           created_at: new Date().toISOString(),
           metadata: { error: true },
         } as any;
-        setMessages(prev => [...prev.filter((m: any) => !String(m.id).startsWith('temp-')), errorMsg]);
+        setMessages(prev => [...prev.filter((m: any) => !String(m.id).startsWith("temp-")), errorMsg]);
       } catch (e) {
         // ignore formatting/display failures
       }
     } finally {
       setIsLoading(false);
+      setStreamingMessage(null);
     }
   };
 
@@ -220,20 +322,22 @@ export default function ChatAppPage({ language = 'en' }: ChatAppPageProps) {
   // EVENT HANDLERS
   // ============================================================================
 
-  const handleNewChat = () => {
+  const handleNewChat = useCallback(() => {
     setActiveConversationId(null);
     setMessages([]);
     setCanvasArtifacts([]);
     setIsCanvasOpen(false);
-  };
+    setStreamingMessage(null);
+  }, []);
 
-  const handleSelectConversation = (conversationId: number) => {
+  const handleSelectConversation = useCallback((conversationId: number) => {
     setActiveConversationId(conversationId);
     setCanvasArtifacts([]);
     setIsCanvasOpen(false);
-  };
+    setStreamingMessage(null);
+  }, []);
 
-  const handleDeleteConversation = async (conversationId: number) => {
+  const handleDeleteConversation = useCallback(async (conversationId: number) => {
     try {
       await chatService.deleteConversation(conversationId);
       
@@ -245,13 +349,12 @@ export default function ChatAppPage({ language = 'en' }: ChatAppPageProps) {
       // Reload conversations
       await loadConversations();
     } catch (error) {
-      console.error('Failed to delete conversation:', error);
+      console.error("Failed to delete conversation:", error);
     }
-  };
+  }, [activeConversationId, handleNewChat, loadConversations]);
 
   const handleCloseCanvas = () => {
     setIsCanvasOpen(false);
-    setIsCanvasExpanded(false);
     setIsSidebarOpen(true);
   };
 
@@ -262,139 +365,77 @@ export default function ChatAppPage({ language = 'en' }: ChatAppPageProps) {
   const toggleSidebar = () => {
     setIsSidebarOpen((v) => {
       const nv = !v;
-      setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
+      setTimeout(() => window.dispatchEvent(new Event("resize")), 300);
       return nv;
     });
   };
 
   const toggleCanvas = () => {
-    setIsCanvasExpanded(false);
-    setIsCanvasOpen(prev => !prev);
+    setIsCanvasOpen((v) => !v);
+    if (!isCanvasOpen) setIsSidebarOpen(true);
+    setTimeout(() => window.dispatchEvent(new Event("resize")), 300);
   };
+  const [initialCanvasIndex, setInitialCanvasIndex] = useState(0);
 
+  const handleOpenArtifact = (artifact: any, artifacts?: any[], index?: number) => {
+    console.log('[ChatAppPage] handleOpenArtifact called:', {
+      artifact,
+      artifacts,
+      artifactsLength: artifacts?.length || 1,
+      index
+    });
+    console.log('[ChatAppPage] FULL ARTIFACT JSON:', JSON.stringify(artifact, null, 2));
+    console.log('[ChatAppPage] artifact.type:', artifact.type);
+    console.log('[ChatAppPage] artifact.content?.type:', artifact.content?.type);
+    
+    setCanvasArtifacts(artifacts || [artifact]);
+    setInitialCanvasIndex(index || 0);
+    setIsCanvasOpen(true);
+    if (!isCanvasOpen) setIsSidebarOpen(true);
+    setTimeout(() => window.dispatchEvent(new Event("resize")), 300);
+  };
 
   // ============================================================================
   // RENDER
   // ============================================================================
 
-  const activeConversation = conversations.find(c => c.id === activeConversationId);
-  const conversationTitle = activeConversation?.title;
-
   return (
-    <div
-      style={{
-        display: 'flex',
-        width: '100vw',
-        height: '100vh',
-        overflow: 'hidden',
-        backgroundColor: 'rgb(249, 250, 251)',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
-        position: 'relative',
-      }}
-    >
-      {/* Sidebar - Slides in/out from left */}
-      <div
-        style={{
-          flexShrink: 0,
-          backgroundColor: 'rgb(255, 255, 255)',
-          borderRight: '1px solid rgb(229, 231, 235)',
-          overflowY: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: '2px 0 8px rgba(0, 0, 0, 0.04)',
-          transition: 'all 0.3s ease',
-          position: 'relative',
-          zIndex: 30,
-          width: isSidebarOpen ? '280px' : '64px',
-        }}
-      >
-        <Sidebar
-          conversations={conversations}
-          activeConversationId={activeConversationId}
-          onNewChat={handleNewChat}
-          onSelectConversation={handleSelectConversation}
-          onDeleteConversation={handleDeleteConversation}
-          onQuickAction={handleQuickAction}
-          isCollapsed={!isSidebarOpen}
-          onRequestToggleCollapse={toggleSidebar}
-          language={language}
-        />
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'row', height: '100vh', backgroundColor: 'rgb(249, 250, 251)', overflow: 'hidden' }}>
+      {/* Sidebar */}
+      <MemoizedSidebar
+        conversations={conversations}
+        activeConversationId={activeConversationId}
+        onNewChat={handleNewChat}
+        onSelectConversation={handleSelectConversation}
+        onDeleteConversation={handleDeleteConversation}
+        isCollapsed={!isSidebarOpen}
+        onRequestToggleCollapse={toggleSidebar}
+        onQuickAction={handleQuickAction}
+      />
 
       {/* Main Chat Area */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          position: 'relative',
-          backgroundColor: 'rgb(255, 255, 255)',
-          minWidth: 0,
-          zIndex: 20,
-        }}
-      >
-        <ChatContainer
-          conversationId={activeConversationId}
-          conversationTitle={conversationTitle}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+        <MemoizedChatContainer
           messages={messages}
-          onSendMessage={handleSendMessage}
           isLoading={isLoading}
-          language={language}
-          onToggleSidebar={toggleSidebar}
+          conversationId={activeConversationId}
           onToggleCanvas={toggleCanvas}
-          onOpenArtifact={(artifact, artifacts) => {
-            // When clicking an artifact in the message, open all artifacts in the canvas if provided
-            if (artifacts && artifacts.length > 0) {
-              setCanvasArtifacts(artifacts);
-            } else if (artifact) {
-              setCanvasArtifacts([artifact]);
-            }
-            setIsCanvasOpen(true);
-            setIsCanvasExpanded(false);
-            setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
-          }}
+          onSendMessage={handleSendMessage}
+          onOpenArtifact={handleOpenArtifact}
+          streamingMessage={streamingMessage}
         />
       </div>
 
-      {/* Canvas Panel - Right column that squeezes the chat area */}
-      <div
-        style={{
-          flexShrink: 0,
-          height: '100vh',
-          backgroundColor: 'rgb(255, 255, 255)',
-          borderLeft: '1px solid rgb(229, 231, 235)',
-          boxShadow: '-2px 0 8px rgba(0, 0, 0, 0.04)',
-          transition: 'all 0.3s ease',
-          width: isCanvasOpen ? (isCanvasExpanded ? '840px' : '420px') : '0px',
-          overflow: isCanvasOpen ? 'auto' : 'hidden',
-          zIndex: 30,
-          display: isCanvasOpen ? 'flex' : 'none',
-          flexDirection: 'column',
-          position: 'relative',
-        }}
-      >
-        <CanvasPanel
-          artifacts={canvasArtifacts}
+      {/* Canvas Manager - Legacy Working Version */}
+      {isCanvasOpen && (
+        <MemoizedCanvasManager
           isOpen={isCanvasOpen}
+          conversationId={activeConversationId}
+          artifacts={canvasArtifacts}
+          initialArtifact={canvasArtifacts[initialCanvasIndex]}
           onClose={handleCloseCanvas}
-          language={language}
-          inline={true}
-          isExpanded={isCanvasExpanded}
-          onToggleExpand={(val: boolean) => {
-            if (val) {
-              // Expand canvas to double size, keep layout responsive (pushes chat)
-              setIsCanvasExpanded(true);
-              setIsCanvasOpen(true);
-              // keep sidebar state as-is
-              setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
-            } else {
-              setIsCanvasExpanded(false);
-              setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
-            }
-          }}
         />
-      </div>
+      )}
     </div>
   );
 }
