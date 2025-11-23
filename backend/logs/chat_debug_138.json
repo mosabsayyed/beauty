@@ -1,0 +1,46 @@
+{
+  "conversation_id": "138",
+  "created_at": "2025-11-05T09:04:14.450254",
+  "turns": [
+    {
+      "timestamp": "2025-11-05T09:04:14.450264",
+      "turn_number": 1
+    }
+  ],
+  "layers": {
+    "layer1": {
+      "events": []
+    },
+    "layer2": {
+      "events": [
+        {
+          "event_type": "orchestrator_initialized",
+          "timestamp": "2025-11-05T09:04:15.391735",
+          "data": {
+            "type": "zero_shot",
+            "model": "openai/gpt-oss-120b",
+            "mcp_server": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp",
+            "static_prefix_length": 18554,
+            "timestamp": 1762322655.3917272
+          }
+        },
+        {
+          "event_type": "query_received",
+          "timestamp": "2025-11-05T09:04:15.392133",
+          "data": {
+            "user_query": "What projects do we have for 2027?",
+            "conversation_id": 138,
+            "conversation_history_length": 40,
+            "timestamp": 1762322655.39213
+          }
+        }
+      ]
+    },
+    "layer3": {
+      "events": []
+    },
+    "layer4": {
+      "events": []
+    }
+  }
+}

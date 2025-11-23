@@ -1,0 +1,213 @@
+{
+  "conversation_id": "143",
+  "created_at": "2025-11-05 10:03:01",
+  "turns": [
+    {
+      "timestamp": "2025-11-05 10:03:01",
+      "turn_number": 1
+    },
+    {
+      "timestamp": "2025-11-05 10:03:26",
+      "turn_number": 2
+    }
+  ],
+  "layers": {
+    "layer1": {
+      "events": []
+    },
+    "layer2": {
+      "events": [
+        {
+          "event_type": "orchestrator_initialized",
+          "timestamp": "2025-11-05 10:03:02",
+          "data": {
+            "type": "zero_shot",
+            "model": "openai/gpt-oss-120b",
+            "mcp_server": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp",
+            "static_prefix_length": 18554,
+            "timestamp": 1762326182.021409
+          }
+        },
+        {
+          "event_type": "query_received",
+          "timestamp": "2025-11-05 10:03:02",
+          "data": {
+            "user_query": "Show me 5 projects from 2027",
+            "conversation_id": 143,
+            "conversation_history_length": 1,
+            "timestamp": 1762326182.021853
+          }
+        },
+        {
+          "event_type": "groq_api_request",
+          "timestamp": "2025-11-05 10:03:02",
+          "data": {
+            "endpoint": "https://api.groq.com/openai/v1/responses",
+            "method": "POST",
+            "model": "openai/gpt-oss-120b",
+            "input_length": 19074,
+            "tools": [
+              {
+                "type": "mcp",
+                "server_label": "Neo4j Database",
+                "server_url": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp"
+              }
+            ],
+            "conversation_id": 143
+          }
+        },
+        {
+          "event_type": "groq_api_response",
+          "timestamp": "2025-11-05 10:03:06",
+          "data": {
+            "status_code": 200,
+            "prompt_tokens": 0,
+            "cached_tokens": 0,
+            "cache_rate": "0.0%",
+            "completion_tokens": 0,
+            "total_tokens": 11331,
+            "answer_length": 2098,
+            "elapsed_time": 4.680296182632446
+          }
+        },
+        {
+          "event_type": "validation_warning",
+          "timestamp": "2025-11-05 10:03:06",
+          "data": {
+            "missing_fields": [
+              "insights"
+            ],
+            "response_keys": [
+              "answer",
+              "analysis",
+              "data",
+              "visualizations",
+              "cypher_executed",
+              "data_source",
+              "confidence"
+            ]
+          }
+        },
+        {
+          "event_type": "response_parsed",
+          "timestamp": "2025-11-05 10:03:06",
+          "data": {
+            "answer_length": 76,
+            "insights_count": 0,
+            "visualizations_count": 0,
+            "confidence": 0.98,
+            "total_elapsed": 4.6839001178741455
+          }
+        },
+        {
+          "event_type": "zero_shot_success",
+          "timestamp": "2025-11-05 10:03:06",
+          "data": {
+            "insights_count": 3,
+            "visualizations_count": 0,
+            "confidence": 0.98,
+            "cypher_executed": "MATCH (p:EntityProject {year:2027}) RETURN p.id AS id, p.name AS name, p.status AS status, p.progress_percentage AS progress, p.start_date AS start_date ORDER BY p.name ASC LIMIT 5"
+          }
+        },
+        {
+          "event_type": "orchestrator_initialized",
+          "timestamp": "2025-11-05 10:03:26",
+          "data": {
+            "type": "zero_shot",
+            "model": "openai/gpt-oss-120b",
+            "mcp_server": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp",
+            "static_prefix_length": 18554,
+            "timestamp": 1762326206.800411
+          }
+        },
+        {
+          "event_type": "query_received",
+          "timestamp": "2025-11-05 10:03:26",
+          "data": {
+            "user_query": "Show me 5 projects from 2027",
+            "conversation_id": 143,
+            "conversation_history_length": 3,
+            "timestamp": 1762326206.8012602
+          }
+        },
+        {
+          "event_type": "groq_api_request",
+          "timestamp": "2025-11-05 10:03:26",
+          "data": {
+            "endpoint": "https://api.groq.com/openai/v1/responses",
+            "method": "POST",
+            "model": "openai/gpt-oss-120b",
+            "input_length": 19199,
+            "tools": [
+              {
+                "type": "mcp",
+                "server_label": "Neo4j Database",
+                "server_url": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp"
+              }
+            ],
+            "conversation_id": 143
+          }
+        },
+        {
+          "event_type": "groq_api_response",
+          "timestamp": "2025-11-05 10:03:31",
+          "data": {
+            "status_code": 200,
+            "prompt_tokens": 0,
+            "cached_tokens": 0,
+            "cache_rate": "0.0%",
+            "completion_tokens": 0,
+            "total_tokens": 11305,
+            "answer_length": 2146,
+            "elapsed_time": 4.901501655578613
+          }
+        },
+        {
+          "event_type": "validation_warning",
+          "timestamp": "2025-11-05 10:03:31",
+          "data": {
+            "missing_fields": [
+              "insights"
+            ],
+            "response_keys": [
+              "answer",
+              "analysis",
+              "data",
+              "visualizations",
+              "cypher_executed",
+              "data_source",
+              "confidence"
+            ]
+          }
+        },
+        {
+          "event_type": "response_parsed",
+          "timestamp": "2025-11-05 10:03:31",
+          "data": {
+            "answer_length": 76,
+            "insights_count": 0,
+            "visualizations_count": 0,
+            "confidence": 0.98,
+            "total_elapsed": 4.903676271438599
+          }
+        },
+        {
+          "event_type": "zero_shot_success",
+          "timestamp": "2025-11-05 10:03:31",
+          "data": {
+            "insights_count": 3,
+            "visualizations_count": 0,
+            "confidence": 0.98,
+            "cypher_executed": "MATCH (p:EntityProject {year:2027}) RETURN p.id AS id, p.name AS name, p.status AS status, p.progress_percentage AS progress, p.start_date AS start_date ORDER BY p.name ASC LIMIT 5"
+          }
+        }
+      ]
+    },
+    "layer3": {
+      "events": []
+    },
+    "layer4": {
+      "events": []
+    }
+  }
+}

@@ -1,0 +1,213 @@
+{
+  "conversation_id": "144",
+  "created_at": "2025-11-05 10:04:12",
+  "turns": [
+    {
+      "timestamp": "2025-11-05 10:04:12",
+      "turn_number": 1
+    },
+    {
+      "timestamp": "2025-11-05 10:05:12",
+      "turn_number": 2
+    }
+  ],
+  "layers": {
+    "layer1": {
+      "events": []
+    },
+    "layer2": {
+      "events": [
+        {
+          "event_type": "orchestrator_initialized",
+          "timestamp": "2025-11-05 10:04:13",
+          "data": {
+            "type": "zero_shot",
+            "model": "openai/gpt-oss-120b",
+            "mcp_server": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp",
+            "static_prefix_length": 18554,
+            "timestamp": 1762326253.1824975
+          }
+        },
+        {
+          "event_type": "query_received",
+          "timestamp": "2025-11-05 10:04:13",
+          "data": {
+            "user_query": "Which capabilities have the lowest maturity?",
+            "conversation_id": 144,
+            "conversation_history_length": 1,
+            "timestamp": 1762326253.1839368
+          }
+        },
+        {
+          "event_type": "groq_api_request",
+          "timestamp": "2025-11-05 10:04:13",
+          "data": {
+            "endpoint": "https://api.groq.com/openai/v1/responses",
+            "method": "POST",
+            "model": "openai/gpt-oss-120b",
+            "input_length": 19106,
+            "tools": [
+              {
+                "type": "mcp",
+                "server_label": "Neo4j Database",
+                "server_url": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp"
+              }
+            ],
+            "conversation_id": 144
+          }
+        },
+        {
+          "event_type": "groq_api_response",
+          "timestamp": "2025-11-05 10:04:18",
+          "data": {
+            "status_code": 200,
+            "prompt_tokens": 0,
+            "cached_tokens": 0,
+            "cache_rate": "0.0%",
+            "completion_tokens": 0,
+            "total_tokens": 6660,
+            "answer_length": 3226,
+            "elapsed_time": 4.846697092056274
+          }
+        },
+        {
+          "event_type": "validation_warning",
+          "timestamp": "2025-11-05 10:04:18",
+          "data": {
+            "missing_fields": [
+              "insights"
+            ],
+            "response_keys": [
+              "answer",
+              "analysis",
+              "data",
+              "visualizations",
+              "cypher_executed",
+              "data_source",
+              "confidence"
+            ]
+          }
+        },
+        {
+          "event_type": "response_parsed",
+          "timestamp": "2025-11-05 10:04:18",
+          "data": {
+            "answer_length": 177,
+            "insights_count": 0,
+            "visualizations_count": 1,
+            "confidence": 0.96,
+            "total_elapsed": 4.850566864013672
+          }
+        },
+        {
+          "event_type": "zero_shot_success",
+          "timestamp": "2025-11-05 10:04:18",
+          "data": {
+            "insights_count": 3,
+            "visualizations_count": 1,
+            "confidence": 0.96,
+            "cypher_executed": "MATCH (c:EntityCapability) WITH max(c.year) AS maxYear MATCH (c2:EntityCapability {year: maxYear}) WHERE exists(c2.maturity_level) WITH c2, maxYear ORDER BY c2.maturity_level ASC LIMIT 20 WITH collect({id:c2.id, name:c2.name, maturity_level:c2.maturity_level, level:c2.level, status:c2.status}) AS results, maxYear MATCH (cAll:EntityCapability {year: maxYear}) RETURN results AS query_results, count(cAll) AS totalCount, maxYear AS year"
+          }
+        },
+        {
+          "event_type": "orchestrator_initialized",
+          "timestamp": "2025-11-05 10:05:12",
+          "data": {
+            "type": "zero_shot",
+            "model": "openai/gpt-oss-120b",
+            "mcp_server": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp",
+            "static_prefix_length": 18554,
+            "timestamp": 1762326312.6587138
+          }
+        },
+        {
+          "event_type": "query_received",
+          "timestamp": "2025-11-05 10:05:12",
+          "data": {
+            "user_query": "for which year do these follow?",
+            "conversation_id": 144,
+            "conversation_history_length": 3,
+            "timestamp": 1762326312.6598647
+          }
+        },
+        {
+          "event_type": "groq_api_request",
+          "timestamp": "2025-11-05 10:05:12",
+          "data": {
+            "endpoint": "https://api.groq.com/openai/v1/responses",
+            "method": "POST",
+            "model": "openai/gpt-oss-120b",
+            "input_length": 19322,
+            "tools": [
+              {
+                "type": "mcp",
+                "server_label": "Neo4j Database",
+                "server_url": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp"
+              }
+            ],
+            "conversation_id": 144
+          }
+        },
+        {
+          "event_type": "groq_api_response",
+          "timestamp": "2025-11-05 10:05:17",
+          "data": {
+            "status_code": 200,
+            "prompt_tokens": 0,
+            "cached_tokens": 0,
+            "cache_rate": "0.0%",
+            "completion_tokens": 0,
+            "total_tokens": 11431,
+            "answer_length": 1277,
+            "elapsed_time": 4.77888035774231
+          }
+        },
+        {
+          "event_type": "validation_warning",
+          "timestamp": "2025-11-05 10:05:17",
+          "data": {
+            "missing_fields": [
+              "insights"
+            ],
+            "response_keys": [
+              "answer",
+              "analysis",
+              "data",
+              "visualizations",
+              "cypher_executed",
+              "data_source",
+              "confidence"
+            ]
+          }
+        },
+        {
+          "event_type": "response_parsed",
+          "timestamp": "2025-11-05 10:05:17",
+          "data": {
+            "answer_length": 114,
+            "insights_count": 0,
+            "visualizations_count": 0,
+            "confidence": 0.97,
+            "total_elapsed": 4.782912492752075
+          }
+        },
+        {
+          "event_type": "zero_shot_success",
+          "timestamp": "2025-11-05 10:05:17",
+          "data": {
+            "insights_count": 3,
+            "visualizations_count": 0,
+            "confidence": 0.97,
+            "cypher_executed": "MATCH (c:EntityCapability) WITH min(toFloat(c.maturity_level)) AS minMaturity MATCH (c:EntityCapability) WHERE toFloat(c.maturity_level) = minMaturity RETURN DISTINCT c.year AS year, c.maturity_level AS maturity_level ORDER BY c.year DESC LIMIT 20"
+          }
+        }
+      ]
+    },
+    "layer3": {
+      "events": []
+    },
+    "layer4": {
+      "events": []
+    }
+  }
+}

@@ -1,0 +1,7 @@
+---
+description: Everything
+globs: *
+alwaysApply: true
+---
+
+never assume or infer and always provide factual answers based on the code and the repo config files

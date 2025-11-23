@@ -1,0 +1,93 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+stash/
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# Virtual environments
+venv/
+.env/
+.venv/
+ENV/
+env/
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+nohup.out
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+
+# Secrets
+*.env
+.env.*
+backend/.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Test output
+coverage/
+htmlcov/
+
+# Misc
+*.bak
+*.swp
+*.tmp
+
+# Git
+*.orig
+*.rej
+integrate/
+
+#sync jobs
+backend/embeddings_scripts
+
+# Frontend2 (excluded per request)
+frontend2/
+
+# Keys / certificates
+*.pem
+*.key
+*.p12
+*.jks
+*.crt
+*.der
+
+# Local dotenv overrides
+.env.local
+.env.*.local
+
+# Backend logs and uploads (may contain sensitive data)
+/backend/logs/
+/uploads/
+/backend/uploads/
+
+# Generic secrets/credentials files
+credentials
+*.credentials
+secrets
+secrets.*
+
+# Files found by repo scan that contain embedded secrets
+# These are tracked now but should be ignored for future commits
+codebase_search.py
+backend/new.prompt.prompt.md
+backend/*.prompt.md
+backend/tools/llm_runtime_vector_search.py

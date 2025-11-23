@@ -1,0 +1,416 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+
+:root {
+  /* ===================================
+     JOSOOR DESIGN SYSTEM
+     Based on: Mono-Functional SaaS Kit v2.0
+     Philosophy: Radical Clarity
+     Date: November 14, 2024
+     =================================== */
+
+  /* TYPOGRAPHY */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Font Sizing (from design system) */
+  --text-h1: 24px;
+  --text-h2: 20px;
+  --text-h3: 16px;
+  --text-body: 14px;
+  --text-caption: 12px;
+
+  /* CANVAS COLORS */
+  --canvas-page-bg: #F9FAFB;
+  --canvas-card-bg: #FFFFFF;
+  --canvas-inverted-bg: #000000;
+
+  /* TEXT COLORS */
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-tertiary: #9CA3AF;
+  --text-inverted: #FFFFFF;
+
+  /* BORDER COLORS */
+  --border-subtle: #F3F4F6;
+  --border-default: #E5E7EB;
+  --border-focus: #000000;
+
+  /* INTERACTIVE COLORS */
+  --interactive-primary-default: #000000;
+  --interactive-primary-hover: #374151;
+  --interactive-secondary-bg: #FFFFFF;
+  --interactive-secondary-border: #E5E7EB;
+
+  /* GOLD ACCENT (Josoor Brand) */
+  --color-gold: #D4AF37;
+  --color-gold-hover: #C5A028;
+  --color-gold-muted: #E8D7A3;
+
+  /* SPACING */
+  --spacing-container: 24px;
+  --spacing-element: 16px;
+  --spacing-tight: 8px;
+
+  /* BORDER RADIUS */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* SHADOWS */
+  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-popover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-none: none;
+
+  /* LEGACY COMPATIBILITY (for ShadCN components) */
+  --background: #FFFFFF;
+  --foreground: #111827;
+  --card: #FFFFFF;
+  --card-foreground: #111827;
+  --popover: #FFFFFF;
+  --popover-foreground: #111827;
+  --primary: #000000;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F9FAFB;
+  --secondary-foreground: #111827;
+  --muted: #F9FAFB;
+  --muted-foreground: #6B7280;
+  --accent: #000000;
+  --accent-foreground: #FFFFFF;
+  --destructive: #dc2626;
+  --destructive-foreground: #FFFFFF;
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: #000000;
+  --radius: 8px;
+}
+
+@theme inline {
+  /* Tailwind v4 Theme Tokens */
+  --color-canvas-page: var(--canvas-page-bg);
+  --color-canvas-card: var(--canvas-card-bg);
+  --color-canvas-inverted: var(--canvas-inverted-bg);
+  
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-inverted: var(--text-inverted);
+  
+  --color-border-subtle: var(--border-subtle);
+  --color-border-default: var(--border-default);
+  --color-border-focus: var(--border-focus);
+  
+  --color-interactive-primary: var(--interactive-primary-default);
+  --color-interactive-primary-hover: var(--interactive-primary-hover);
+  --color-interactive-secondary-bg: var(--interactive-secondary-bg);
+  --color-interactive-secondary-border: var(--interactive-secondary-border);
+  
+  --color-gold: var(--color-gold);
+  --color-gold-hover: var(--color-gold-hover);
+  --color-gold-muted: var(--color-gold-muted);
+
+  /* Legacy ShadCN compatibility */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--border);
+  --color-ring: var(--ring);
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-size: 16px; /* Base for rem calculations */
+  }
+
+  body {
+    @apply bg-canvas-page text-text-primary;
+    font-family: var(--font-family);
+    font-size: var(--text-body);
+    font-weight: var(--font-weight-regular);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* RTL Support */
+  body[dir="rtl"] {
+    direction: rtl;
+  }
+
+  [dir="rtl"] {
+    text-align: right;
+  }
+
+  [dir="rtl"] .text-center {
+    text-align: center;
+  }
+
+  [dir="rtl"] .text-left {
+    text-align: left;
+  }
+}
+
+/**
+ * Typography System
+ * NOTE: Do not override these with Tailwind classes unless specifically requested
+ */
+@layer base {
+  h1 {
+    font-size: var(--text-h1);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+  }
+
+  h2 {
+    font-size: var(--text-h2);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.4;
+    letter-spacing: -0.005em;
+    color: var(--text-primary);
+  }
+
+  h3 {
+    font-size: var(--text-h3);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+
+  p {
+    font-size: var(--text-body);
+    font-weight: var(--font-weight-regular);
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+
+  small, .caption {
+    font-size: var(--text-caption);
+    line-height: 1.4;
+    color: var(--text-secondary);
+  }
+
+  label {
+    font-size: var(--text-body);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+
+  button {
+    font-size: var(--text-body);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.5;
+  }
+
+  input, textarea, select {
+    font-size: var(--text-body);
+    font-weight: var(--font-weight-regular);
+    line-height: 1.5;
+    font-family: var(--font-family);
+  }
+
+  a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--interactive-primary-hover);
+  }
+}
+
+/* Custom Scrollbar (matching design system) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--border-subtle);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Selection */
+::selection {
+  background-color: rgba(212, 175, 55, 0.2); /* Gold tint */
+  color: var(--text-primary);
+}
+
+/* Utility Classes */
+@layer utilities {
+  /* Card Component */
+  .card-base {
+    background: var(--canvas-card-bg);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+    padding: 20px;
+  }
+
+  /* Button Variants */
+  .btn-primary {
+    background: var(--interactive-primary-default);
+    color: var(--text-inverted);
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-semibold);
+    padding: 12px 24px;
+    border: none;
+    cursor: pointer;
+    transition: background 150ms ease;
+  }
+
+  .btn-primary:hover {
+    background: var(--interactive-primary-hover);
+  }
+
+  .btn-secondary {
+    background: var(--interactive-secondary-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--interactive-secondary-border);
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-medium);
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: all 150ms ease;
+  }
+
+  .btn-secondary:hover {
+    background: var(--border-subtle);
+  }
+
+  /* Input Field */
+  .input-field {
+    background: var(--canvas-card-bg);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    height: 44px;
+    padding: 0 12px;
+    color: var(--text-primary);
+  }
+
+  .input-field::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Gold Accents */
+  .text-gold {
+    color: var(--color-gold);
+  }
+
+  .bg-gold {
+    background-color: var(--color-gold);
+  }
+
+  .border-gold {
+    border-color: var(--color-gold);
+  }
+
+  .bg-gold-muted {
+    background-color: var(--color-gold-muted);
+  }
+
+  /* Message Bubbles (Chat-specific) */
+  .message-user {
+    background: var(--canvas-card-bg); /* White background */
+    color: var(--text-primary); /* Black text */
+    border: 1px solid var(--border-default); /* Gray border */
+    border-radius: var(--radius-lg);
+    padding: 12px 16px;
+    max-width: 80%;
+  }
+
+  .message-assistant {
+    background: transparent; /* No background */
+    color: var(--text-primary); /* Black text */
+    border: none; /* No border */
+    border-radius: 0;
+    padding: 0;
+    max-width: 100%;
+  }
+
+  /* Artifact Card */
+  .artifact-card {
+    background: var(--canvas-page-bg);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 150ms ease;
+  }
+
+  .artifact-card:hover {
+    border-color: var(--border-focus);
+  }
+
+  /* Canvas Panel */
+  .canvas-panel {
+    background: var(--canvas-card-bg);
+    box-shadow: var(--shadow-popover);
+  }
+
+  .canvas-header {
+    background: var(--canvas-card-bg); /* White background */
+    color: var(--text-primary); /* Black text */
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-default); /* Black line separator */
+  }
+}
+
+/* Image Rendering */
+img, svg {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+svg {
+  shape-rendering: geometricPrecision;
+}

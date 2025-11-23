@@ -1,0 +1,15 @@
+]633;E;echo "== Timestamp ==";394b68b1-a79f-46a8-b83f-dc62a6eb6eb6]633;C== Timestamp ==
+Sun Nov 16 11:11:16 +03 2025
+\n== Processes mentioning ngrok or mcp ==
+67845 ngrok http 8080
+root     68099  0.0  0.0   3160  1792 pts/7    S+   09:47   0:00 tail -n 40 -f /home/mosab/projects/chatmodule/backend/logs/mcp_server.log /home/mosab/projects/chatmodule/logs/backend_start.log
+\n== Listening TCP ports (filtered common dev ports) ==
+LISTEN 0      2048          0.0.0.0:8008       0.0.0.0:*    users:(("uvicorn",pid=68033,fd=3),("python",pid=6008,fd=3))
+LISTEN 0      4096        127.0.0.1:4040       0.0.0.0:*    users:(("ngrok",pid=67845,fd=3))                           
+LISTEN 0      511           0.0.0.0:3000       0.0.0.0:*    users:(("MainThread",pid=68118,fd=27))                     
+LISTEN 0      511         127.0.0.1:5173       0.0.0.0:*    users:(("MainThread",pid=92771,fd=33))                     
+\n== ngrok API tunnels (if ngrok running) ==
+{"tunnels":[{"name":"command_line","ID":"25b36034ce8876bb9200af0b638725bd","uri":"/api/tunnels/command_line","public_url":"https://eun-inheritable-fiddly.ngrok-free.dev","proto":"https","config":{"addr":"http://localhost:8080","inspect":true},"metrics":{"conns":{"count":6,"gauge":0,"rate1":0.00010940620638675467,"rate5":0.002937681797061754,"rate15":0.0022798647547367114,"p50":1491852.5,"p90":9082406,"p95":9082406,"p99":9082406},"http":{"count":6,"rate1":0.00010940620638675467,"rate5":0.002937681797061754,"rate15":0.0022798647547367114,"p50":549021.5,"p90":1591488,"p95":1591488,"p99":1591488}}}],"uri":"/api/tunnels"}
+\n== Backend health endpoint (port 8008) ==
+\n== MCP server folder contents (if present) ==
+no mcp-server folder

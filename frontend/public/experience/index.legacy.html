@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>JOSOOR - Transformation Analytics v2 (legacy)</title>
+    <script>
+      window.EXPERIENCE_API_BASE_URL = window.EXPERIENCE_API_BASE_URL || 'http://localhost:8008/api/v1';
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <link rel="stylesheet" href="/experience/css/canvas.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 95%;
+            max-width: 1800px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-left h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .header-left p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #debugToggle {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        #debugToggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        #debugToggle.active {
+            background: white;
+            color: #667eea;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .chat-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #e0e0e0;
+        }
+        
+        .debug-section {
+            width: 0;
+            overflow: hidden;
+            transition: width 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            background: #f9f9f9;
+        }
+        
+        .debug-section.active {
+            width: 50%;
+        }
+        
+        .chat-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f7f7f7;
+        }
+        
+        .debug-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        /* legacy static experience page content preserved here for backup */
+    </style>
+</head>
+<body>
+    <div class="container">
+      <div class="header">
+        <div class="header-left">
+          <h1>Legacy Experience (backup)</h1>
+          <p>This file was renamed to avoid conflicting with SPA routing. It is kept as a backup.</p>
+        </div>
+        <div class="header-right">
+          <button id="debugToggle">Debug</button>
+        </div>
+      </div>
+      <div class="main-content">
+        <div class="chat-section">
+          <div class="chat-container">
+            <p style="padding:20px;color:#666">This is the legacy experience page. The SPA now owns <code>/experience</code>. To open this backup, load <code>/experience/index.legacy.html</code> directly.</p>
+          </div>
+        </div>
+        <div class="debug-section" id="debugSection"></div>
+      </div>
+    </div>
+</body>
+</html>

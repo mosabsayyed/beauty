@@ -1,0 +1,18 @@
+name: Assistant Approval Check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  check-approval:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR body for approval token
+        run: |
+          body="${{ github.event.pull_request.body }}"
+          echo "PR body:\n$body"
+          if [[ ! "$body" =~ APPROVE:[0-9]+ ]]; then
+            echo "Missing approval token APPROVE:<TODO-ID> in PR body. Add an APPROVE:<TODO-ID> line to proceed."
+            exit 1
+          fi

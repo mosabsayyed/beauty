@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# pre-commit hook: block commits touching backend/ or frontend/ unless .approved_todo exists
+STAGED_FILES=$(git diff --cached --name-only)
+CRITICAL_CHANGED=0
+for f in $STAGED_FILES; do
+  case "$f" in
+    frontend/*|backend/*)
+      CRITICAL_CHANGED=1
+      break
+      ;;
+  esac
+done
+
+if [ "$CRITICAL_CHANGED" -eq 1 ]; then
+  if [ ! -f .approved_todo ]; then
+    echo "ERROR: Commits touching 'frontend/' or 'backend/' require an approval token file '.approved_todo' in the repo root."
+    echo "Create a file named .approved_todo containing a single line: APPROVE:<TODO-ID> then re-stage your changes."
+    exit 1
+  fi
+fi
+
+exit 0

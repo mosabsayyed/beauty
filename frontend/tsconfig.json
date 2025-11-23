@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+      "useDefineForClassFields": true,
+      "allowImportingTsExtensions": true,
+      "moduleDetection": "force",
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+        "baseUrl": ".",
+        "paths": {
+          "@/*": ["./*"]
+        },
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "src",
+    "src/att"
+, "../stash/previous_chat/ConversationsSidebar.tsx", "../stash/previous_chat/ChatInput.tsx", "../stash/previous_chat/ArtifactRenderer.tsx", "../stash/previous_chat/DebugPanel.tsx", "../stash/previous_chat/ErrorBanner.tsx", "../stash/previous_chat/Header.tsx", "../stash/previous_chat/SuggestionsBar.tsx"  ]
+}

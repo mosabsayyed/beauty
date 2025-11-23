@@ -1,0 +1,126 @@
+function TableRenderer({ artifact, language, fullHeight }: { artifact: TableArtifact; language: 'en' | 'ar'; fullHeight?: boolean | number }) {
+  const { content } = artifact;
+  const [sortColumn, setSortColumn] = useState<number | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  // Handle different data structures that might come from streaming
+  const normalizedData = useMemo(() => {
+    // If content has data property, use that
+    const data = content.data || content;
+    
+    // Ensure columns is an array
+    const columns = Array.isArray(data.columns) ? data.columns : 
+
+
+                   data.config?.columns ? data.config.columns : 
+                   [];
+    
+    // Ensure rows is an array of arrays
+    let rows = [];
+    if (Array.isArray(data.rows)) {
+      // Check if it's already array of arrays
+      if (data.rows.length > 0 && Array.isArray(data.rows[0])) {
+        rows = data.rows;
+      } else if (data.rows.length > 0 && typeof data.rows[0] === "object") {
+        // Convert array of objects to array of arrays
+        const firstRow = data.rows[0];
+        const keys = Object.keys(firstRow);
+        rows = data.rows.map((row: any) => keys.map(key => row[key]));
+      }
+    } else if (Array.isArray(data.query_results)) {
+      // Handle query_results format
+      const results = data.query_results;
+      if (results.length > 0) {
+        const keys = Object.keys(results[0]);
+        columns.length === 0 && columns.push(...keys);
+        rows = results.map((row: any) => keys.map(key => row[key]));
+      }
+    }
+    
+    return { columns, rows };
+  }, [content]);
+
+ 
+
+ const normalizedColumns = normalizedData.columns.map(col => 
+    typeof col === 'string' ? col : (col.headerName || col.field || String(col))
+  );
+
+  const handleSort = (columnIndex: number) => {
+    if (sortColumn === columnIndex) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(columnIndex);
+      setSortDirection('asc');
+    }
+  };
+
+  let displayRows = [...normalizedData.rows];
+  if (sortColumn !== null) {
+    displayRows.sort((a, b) => {
+      const aVal = a[sortColumn];
+      const bVal = b[sortColumn];
+      
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      
+      const aStr = String(aVal);
+      const bStr = String(bVal);
+      return sortDirection === 'asc' 
+        ? aStr.localeCompare(bStr)
+        : bStr.localeCompare(aStr);
+    });
+  }
+
+  return (
+    <div className="w-full overflow-auto rounded-lg" style={{ border: "1px solid rgba(226,232,240,1)",
+
+ padding: 8, maxHeight: fullHeight ? "100%" : "400px" }}>
+      {normalizedColumns.length === 0 || displayRows.length === 0 ? (
+        <div style={{ padding: "20px", textAlign: "center", color: "#6B7280" }}>
+          No data available
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow style={{ background: "transparent" }}>
+              {normalizedColumns.map((column, index) => (
+                <TableHead
+                  key={index}
+                  onClick={() => handleSort(index)}
+                  style={{ cursor: "pointer", padding: "10px 12px", fontWeight: 700, borderBottom: "1px solid rgba(226,232,240,1)", background: "transparent", color: "#111827" }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span>{column}</span>
+                    {sortColumn === index && (
+                      <span style={{ fontSize: 12, color: "#6B7280" }}>
+                        {sortDirection === "asc" ? "
+
+↑" : "↓"}
+                      </span>
+                    )}
+                  </div>
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {displayRows.map((row, rowIndex) => (
+              <TableRow
+                key={rowIndex}
+                style={{ background: rowIndex % 2 === 0 ? "#ffffff" : "rgba(249,250,251,1)" }}
+              >
+                {row.map((cell, cellIndex) => (
+                  <TableCell key={cellIndex} style={{ padding: "10px 12px", borderBottom: "1px solid rgba(226,232,240,1)", color: "#111827" }}>
+                    {typeof cell === "number" ? cell.toLocaleString() : String(cell || "")}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </div>
+  );
+}

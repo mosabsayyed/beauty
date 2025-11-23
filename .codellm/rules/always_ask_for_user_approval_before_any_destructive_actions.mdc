@@ -1,0 +1,7 @@
+---
+description: everything
+globs: *
+alwaysApply: true
+---
+
+always ask for user approval before any destructive actions

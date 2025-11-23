@@ -1,0 +1,1867 @@
+nohup: ignoring input
+Activating venv if present...
+Loading backend/.env into environment (if present)...
+Starting MCP server (HTTP) on 127.0.0.1:8080/mcp/...
+Starting ngrok to expose MCP (port 8080) (web UI should be on 127.0.0.1:4040)...
+Wrote ngrok tunnels to /home/mosab/projects/chatmodule/logs/ngrok_tunnels.log
+Starting backend (uvicorn) via backend/run_groq_server.sh...
+Starting frontend dev server (npm start) in background...
+All PIDs written to /home/mosab/projects/chatmodule/.dev_pids
+Tailing important logs (mcp / backend); press Ctrl-C to stop tailing
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+/home/mosab/projects/chatmodule/backend/mcp-server/servers/mcp-neo4j-cypher/src/mcp_neo4j_cypher/server.py:49: DeprecationWarning: The 'dependencies' parameter is deprecated as of FastMCP 2.11.4 and will be removed in a future version. Please specify dependencies in a fastmcp.json configuration file instead:
+{
+  "entrypoint": "your_server.py",
+  "environment": {
+    "dependencies": ["neo4j", "pydantic"]
+  }
+}
+See https://gofastmcp.com/docs/deployment/server-configuration for more information.
+  mcp: FastMCP = FastMCP(
+/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/fastmcp/server/server.py:293: DeprecationWarning: Providing `stateless_http` when creating a server is deprecated. Provide it when calling `run` or as a global setting instead.
+  self._handle_deprecated_settings(
+
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+│                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+│                                                                              │
+│                               FastMCP 2.13.0.2                               │
+│                                                                              │
+│                                                                              │
+│                  🖥  Server name: mcp-neo4j-cypher                            │
+│                                                                              │
+│                  📦 Transport:   HTTP                                        │
+│                  🔗 Server URL:  http://127.0.0.1:8080/mcp/                  │
+│                                                                              │
+│                  📚 Docs:        https://gofastmcp.com                       │
+│                  🚀 Hosting:     https://fastmcp.cloud                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+[11/07/25 16:42:29] INFO     Starting MCP server                  server.py:2050
+                             'mcp-neo4j-cypher' with transport                  
+                             'http' on http://127.0.0.1:8080/mcp/               
+INFO:     Started server process [8136]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
+INFO:     Started reloader process [8213] using WatchFiles
+INFO:     Started server process [8215]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+✅ Supabase connected successfully via REST API
+✅ Neo4j connected successfully
+INFO:     127.0.0.1:52140 - "GET / HTTP/1.1" 200 OK
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+INFO:     127.0.0.1:47562 - "GET /mcp/ HTTP/1.1" 406 Not Acceptable
+Error in message router
+Traceback (most recent call last):
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/mcp/server/streamable_http.py", line 847, in message_router
+    async for session_message in write_stream_reader:
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/abc/_streams.py", line 41, in __anext__
+    return await self.receive()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 111, in receive
+    return self.receive_nowait()
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 93, in receive_nowait
+    raise ClosedResourceError
+anyio.ClosedResourceError
+INFO:     127.0.0.1:57990 - "GET /mcp/ HTTP/1.1" 406 Not Acceptable
+ERROR:mcp.server.streamable_http:Error in message router
+Traceback (most recent call last):
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/mcp/server/streamable_http.py", line 847, in message_router
+    async for session_message in write_stream_reader:
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/abc/_streams.py", line 41, in __anext__
+    return await self.receive()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 111, in receive
+    return self.receive_nowait()
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 93, in receive_nowait
+    raise ClosedResourceError
+anyio.ClosedResourceError
+INFO:     127.0.0.1:57990 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57992 - "GET /mcp/ HTTP/1.1" 406 Not Acceptable
+ERROR:mcp.server.streamable_http:Error in message router
+Traceback (most recent call last):
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/mcp/server/streamable_http.py", line 847, in message_router
+    async for session_message in write_stream_reader:
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/abc/_streams.py", line 41, in __anext__
+    return await self.receive()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 111, in receive
+    return self.receive_nowait()
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 93, in receive_nowait
+    raise ClosedResourceError
+anyio.ClosedResourceError
+INFO:     127.0.0.1:55020 - "GET /mcp/ HTTP/1.1" 406 Not Acceptable
+ERROR:mcp.server.streamable_http:Error in message router
+Traceback (most recent call last):
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/mcp/server/streamable_http.py", line 847, in message_router
+    async for session_message in write_stream_reader:
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/abc/_streams.py", line 41, in __anext__
+    return await self.receive()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 111, in receive
+    return self.receive_nowait()
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 93, in receive_nowait
+    raise ClosedResourceError
+anyio.ClosedResourceError
+INFO:     127.0.0.1:55030 - "GET /mcp/ HTTP/1.1" 406 Not Acceptable
+ERROR:mcp.server.streamable_http:Error in message router
+Traceback (most recent call last):
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/mcp/server/streamable_http.py", line 847, in message_router
+    async for session_message in write_stream_reader:
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/abc/_streams.py", line 41, in __anext__
+    return await self.receive()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 111, in receive
+    return self.receive_nowait()
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 93, in receive_nowait
+    raise ClosedResourceError
+anyio.ClosedResourceError
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - orchestrator_initialized
+================================================================================
+{
+  "type": "zero_shot",
+  "model": "openai/gpt-oss-120b",
+  "mcp_server": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp/",
+  "static_prefix_length": 19720,
+  "timestamp": 1762523229.34676
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - query_received
+================================================================================
+{
+  "user_query": "health check from agent",
+  "conversation_id": 187,
+  "conversation_history_length": 0,
+  "timestamp": 1762523229.3472915
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - raw_llm_request
+================================================================================
+{
+  "endpoint": "https://api.groq.com/openai/v1/responses",
+  "model": "openai/gpt-oss-120b",
+  "full_payload": {
+    "model": "openai/gpt-oss-120b",
+    "input": "\n## ZERO-SHOT PROMPT \u2014 NEO4J ANALYST (KSA GOV AGENCY)\n\n### ROLE AND MISSION\n\nYou are a multi-disciplinary expert Analyst in Graph Databases, Sectoral Economics, and Organizational Transformation for a KSA Government Agency.\n\nYour mission is to assist users by accurately understanding their intent and producing comprehensive analytical responses grounded in data retrieved from Neo4j. You have direct MCP access to Neo4j and must not use intermediaries or routing layers.\n\n---\n\n### BEHAVIORAL LOGIC\n\nIf this is the first user turn:\n\n1. Identify Intent\n   1.1. Directly from the user query and/or prior context.\n   1.2. If unclear, query embeddings via Neo4j vector search.\n   1.3. If confidence remains below 0.5, ask clarification questions.\n\n2. Retrieve Data\n   Use Neo4j Cypher queries to collect relevant data.\n\n3. Analyze Data\n   Perform analytical review: patterns, trends, correlations, anomalies.\n\n4. Structure Response\n\n   * Present tabular data (\u22645 columns, \u226420 rows).\n   * If appropriate, include visualization in valid Highcharts JSON format.\n   * Summarize statistical and business insights.\n\nIf this is a subsequent turn, derive context from conversation history before taking any action.\n\n---\n\n### TOOLCHAIN (MCP TOOLS)\n\n1. get_neo4j_schema\n\n   * Use only if schema information is missing or inconsistent.\n   * Returns database structure (labels, properties, relationships).\n\n2. read_neo4j_cypher\n\n   * Primary data retrieval tool.\n   * Use for all queries once schema is known.\n\nRules:\n\n* Maximum three Cypher queries per turn.\n* Always filter by year when applicable.\n* Limit results to 20 rows unless user specifies otherwise.\n* Order by year DESC, name ASC when relevant.\n* Use COUNT(), SUM(), AVG() for aggregations.\n* Use DISTINCT to avoid dupl
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - groq_api_error_response
+================================================================================
+{
+  "status_code": 424,
+  "error_body": "{\"error\":{\"message\":\"Error retrieving tool list from MCP server: 'Neo4j Database' Http status code: 404 (Not Found)\",\"type\":\"external_connector_error\",\"param\":\"tools\",\"code\":\"http_error\"}}\n",
+  "elapsed_time": 0.8668322563171387
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - orchestrator_error
+================================================================================
+{
+  "error_type": "Exception",
+  "error_message": "Groq API Error 424: {\"error\":{\"message\":\"Error retrieving tool list from MCP server: 'Neo4j Database' Http status code: 404 (Not Found)\",\"type\":\"external_connector_error\",\"param\":\"tools\",\"code\":\"http_error\"}}\n",
+  "elapsed_time": 0.8676202297210693
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - zero_shot_success
+================================================================================
+{
+  "insights_count": 2,
+  "visualizations_count": 0,
+  "confidence": 0.0,
+  "cypher_executed": ""
+}
+================================================================================
+
+INFO:     127.0.0.1:41390 - "POST /api/v1/chat/message HTTP/1.1" 200 OK
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+ERROR:    [Errno 98] Address already in use
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                INFO:     127.0.0.1:36106 - "OPTIONS /api/v1/chat/message/chat/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36106 - "POST /api/v1/chat/message/chat/message HTTP/1.1" 404 Not Found
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+ERROR:    Cancel 0 running task(s), timeout graceful shutdown exceeded
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [8136]
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [8215]
+INFO:     Stopping reloader process [8213]
+tail: /home/mosab/projects/chatmodule/backend/logs/mcp_server.log: file truncated
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+/home/mosab/projects/chatmodule/backend/mcp-server/servers/mcp-neo4j-cypher/src/mcp_neo4j_cypher/server.py:49: DeprecationWarning: The 'dependencies' parameter is deprecated as of FastMCP 2.11.4 and will be removed in a future version. Please specify dependencies in a fastmcp.json configuration file instead:
+{
+  "entrypoint": "your_server.py",
+  "environment": {
+    "dependencies": ["neo4j", "pydantic"]
+  }
+}
+See https://gofastmcp.com/docs/deployment/server-configuration for more information.
+  mcp: FastMCP = FastMCP(
+/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/fastmcp/server/server.py:293: DeprecationWarning: Providing `stateless_http` when creating a server is deprecated. Provide it when calling `run` or as a global setting instead.
+  self._handle_deprecated_settings(
+
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+│                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+│                                                                              │
+│                               FastMCP 2.13.0.2                               │
+│                                                                              │
+│                                                                              │
+│                  🖥  Server name: mcp-neo4j-cypher                            │
+│                                                                              │
+│                  📦 Transport:   HTTP                                        │
+│                  🔗 Server URL:  http://127.0.0.1:8080/mcp/                  │
+│                                                                              │
+│                  📚 Docs:        https://gofastmcp.com                       │
+│                  🚀 Hosting:     https://fastmcp.cloud                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+[11/07/25 17:25:55] INFO     Starting MCP server                  server.py:2050
+                             'mcp-neo4j-cypher' with transport                  
+                             'http' on http://127.0.0.1:8080/mcp/               
+INFO:     Started server process [19737]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
+INFO:     Started reloader process [19818] using WatchFiles
+INFO:     Started server process [19820]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+✅ Supabase connected successfully via REST API
+✅ Neo4j connected successfully
+INFO:     127.0.0.1:42754 - "GET / HTTP/1.1" 200 OK
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+INFO:     127.0.0.1:48394 - "GET /mcp/ HTTP/1.1" 406 Not Acceptable
+Error in message router
+Traceback (most recent call last):
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/mcp/server/streamable_http.py", line 847, in message_router
+    async for session_message in write_stream_reader:
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/abc/_streams.py", line 41, in __anext__
+    return await self.receive()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 111, in receive
+    return self.receive_nowait()
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 93, in receive_nowait
+    raise ClosedResourceError
+anyio.ClosedResourceError
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+ERROR:    Cancel 0 running task(s), timeout graceful shutdown exceeded
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [19737]
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [19820]
+INFO:     Stopping reloader process [19818]
+tail: /home/mosab/projects/chatmodule/backend/logs/mcp_server.log: file truncated
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+/home/mosab/projects/chatmodule/backend/mcp-server/servers/mcp-neo4j-cypher/src/mcp_neo4j_cypher/server.py:49: DeprecationWarning: The 'dependencies' parameter is deprecated as of FastMCP 2.11.4 and will be removed in a future version. Please specify dependencies in a fastmcp.json configuration file instead:
+{
+  "entrypoint": "your_server.py",
+  "environment": {
+    "dependencies": ["neo4j", "pydantic"]
+  }
+}
+See https://gofastmcp.com/docs/deployment/server-configuration for more information.
+  mcp: FastMCP = FastMCP(
+/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/fastmcp/server/server.py:293: DeprecationWarning: Providing `stateless_http` when creating a server is deprecated. Provide it when calling `run` or as a global setting instead.
+  self._handle_deprecated_settings(
+
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+│                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+│                                                                              │
+│                               FastMCP 2.13.0.2                               │
+│                                                                              │
+│                                                                              │
+│                  🖥  Server name: mcp-neo4j-cypher                            │
+│                                                                              │
+│                  📦 Transport:   HTTP                                        │
+│                  🔗 Server URL:  http://127.0.0.1:8080/mcp/                  │
+│                                                                              │
+│                  📚 Docs:        https://gofastmcp.com                       │
+│                  🚀 Hosting:     https://fastmcp.cloud                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+[11/07/25 17:30:21] INFO     Starting MCP server                  server.py:2050
+                             'mcp-neo4j-cypher' with transport                  
+                             'http' on http://127.0.0.1:8080/mcp/               
+INFO:     Started server process [21110]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
+INFO:     Started reloader process [21177] using WatchFiles
+INFO:     Started server process [21179]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+✅ Supabase connected successfully via REST API
+✅ Neo4j connected successfully
+INFO:     127.0.0.1:49866 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49866 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+INFO:     178.77.183.90:0 - "GET / HTTP/1.1" 404 Not Found
+INFO:     178.77.183.90:0 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+ERROR:    Cancel 0 running task(s), timeout graceful shutdown exceeded
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [21110]
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [21179]
+INFO:     Stopping reloader process [21177]
+tail: /home/mosab/projects/chatmodule/backend/logs/mcp_server.log: file truncated
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+/home/mosab/projects/chatmodule/backend/mcp-server/servers/mcp-neo4j-cypher/src/mcp_neo4j_cypher/server.py:49: DeprecationWarning: The 'dependencies' parameter is deprecated as of FastMCP 2.11.4 and will be removed in a future version. Please specify dependencies in a fastmcp.json configuration file instead:
+{
+  "entrypoint": "your_server.py",
+  "environment": {
+    "dependencies": ["neo4j", "pydantic"]
+  }
+}
+See https://gofastmcp.com/docs/deployment/server-configuration for more information.
+  mcp: FastMCP = FastMCP(
+/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/fastmcp/server/server.py:293: DeprecationWarning: Providing `stateless_http` when creating a server is deprecated. Provide it when calling `run` or as a global setting instead.
+  self._handle_deprecated_settings(
+
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+│                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+│                                                                              │
+│                               FastMCP 2.13.0.2                               │
+│                                                                              │
+│                                                                              │
+│                  🖥  Server name: mcp-neo4j-cypher                            │
+│                                                                              │
+│                  📦 Transport:   HTTP                                        │
+│                  🔗 Server URL:  http://127.0.0.1:8080/mcp/                  │
+│                                                                              │
+│                  📚 Docs:        https://gofastmcp.com                       │
+│                  🚀 Hosting:     https://fastmcp.cloud                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+[11/07/25 17:35:13] INFO     Starting MCP server                  server.py:2050
+                             'mcp-neo4j-cypher' with transport                  
+                             'http' on http://127.0.0.1:8080/mcp/               
+INFO:     Started server process [22656]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
+INFO:     Started reloader process [22734] using WatchFiles
+INFO:     Started server process [22736]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+ERROR:    Cancel 0 running task(s), timeout graceful shutdown exceeded
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [22656]
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [22736]
+INFO:     Stopping reloader process [22734]
+tail: /home/mosab/projects/chatmodule/backend/logs/mcp_server.log: file truncated
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+/home/mosab/projects/chatmodule/backend/mcp-server/servers/mcp-neo4j-cypher/src/mcp_neo4j_cypher/server.py:49: DeprecationWarning: The 'dependencies' parameter is deprecated as of FastMCP 2.11.4 and will be removed in a future version. Please specify dependencies in a fastmcp.json configuration file instead:
+{
+  "entrypoint": "your_server.py",
+  "environment": {
+    "dependencies": ["neo4j", "pydantic"]
+  }
+}
+See https://gofastmcp.com/docs/deployment/server-configuration for more information.
+  mcp: FastMCP = FastMCP(
+/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/fastmcp/server/server.py:293: DeprecationWarning: Providing `stateless_http` when creating a server is deprecated. Provide it when calling `run` or as a global setting instead.
+  self._handle_deprecated_settings(
+
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+│                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+│                                                                              │
+│                               FastMCP 2.13.0.2                               │
+│                                                                              │
+│                                                                              │
+│                  🖥  Server name: mcp-neo4j-cypher                            │
+│                                                                              │
+│                  📦 Transport:   HTTP                                        │
+│                  🔗 Server URL:  http://127.0.0.1:8080/mcp/                  │
+│                                                                              │
+│                  📚 Docs:        https://gofastmcp.com                       │
+│                  🚀 Hosting:     https://fastmcp.cloud                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+[11/07/25 17:45:46] INFO     Starting MCP server                  server.py:2050
+                             'mcp-neo4j-cypher' with transport                  
+                             'http' on http://127.0.0.1:8080/mcp/               
+INFO:     Started server process [25221]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
+INFO:     Started reloader process [25286] using WatchFiles
+INFO:     Started server process [25288]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+ERROR:    Cancel 0 running task(s), timeout graceful shutdown exceeded
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [25221]
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [25288]
+INFO:     Stopping reloader process [25286]
+tail: /home/mosab/projects/chatmodule/backend/logs/mcp_server.log: file truncated
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+/home/mosab/projects/chatmodule/backend/mcp-server/servers/mcp-neo4j-cypher/src/mcp_neo4j_cypher/server.py:49: DeprecationWarning: The 'dependencies' parameter is deprecated as of FastMCP 2.11.4 and will be removed in a future version. Please specify dependencies in a fastmcp.json configuration file instead:
+{
+  "entrypoint": "your_server.py",
+  "environment": {
+    "dependencies": ["neo4j", "pydantic"]
+  }
+}
+See https://gofastmcp.com/docs/deployment/server-configuration for more information.
+  mcp: FastMCP = FastMCP(
+/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/fastmcp/server/server.py:293: DeprecationWarning: Providing `stateless_http` when creating a server is deprecated. Provide it when calling `run` or as a global setting instead.
+  self._handle_deprecated_settings(
+
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+│                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+│                                                                              │
+│                               FastMCP 2.13.0.2                               │
+│                                                                              │
+│                                                                              │
+│                  🖥  Server name: mcp-neo4j-cypher                            │
+│                                                                              │
+│                  📦 Transport:   HTTP                                        │
+│                  🔗 Server URL:  http://127.0.0.1:8080/mcp/                  │
+│                                                                              │
+│                  📚 Docs:        https://gofastmcp.com                       │
+│                  🚀 Hosting:     https://fastmcp.cloud                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+[11/07/25 17:46:50] INFO     Starting MCP server                  server.py:2050
+                             'mcp-neo4j-cypher' with transport                  
+                             'http' on http://127.0.0.1:8080/mcp/               
+INFO:     Started server process [25824]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
+INFO:     Started reloader process [25900] using WatchFiles
+INFO:     Started server process [25902]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [25902]
+INFO:     Stopping reloader process [25900]
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+ERROR:    Cancel 0 running task(s), timeout graceful shutdown exceeded
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [25824]
+tail: /home/mosab/projects/chatmodule/backend/logs/mcp_server.log: file truncated
+/home/mosab/projects/chatmodule/backend/mcp-server/servers/mcp-neo4j-cypher/src/mcp_neo4j_cypher/server.py:49: DeprecationWarning: The 'dependencies' parameter is deprecated as of FastMCP 2.11.4 and will be removed in a future version. Please specify dependencies in a fastmcp.json configuration file instead:
+{
+  "entrypoint": "your_server.py",
+  "environment": {
+    "dependencies": ["neo4j", "pydantic"]
+  }
+}
+See https://gofastmcp.com/docs/deployment/server-configuration for more information.
+  mcp: FastMCP = FastMCP(
+/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/fastmcp/server/server.py:293: DeprecationWarning: Providing `stateless_http` when creating a server is deprecated. Provide it when calling `run` or as a global setting instead.
+  self._handle_deprecated_settings(
+
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+│                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+│                                                                              │
+│                               FastMCP 2.13.0.2                               │
+│                                                                              │
+│                                                                              │
+│                  🖥  Server name: mcp-neo4j-cypher                            │
+│                                                                              │
+│                  📦 Transport:   HTTP                                        │
+│                  🔗 Server URL:  http://127.0.0.1:8080/mcp/                  │
+│                                                                              │
+│                  📚 Docs:        https://gofastmcp.com                       │
+│                  🚀 Hosting:     https://fastmcp.cloud                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+[11/07/25 17:48:46] INFO     Starting MCP server                  server.py:2050
+                             'mcp-neo4j-cypher' with transport                  
+                             'http' on http://127.0.0.1:8080/mcp/               
+INFO:     Started server process [26531]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+INFO:     127.0.0.1:52164 - "GET /api/tunnels HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52172 - "GET /api/tunnels HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52182 - "GET /api/tunnels HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52188 - "GET /api/tunnels HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52194 - "GET /api/tunnels HTTP/1.1" 404 Not Found
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
+INFO:     Started reloader process [26663] using WatchFiles
+INFO:     Started server process [26665]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+INFO:     127.0.0.1:46786 - "GET /api/tunnels HTTP/1.1" 404 Not Found
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+ERROR:    Cancel 0 running task(s), timeout graceful shutdown exceeded
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [26531]
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [26665]
+INFO:     Stopping reloader process [26663]
+tail: /home/mosab/projects/chatmodule/backend/logs/mcp_server.log: file truncated
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+/home/mosab/projects/chatmodule/backend/mcp-server/servers/mcp-neo4j-cypher/src/mcp_neo4j_cypher/server.py:49: DeprecationWarning: The 'dependencies' parameter is deprecated as of FastMCP 2.11.4 and will be removed in a future version. Please specify dependencies in a fastmcp.json configuration file instead:
+{
+  "entrypoint": "your_server.py",
+  "environment": {
+    "dependencies": ["neo4j", "pydantic"]
+  }
+}
+See https://gofastmcp.com/docs/deployment/server-configuration for more information.
+  mcp: FastMCP = FastMCP(
+/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/fastmcp/server/server.py:293: DeprecationWarning: Providing `stateless_http` when creating a server is deprecated. Provide it when calling `run` or as a global setting instead.
+  self._handle_deprecated_settings(
+
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+│                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+│                                                                              │
+│                               FastMCP 2.13.0.2                               │
+│                                                                              │
+│                                                                              │
+│                  🖥  Server name: mcp-neo4j-cypher                            │
+│                                                                              │
+│                  📦 Transport:   HTTP                                        │
+│                  🔗 Server URL:  http://127.0.0.1:8080/mcp/                  │
+│                                                                              │
+│                  📚 Docs:        https://gofastmcp.com                       │
+│                  🚀 Hosting:     https://fastmcp.cloud                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+[11/07/25 17:50:06] INFO     Starting MCP server                  server.py:2050
+                             'mcp-neo4j-cypher' with transport                  
+                             'http' on http://127.0.0.1:8080/mcp/               
+INFO:     Started server process [27231]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
+INFO:     Started reloader process [27339] using WatchFiles
+INFO:     Started server process [27344]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [27344]
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+ERROR:    Cancel 0 running task(s), timeout graceful shutdown exceeded
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [27231]
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Stopping reloader process [27339]
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
+INFO:     Started reloader process [28513] using WatchFiles
+INFO:     Started server process [28543]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+tail: /home/mosab/projects/chatmodule/backend/logs/mcp_server.log: file truncated
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+/home/mosab/projects/chatmodule/backend/mcp-server/servers/mcp-neo4j-cypher/src/mcp_neo4j_cypher/server.py:49: DeprecationWarning: The 'dependencies' parameter is deprecated as of FastMCP 2.11.4 and will be removed in a future version. Please specify dependencies in a fastmcp.json configuration file instead:
+{
+  "entrypoint": "your_server.py",
+  "environment": {
+    "dependencies": ["neo4j", "pydantic"]
+  }
+}
+See https://gofastmcp.com/docs/deployment/server-configuration for more information.
+  mcp: FastMCP = FastMCP(
+/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/fastmcp/server/server.py:293: DeprecationWarning: Providing `stateless_http` when creating a server is deprecated. Provide it when calling `run` or as a global setting instead.
+  self._handle_deprecated_settings(
+
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+│                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+│                                                                              │
+│                               FastMCP 2.13.0.2                               │
+│                                                                              │
+│                                                                              │
+│                  🖥  Server name: mcp-neo4j-cypher                            │
+│                                                                              │
+│                  📦 Transport:   HTTP                                        │
+│                  🔗 Server URL:  http://127.0.0.1:8080/mcp/                  │
+│                                                                              │
+│                  📚 Docs:        https://gofastmcp.com                       │
+│                  🚀 Hosting:     https://fastmcp.cloud                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+[11/07/25 17:53:48] INFO     Starting MCP server                  server.py:2050
+                             'mcp-neo4j-cypher' with transport                  
+                             'http' on http://127.0.0.1:8080/mcp/               
+INFO:     Started server process [28834]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+INFO:     Shutting down
+ERROR:    Cancel 0 running task(s), timeout graceful shutdown exceeded
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28834]
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/mosab/projects/chatmodule/.venv/bin/mcp-neo4j-cypher", line 7, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/mosab/projects/chatmodule/backend/mcp-server/servers/mcp-neo4j-cypher/src/mcp_neo4j_cypher/__init__.py", line 55, in main
+    asyncio.run(server.main(**config))
+  File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28543]
+INFO:     Stopping reloader process [28513]
+tail: /home/mosab/projects/chatmodule/backend/logs/mcp_server.log: file truncated
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+/home/mosab/projects/chatmodule/backend/mcp-server/servers/mcp-neo4j-cypher/src/mcp_neo4j_cypher/server.py:49: DeprecationWarning: The 'dependencies' parameter is deprecated as of FastMCP 2.11.4 and will be removed in a future version. Please specify dependencies in a fastmcp.json configuration file instead:
+{
+  "entrypoint": "your_server.py",
+  "environment": {
+    "dependencies": ["neo4j", "pydantic"]
+  }
+}
+See https://gofastmcp.com/docs/deployment/server-configuration for more information.
+  mcp: FastMCP = FastMCP(
+/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/fastmcp/server/server.py:293: DeprecationWarning: Providing `stateless_http` when creating a server is deprecated. Provide it when calling `run` or as a global setting instead.
+  self._handle_deprecated_settings(
+
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+│                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+│                                                                              │
+│                               FastMCP 2.13.0.2                               │
+│                                                                              │
+│                                                                              │
+│                  🖥  Server name: mcp-neo4j-cypher                            │
+│                                                                              │
+│                  📦 Transport:   HTTP                                        │
+│                  🔗 Server URL:  http://127.0.0.1:8080/mcp/                  │
+│                                                                              │
+│                  📚 Docs:        https://gofastmcp.com                       │
+│                  🚀 Hosting:     https://fastmcp.cloud                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+[11/07/25 17:55:11] INFO     Starting MCP server                  server.py:2050
+                             'mcp-neo4j-cypher' with transport                  
+                             'http' on http://127.0.0.1:8080/mcp/               
+INFO:     Started server process [29591]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+ERROR:    [Errno 98] Address already in use
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+ERROR:    [Errno 98] Address already in use
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+ERROR:    [Errno 98] Address already in use
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+ERROR:    [Errno 98] Address already in use
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+ERROR:    [Errno 98] Address already in use
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+INFO:     Shutting down
+ERROR:    Cancel 0 running task(s), timeout graceful shutdown exceeded
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [29591]
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/mosab/projects/chatmodule/.venv/bin/mcp-neo4j-cypher", line 7, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/mosab/projects/chatmodule/backend/mcp-server/servers/mcp-neo4j-cypher/src/mcp_neo4j_cypher/__init__.py", line 55, in main
+    asyncio.run(server.main(**config))
+  File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+tail: /home/mosab/projects/chatmodule/backend/logs/mcp_server.log: file truncated
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
+INFO:     Started reloader process [34113] using WatchFiles
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+/home/mosab/projects/chatmodule/backend/mcp-server/servers/mcp-neo4j-cypher/src/mcp_neo4j_cypher/server.py:49: DeprecationWarning: The 'dependencies' parameter is deprecated as of FastMCP 2.11.4 and will be removed in a future version. Please specify dependencies in a fastmcp.json configuration file instead:
+{
+  "entrypoint": "your_server.py",
+  "environment": {
+    "dependencies": ["neo4j", "pydantic"]
+  }
+}
+See https://gofastmcp.com/docs/deployment/server-configuration for more information.
+  mcp: FastMCP = FastMCP(
+/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/fastmcp/server/server.py:293: DeprecationWarning: Providing `stateless_http` when creating a server is deprecated. Provide it when calling `run` or as a global setting instead.
+  self._handle_deprecated_settings(
+
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+│                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+│                                                                              │
+│                               FastMCP 2.13.0.2                               │
+│                                                                              │
+│                                                                              │
+│                  🖥  Server name: mcp-neo4j-cypher                            │
+│                                                                              │
+│                  📦 Transport:   HTTP                                        │
+│                  🔗 Server URL:  http://127.0.0.1:8080/mcp/                  │
+│                                                                              │
+│                  📚 Docs:        https://gofastmcp.com                       │
+│                  🚀 Hosting:     https://fastmcp.cloud                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+[11/08/25 18:29:33] INFO     Starting MCP server                  server.py:2050
+                             'mcp-neo4j-cypher' with transport                  
+                             'http' on http://127.0.0.1:8080/mcp/               
+INFO:     Started server process [34086]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Started server process [34118]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+✅ Supabase connected successfully via REST API
+✅ Neo4j connected successfully
+INFO:     127.0.0.1:48666 - "OPTIONS /api/v1/chat/message HTTP/1.1" 200 OK
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+INFO:     34.105.104.20:0 - "POST /mcp/ HTTP/1.1" 200 OK
+INFO:     34.105.104.20:0 - "POST /mcp/ HTTP/1.1" 200 OK
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - orchestrator_initialized
+================================================================================
+{
+  "type": "zero_shot",
+  "model": "openai/gpt-oss-120b",
+  "mcp_server": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp/",
+  "static_prefix_length": 19720,
+  "timestamp": 1762615785.7045858
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - query_received
+================================================================================
+{
+  "user_query": "ngj",
+  "conversation_id": 188,
+  "conversation_history_length": 0,
+  "timestamp": 1762615785.7059317
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - raw_llm_request
+================================================================================
+{
+  "endpoint": "https://api.groq.com/openai/v1/responses",
+  "model": "openai/gpt-oss-120b",
+  "full_payload": {
+    "model": "openai/gpt-oss-120b",
+    "input": "\n## ZERO-SHOT PROMPT \u2014 NEO4J ANALYST (KSA GOV AGENCY)\n\n### ROLE AND MISSION\n\nYou are a multi-disciplinary expert Analyst in Graph Databases, Sectoral Economics, and Organizational Transformation for a KSA Government Agency.\n\nYour mission is to assist users by accurately understanding their intent and producing comprehensive analytical responses grounded in data retrieved from Neo4j. You have direct MCP access to Neo4j and must not use intermediaries or routing layers.\n\n---\n\n### BEHAVIORAL LOGIC\n\nIf this is the first user turn:\n\n1. Identify Intent\n   1.1. Directly from the user query and/or prior context.\n   1.2. If unclear, query embeddings via Neo4j vector search.\n   1.3. If confidence remains below 0.5, ask clarification questions.\n\n2. Retrieve Data\n   Use Neo4j Cypher queries to collect relevant data.\n\n3. Analyze Data\n   Perform analytical review: patterns, trends, correlations, anomalies.\n\n4. Structure Response\n\n   * Present tabular data (\u22645 columns, \u226420 rows).\n   * If appropriate, include visualization in valid Highcharts JSON format.\n   * Summarize statistical and business insights.\n\nIf this is a subsequent turn, derive context from conversation history before taking any action.\n\n---\n\n### TOOLCHAIN (MCP TOOLS)\n\n1. get_neo4j_schema\n\n   * Use only if schema information is missing or inconsistent.\n   * Returns database structure (labels, properties, relationships).\n\n2. read_neo4j_cypher\n\n   * Primary data retrieval tool.\n   * Use for all queries once schema is known.\n\nRules:\n\n* Maximum three Cypher queries per turn.\n* Always filter by year when applicable.\n* Limit results to 20 rows unless user specifies otherwise.\n* Order by year DESC, name ASC when relevant.\n* Use COUNT(), SUM(), AVG() for aggregations.\n* Use DISTINCT to avoid dupl
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - raw_llm_response
+================================================================================
+{
+  "status_code": 200,
+  "full_response": {
+    "id": "resp_01k9j1czy0et5v53hhcwd1e170",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1762615787,
+    "output": [
+      {
+        "type": "mcp_list_tools",
+        "id": "mcpl_2446166762",
+        "server_label": "neo4j_database",
+        "tools": [
+          {
+            "annotations": null,
+            "description": "Returns nodes, their properties (with types and indexed flags), and relationships\nusing APOC's schema inspection.\n\nYou should only provide a `sample_size` value if requested by the user, or tuning the retrieval performance.\n\nPerformance Notes:\n    - If `sample_size` is not provided, uses the server's default sample setting defined in the server configuration.\n    - If retrieving the schema times out, try lowering the sample size, e.g. `sample_size=100`.\n    - To sample the entire graph use `sample_size=-1`.",
+            "input_schema": {
+              "properties": {
+                "sample_size": {
+                  "default": 1000,
+                  "description": "The sample size used to infer the graph schema. Larger samples are slower, but more accurate. Smaller samples are faster, but might miss information.",
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "name": "get_neo4j_schema"
+          },
+          {
+            "annotations": null,
+            "description": "Execute a read Cypher query on the neo4j database.",
+            "input_schema": {
+              "properties": {
+                "params": {
+                  "additionalProperties": true,
+                  "default": {},
+                  "description": "The parameters to pass to the Cypher query.",
+                  "type": "object"
+                },
+                "query": {
+                  "description": "The Cypher query to execute.",
+                  "type": "string"
+                }
+              },
+     
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - validation_warning
+================================================================================
+{
+  "missing_fields": [
+    "insights",
+    "data",
+    "data_source",
+    "confidence"
+  ],
+  "response_keys": [
+    "answer",
+    "clarification_needed",
+    "questions",
+    "context"
+  ]
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - response_parsed
+================================================================================
+{
+  "answer_length": 49,
+  "insights_count": 0,
+  "visualizations_count": 0,
+  "confidence": 0.0,
+  "total_elapsed": 2.517667293548584
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - zero_shot_success
+================================================================================
+{
+  "insights_count": 0,
+  "visualizations_count": 0,
+  "confidence": 0.0,
+  "cypher_executed": ""
+}
+================================================================================
+
+INFO:     127.0.0.1:48666 - "POST /api/v1/chat/message HTTP/1.1" 200 OK
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+INFO:     Shutting down
+ERROR:    Cancel 0 running task(s), timeout graceful shutdown exceeded
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [34086]
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - orchestrator_initialized
+================================================================================
+{
+  "type": "zero_shot",
+  "model": "openai/gpt-oss-120b",
+  "mcp_server": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp/",
+  "static_prefix_length": 19720,
+  "timestamp": 1762615811.2109964
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - query_received
+================================================================================
+{
+  "user_query": "What projects do we have for 2027?",
+  "conversation_id": 188,
+  "conversation_history_length": 2,
+  "timestamp": 1762615811.2114937
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - raw_llm_request
+================================================================================
+{
+  "endpoint": "https://api.groq.com/openai/v1/responses",
+  "model": "openai/gpt-oss-120b",
+  "full_payload": {
+    "model": "openai/gpt-oss-120b",
+    "input": "\n## ZERO-SHOT PROMPT \u2014 NEO4J ANALYST (KSA GOV AGENCY)\n\n### ROLE AND MISSION\n\nYou are a multi-disciplinary expert Analyst in Graph Databases, Sectoral Economics, and Organizational Transformation for a KSA Government Agency.\n\nYour mission is to assist users by accurately understanding their intent and producing comprehensive analytical responses grounded in data retrieved from Neo4j. You have direct MCP access to Neo4j and must not use intermediaries or routing layers.\n\n---\n\n### BEHAVIORAL LOGIC\n\nIf this is the first user turn:\n\n1. Identify Intent\n   1.1. Directly from the user query and/or prior context.\n   1.2. If unclear, query embeddings via Neo4j vector search.\n   1.3. If confidence remains below 0.5, ask clarification questions.\n\n2. Retrieve Data\n   Use Neo4j Cypher queries to collect relevant data.\n\n3. Analyze Data\n   Perform analytical review: patterns, trends, correlations, anomalies.\n\n4. Structure Response\n\n   * Present tabular data (\u22645 columns, \u226420 rows).\n   * If appropriate, include visualization in valid Highcharts JSON format.\n   * Summarize statistical and business insights.\n\nIf this is a subsequent turn, derive context from conversation history before taking any action.\n\n---\n\n### TOOLCHAIN (MCP TOOLS)\n\n1. get_neo4j_schema\n\n   * Use only if schema information is missing or inconsistent.\n   * Returns database structure (labels, properties, relationships).\n\n2. read_neo4j_cypher\n\n   * Primary data retrieval tool.\n   * Use for all queries once schema is known.\n\nRules:\n\n* Maximum three Cypher queries per turn.\n* Always filter by year when applicable.\n* Limit results to 20 rows unless user specifies otherwise.\n* Order by year DESC, name ASC when relevant.\n* Use COUNT(), SUM(), AVG() for aggregations.\n* Use DISTINCT to avoid dupl
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - groq_api_error_response
+================================================================================
+{
+  "status_code": 424,
+  "error_body": "{\"error\":{\"message\":\"Error retrieving tool list from MCP server: 'Neo4j Database' Http status code: 404 (Not Found)\",\"type\":\"external_connector_error\",\"param\":\"tools\",\"code\":\"http_error\"}}\n",
+  "elapsed_time": 0.48652172088623047
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - orchestrator_error
+================================================================================
+{
+  "error_type": "Exception",
+  "error_message": "Groq API Error 424: {\"error\":{\"message\":\"Error retrieving tool list from MCP server: 'Neo4j Database' Http status code: 404 (Not Found)\",\"type\":\"external_connector_error\",\"param\":\"tools\",\"code\":\"http_error\"}}\n",
+  "elapsed_time": 0.4875068664550781
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - zero_shot_success
+================================================================================
+{
+  "insights_count": 2,
+  "visualizations_count": 0,
+  "confidence": 0.0,
+  "cypher_executed": ""
+}
+================================================================================
+
+INFO:     127.0.0.1:48674 - "POST /api/v1/chat/message HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [34118]
+INFO:     Stopping reloader process [34113]
+tail: /home/mosab/projects/chatmodule/backend/logs/mcp_server.log: file truncated
+tail: /home/mosab/projects/chatmodule/logs/backend_start.log: file truncated
+INFO:     Will watch for changes in these directories: ['/home/mosab/projects/chatmodule/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
+INFO:     Started reloader process [35165] using WatchFiles
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+/home/mosab/projects/chatmodule/backend/mcp-server/servers/mcp-neo4j-cypher/src/mcp_neo4j_cypher/server.py:49: DeprecationWarning: The 'dependencies' parameter is deprecated as of FastMCP 2.11.4 and will be removed in a future version. Please specify dependencies in a fastmcp.json configuration file instead:
+{
+  "entrypoint": "your_server.py",
+  "environment": {
+    "dependencies": ["neo4j", "pydantic"]
+  }
+}
+See https://gofastmcp.com/docs/deployment/server-configuration for more information.
+  mcp: FastMCP = FastMCP(
+/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/fastmcp/server/server.py:293: DeprecationWarning: Providing `stateless_http` when creating a server is deprecated. Provide it when calling `run` or as a global setting instead.
+  self._handle_deprecated_settings(
+
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+│                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+│                                                                              │
+│                               FastMCP 2.13.0.2                               │
+│                                                                              │
+│                                                                              │
+│                  🖥  Server name: mcp-neo4j-cypher                            │
+│                                                                              │
+│                  📦 Transport:   HTTP                                        │
+│                  🔗 Server URL:  http://127.0.0.1:8080/mcp/                  │
+│                                                                              │
+│                  📚 Docs:        https://gofastmcp.com                       │
+│                  🚀 Hosting:     https://fastmcp.cloud                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+[11/08/25 18:38:34] INFO     Starting MCP server                  server.py:2050
+                             'mcp-neo4j-cypher' with transport                  
+                             'http' on http://127.0.0.1:8080/mcp/               
+INFO:     Started server process [35143]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Started server process [35167]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+INFO:     34.105.104.20:0 - "POST /mcp/ HTTP/1.1" 200 OK
+INFO:     34.105.104.20:0 - "POST /mcp/ HTTP/1.1" 200 OK
+INFO:     34.105.104.20:0 - "POST /mcp/ HTTP/1.1" 200 OK
+INFO:     34.105.104.20:0 - "POST /mcp/ HTTP/1.1" 200 OK
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+✅ Supabase connected successfully via REST API
+✅ Neo4j connected successfully
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - orchestrator_initialized
+================================================================================
+{
+  "type": "zero_shot",
+  "model": "openai/gpt-oss-120b",
+  "mcp_server": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp/",
+  "static_prefix_length": 19720,
+  "timestamp": 1762616333.9717379
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - query_received
+================================================================================
+{
+  "user_query": "What projects do we have for 2027?",
+  "conversation_id": 188,
+  "conversation_history_length": 4,
+  "timestamp": 1762616333.9723222
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - raw_llm_request
+================================================================================
+{
+  "endpoint": "https://api.groq.com/openai/v1/responses",
+  "model": "openai/gpt-oss-120b",
+  "full_payload": {
+    "model": "openai/gpt-oss-120b",
+    "input": "\n## ZERO-SHOT PROMPT \u2014 NEO4J ANALYST (KSA GOV AGENCY)\n\n### ROLE AND MISSION\n\nYou are a multi-disciplinary expert Analyst in Graph Databases, Sectoral Economics, and Organizational Transformation for a KSA Government Agency.\n\nYour mission is to assist users by accurately understanding their intent and producing comprehensive analytical responses grounded in data retrieved from Neo4j. You have direct MCP access to Neo4j and must not use intermediaries or routing layers.\n\n---\n\n### BEHAVIORAL LOGIC\n\nIf this is the first user turn:\n\n1. Identify Intent\n   1.1. Directly from the user query and/or prior context.\n   1.2. If unclear, query embeddings via Neo4j vector search.\n   1.3. If confidence remains below 0.5, ask clarification questions.\n\n2. Retrieve Data\n   Use Neo4j Cypher queries to collect relevant data.\n\n3. Analyze Data\n   Perform analytical review: patterns, trends, correlations, anomalies.\n\n4. Structure Response\n\n   * Present tabular data (\u22645 columns, \u226420 rows).\n   * If appropriate, include visualization in valid Highcharts JSON format.\n   * Summarize statistical and business insights.\n\nIf this is a subsequent turn, derive context from conversation history before taking any action.\n\n---\n\n### TOOLCHAIN (MCP TOOLS)\n\n1. get_neo4j_schema\n\n   * Use only if schema information is missing or inconsistent.\n   * Returns database structure (labels, properties, relationships).\n\n2. read_neo4j_cypher\n\n   * Primary data retrieval tool.\n   * Use for all queries once schema is known.\n\nRules:\n\n* Maximum three Cypher queries per turn.\n* Always filter by year when applicable.\n* Limit results to 20 rows unless user specifies otherwise.\n* Order by year DESC, name ASC when relevant.\n* Use COUNT(), SUM(), AVG() for aggregations.\n* Use DISTINCT to avoid dupl
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - raw_llm_response
+================================================================================
+{
+  "status_code": 200,
+  "full_response": {
+    "id": "resp_01k9j1xz34fn89fy40stykwf1d",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1762616343,
+    "output": [
+      {
+        "type": "mcp_list_tools",
+        "id": "mcpl_2446166762",
+        "server_label": "neo4j_database",
+        "tools": [
+          {
+            "annotations": null,
+            "description": "Returns nodes, their properties (with types and indexed flags), and relationships\nusing APOC's schema inspection.\n\nYou should only provide a `sample_size` value if requested by the user, or tuning the retrieval performance.\n\nPerformance Notes:\n    - If `sample_size` is not provided, uses the server's default sample setting defined in the server configuration.\n    - If retrieving the schema times out, try lowering the sample size, e.g. `sample_size=100`.\n    - To sample the entire graph use `sample_size=-1`.",
+            "input_schema": {
+              "properties": {
+                "sample_size": {
+                  "default": 1000,
+                  "description": "The sample size used to infer the graph schema. Larger samples are slower, but more accurate. Smaller samples are faster, but might miss information.",
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "name": "get_neo4j_schema"
+          },
+          {
+            "annotations": null,
+            "description": "Execute a read Cypher query on the neo4j database.",
+            "input_schema": {
+              "properties": {
+                "params": {
+                  "additionalProperties": true,
+                  "default": {},
+                  "description": "The parameters to pass to the Cypher query.",
+                  "type": "object"
+                },
+                "query": {
+                  "description": "The Cypher query to execute.",
+                  "type": "string"
+                }
+              },
+     
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - validation_warning
+================================================================================
+{
+  "missing_fields": [
+    "insights"
+  ],
+  "response_keys": [
+    "answer",
+    "analysis",
+    "data",
+    "visualizations",
+    "cypher_executed",
+    "data_source",
+    "confidence"
+  ]
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - response_parsed
+================================================================================
+{
+  "answer_length": 1381,
+  "insights_count": 0,
+  "visualizations_count": 0,
+  "confidence": 0.98,
+  "total_elapsed": 10.59022307395935
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - zero_shot_success
+================================================================================
+{
+  "insights_count": 3,
+  "visualizations_count": 0,
+  "confidence": 0.98,
+  "cypher_executed": "MATCH (p:EntityProject {year:2027}) RETURN p.id AS id, p.name AS name, p.level AS level, p.status AS status, p.progress_percentage AS progress, p.start_date AS start_date, p.end_date AS end_date ORDER BY p.name ASC LIMIT 20"
+}
+================================================================================
+
+INFO:     127.0.0.1:48064 - "POST /api/v1/chat/message HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'app/services/orchestrator_zero_shot.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [35167]
+Process SpawnProcess-2:
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 71, in serve
+    await self._serve(sockets)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 78, in _serve
+    config.load()
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/config.py", line 439, in load
+    self.loaded_app = import_from_string(self.app)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+    module = importlib.import_module(module_str)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/mosab/projects/chatmodule/backend/app/main.py", line 7, in <module>
+    from app.api.routes import chat, debug, embeddings, sync
+  File "/home/mosab/projects/chatmodule/backend/app/api/routes/chat.py", line 8, in <module>
+    from app.services.orchestrator_zero_shot import OrchestratorZeroShot
+  File "/home/mosab/projects/chatmodule/backend/app/services/orchestrator_zero_shot.py", line 765
+    response_data = json.loads(answer)
+IndentationError: expected an indented block after 'try' statement on line 764
+WARNING:  WatchFiles detected changes in 'app/services/orchestrator_zero_shot.py'. Reloading...
+Process SpawnProcess-3:
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 71, in serve
+    await self._serve(sockets)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 78, in _serve
+    config.load()
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/config.py", line 439, in load
+    self.loaded_app = import_from_string(self.app)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+    module = importlib.import_module(module_str)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/mosab/projects/chatmodule/backend/app/main.py", line 7, in <module>
+    from app.api.routes import chat, debug, embeddings, sync
+  File "/home/mosab/projects/chatmodule/backend/app/api/routes/chat.py", line 8, in <module>
+    from app.services.orchestrator_zero_shot import OrchestratorZeroShot
+  File "/home/mosab/projects/chatmodule/backend/app/services/orchestrator_zero_shot.py", line 644
+    def process_query(
+                      ^
+IndentationError: unindent does not match any outer indentation level
+WARNING:  WatchFiles detected changes in 'app/services/orchestrator_zero_shot.py'. Reloading...
+Process SpawnProcess-4:
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 71, in serve
+    await self._serve(sockets)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 78, in _serve
+    config.load()
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/config.py", line 439, in load
+    self.loaded_app = import_from_string(self.app)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+    module = importlib.import_module(module_str)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/mosab/projects/chatmodule/backend/app/main.py", line 7, in <module>
+    from app.api.routes import chat, debug, embeddings, sync
+  File "/home/mosab/projects/chatmodule/backend/app/api/routes/chat.py", line 8, in <module>
+    from app.services.orchestrator_zero_shot import OrchestratorZeroShot
+  File "/home/mosab/projects/chatmodule/backend/app/services/orchestrator_zero_shot.py", line 712
+    log_debug(2, "raw_llm_request", {
+                                     ^
+IndentationError: unindent does not match any outer indentation level
+WARNING:  WatchFiles detected changes in 'app/services/orchestrator_zero_shot.py'. Reloading...
+Process SpawnProcess-5:
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 71, in serve
+    await self._serve(sockets)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 78, in _serve
+    config.load()
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/config.py", line 439, in load
+    self.loaded_app = import_from_string(self.app)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+    module = importlib.import_module(module_str)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/mosab/projects/chatmodule/backend/app/main.py", line 7, in <module>
+    from app.api.routes import chat, debug, embeddings, sync
+  File "/home/mosab/projects/chatmodule/backend/app/api/routes/chat.py", line 8, in <module>
+    from app.services.orchestrator_zero_shot import OrchestratorZeroShot
+  File "/home/mosab/projects/chatmodule/backend/app/services/orchestrator_zero_shot.py", line 712
+    log_debug(2, "raw_llm_request", {
+                                     ^
+IndentationError: unindent does not match any outer indentation level
+WARNING:  WatchFiles detected changes in 'app/services/orchestrator_zero_shot.py'. Reloading...
+Process SpawnProcess-6:
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 71, in serve
+    await self._serve(sockets)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 78, in _serve
+    config.load()
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/config.py", line 439, in load
+    self.loaded_app = import_from_string(self.app)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+    module = importlib.import_module(module_str)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/mosab/projects/chatmodule/backend/app/main.py", line 7, in <module>
+    from app.api.routes import chat, debug, embeddings, sync
+  File "/home/mosab/projects/chatmodule/backend/app/api/routes/chat.py", line 8, in <module>
+    from app.services.orchestrator_zero_shot import OrchestratorZeroShot
+  File "/home/mosab/projects/chatmodule/backend/app/services/orchestrator_zero_shot.py", line 644
+    def process_query(self,
+                           ^
+IndentationError: unindent does not match any outer indentation level
+WARNING:  WatchFiles detected changes in 'app/services/orchestrator_zero_shot.py'. Reloading...
+Process SpawnProcess-7:
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 71, in serve
+    await self._serve(sockets)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 78, in _serve
+    config.load()
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/config.py", line 439, in load
+    self.loaded_app = import_from_string(self.app)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+    module = importlib.import_module(module_str)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/mosab/projects/chatmodule/backend/app/main.py", line 7, in <module>
+    from app.api.routes import chat, debug, embeddings, sync
+  File "/home/mosab/projects/chatmodule/backend/app/api/routes/chat.py", line 8, in <module>
+    from app.services.orchestrator_zero_shot import OrchestratorZeroShot
+  File "/home/mosab/projects/chatmodule/backend/app/services/orchestrator_zero_shot.py", line 649
+    """Single entry point: query -> response
+    ^^^
+IndentationError: expected an indented block after function definition on line 644
+WARNING:  WatchFiles detected changes in 'app/services/orchestrator_zero_shot.py'. Reloading...
+INFO:     Started server process [37473]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/services/orchestrator_zero_shot.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [37473]
+Process SpawnProcess-9:
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 71, in serve
+    await self._serve(sockets)
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 78, in _serve
+    config.load()
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/config.py", line 439, in load
+    self.loaded_app = import_from_string(self.app)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+    module = importlib.import_module(module_str)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/mosab/projects/chatmodule/backend/app/main.py", line 7, in <module>
+    from app.api.routes import chat, debug, embeddings, sync
+  File "/home/mosab/projects/chatmodule/backend/app/api/routes/chat.py", line 8, in <module>
+    from app.services.orchestrator_zero_shot import OrchestratorZeroShot
+  File "/home/mosab/projects/chatmodule/backend/app/services/orchestrator_zero_shot.py", line 758
+    try:
+        ^
+IndentationError: unindent does not match any outer indentation level
+WARNING:  WatchFiles detected changes in 'app/services/orchestrator_zero_shot.py'. Reloading...
+INFO:     Started server process [38333]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+✅ Supabase connected successfully via REST API
+✅ Neo4j connected successfully
+INFO:     127.0.0.1:37090 - "OPTIONS /api/v1/chat/message HTTP/1.1" 200 OK
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+INFO:     34.105.104.20:0 - "POST /mcp/ HTTP/1.1" 200 OK
+INFO:     34.105.104.20:0 - "POST /mcp/ HTTP/1.1" 200 OK
+INFO:     34.105.104.20:0 - "POST /mcp/ HTTP/1.1" 200 OK
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - orchestrator_initialized
+================================================================================
+{
+  "type": "zero_shot",
+  "model": "openai/gpt-oss-120b",
+  "mcp_server": "https://eun-inheritable-fiddly.ngrok-free.dev/mcp/",
+  "static_prefix_length": 19720,
+  "timestamp": 1762620201.559581
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - query_received
+================================================================================
+{
+  "user_query": "show me the charts again",
+  "conversation_id": 188,
+  "conversation_history_length": 6,
+  "timestamp": 1762620201.5605302
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - raw_llm_request
+================================================================================
+{
+  "endpoint": "https://api.groq.com/openai/v1/responses",
+  "model": "openai/gpt-oss-120b",
+  "full_payload": {
+    "model": "openai/gpt-oss-120b",
+    "input": "\n## ZERO-SHOT PROMPT \u2014 NEO4J ANALYST (KSA GOV AGENCY)\n\n### ROLE AND MISSION\n\nYou are a multi-disciplinary expert Analyst in Graph Databases, Sectoral Economics, and Organizational Transformation for a KSA Government Agency.\n\nYour mission is to assist users by accurately understanding their intent and producing comprehensive analytical responses grounded in data retrieved from Neo4j. You have direct MCP access to Neo4j and must not use intermediaries or routing layers.\n\n---\n\n### BEHAVIORAL LOGIC\n\nIf this is the first user turn:\n\n1. Identify Intent\n   1.1. Directly from the user query and/or prior context.\n   1.2. If unclear, query embeddings via Neo4j vector search.\n   1.3. If confidence remains below 0.5, ask clarification questions.\n\n2. Retrieve Data\n   Use Neo4j Cypher queries to collect relevant data.\n\n3. Analyze Data\n   Perform analytical review: patterns, trends, correlations, anomalies.\n\n4. Structure Response\n\n   * Present tabular data (\u22645 columns, \u226420 rows).\n   * If appropriate, include visualization in valid Highcharts JSON format.\n   * Summarize statistical and business insights.\n\nIf this is a subsequent turn, derive context from conversation history before taking any action.\n\n---\n\n### TOOLCHAIN (MCP TOOLS)\n\n1. get_neo4j_schema\n\n   * Use only if schema information is missing or inconsistent.\n   * Returns database structure (labels, properties, relationships).\n\n2. read_neo4j_cypher\n\n   * Primary data retrieval tool.\n   * Use for all queries once schema is known.\n\nRules:\n\n* Maximum three Cypher queries per turn.\n* Always filter by year when applicable.\n* Limit results to 20 rows unless user specifies otherwise.\n* Order by year DESC, name ASC when relevant.\n* Use COUNT(), SUM(), AVG() for aggregations.\n* Use DISTINCT to avoid dupl
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - groq_api_error_response
+================================================================================
+{
+  "status_code": 500,
+  "error_body": "{\"error\":{\"message\":\"Internal Server Error\",\"type\":\"internal_server_error\"}}\n",
+  "elapsed_time": 33.5097279548645
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - orchestrator_error
+================================================================================
+{
+  "error_type": "Exception",
+  "error_message": "Groq API Error 500: {\"error\":{\"message\":\"Internal Server Error\",\"type\":\"internal_server_error\"}}\n",
+  "elapsed_time": 33.51065802574158
+}
+================================================================================
+
+
+================================================================================
+🔍 DEBUG [Orchestrator (Zero-Shot)] - zero_shot_success
+================================================================================
+{
+  "insights_count": 2,
+  "visualizations_count": 0,
+  "confidence": 0.0,
+  "cypher_executed": ""
+}
+================================================================================
+
+INFO:     127.0.0.1:37090 - "POST /api/v1/chat/message HTTP/1.1" 200 OK
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+Stateless session crashed
+  + Exception Group Traceback (most recent call last):
+  |   File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/mcp/server/streamable_http_manager.py", line 175, in run_stateless_server
+  |     await self.app.run(
+  |   File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/fastmcp/server/low_level.py", line 136, in run
+  |     async with AsyncExitStack() as stack:
+  |   File "/usr/lib/python3.12/contextlib.py", line 754, in __aexit__
+  |     raise exc_details[1]
+  |   File "/usr/lib/python3.12/contextlib.py", line 737, in __aexit__
+  |     cb_suppress = await cb(*exc_details)
+  |                   ^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/mcp/shared/session.py", line 218, in __aexit__
+  |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 781, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/fastmcp/server/low_level.py", line 148, in run
+    |     async with anyio.create_task_group() as tg:
+    |   File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 781, in __aexit__
+    |     raise BaseExceptionGroup(
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/mcp/server/lowlevel/server.py", line 650, in _handle_message
+      |     await self._handle_request(message, req, session, lifespan_context, raise_exceptions)
+      |   File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/mcp/server/lowlevel/server.py", line 714, in _handle_request
+      |     await message.respond(response)
+      |   File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/mcp/shared/session.py", line 131, in respond
+      |     await self._session._send_response(  # type: ignore[reportPrivateUsage]
+      |   File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/mcp/shared/session.py", line 329, in _send_response
+      |     await self._write_stream.send(session_message)
+      |   File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 243, in send
+      |     self.send_nowait(item)
+      |   File "/home/mosab/projects/chatmodule/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 212, in send_nowait
+      |     raise ClosedResourceError
+      | anyio.ClosedResourceError
+      +------------------------------------
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Shutting down
+
+==> /home/mosab/projects/chatmodule/backend/logs/mcp_server.log <==
+ERROR:    Cancel 0 running task(s), timeout graceful shutdown exceeded
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [35143]
+
+==> /home/mosab/projects/chatmodule/logs/backend_start.log <==
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [38333]
+INFO:     Stopping reloader process [35165]
+Terminated
