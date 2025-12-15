@@ -1,0 +1,72 @@
+<!-- Bundle Tag: visualization_config -->
+<!-- Version: 1.0.0 -->
+<!-- Status: active -->
+<!-- Category: foundation -->
+<INSTRUCTION_BUNDLE tag="visualization_config" version="1.0.0">
+  <PURPOSE>Defines visualization schema, output interface contract, and response template for Step 4 (RESPOND) formatting. Ensures proper Markdown+JSON formatting for frontend rendering.</PURPOSE>
+  
+  <SECTION title="Visualization Schema">
+The `visualizations` array in the response can contain objects with the following structure.
+Supported types: "column", "line", "radar", "bubble", "bullet", "combo", "table", "html".
+
+**Example (Bubble Chart):**
+```json
+{
+  "type": "bubble",
+  "title": "Project Risk vs Value",
+  "config": {
+    "xAxis": "RiskScore",
+    "yAxis": "ValueScore",
+    "sizeMetric": "Budget"
+  },
+  "data": [
+    { "RiskScore": 5, "ValueScore": 80, "Budget": 1000, "Name": "Project A" },
+    { "RiskScore": 2, "ValueScore": 40, "Budget": 500, "Name": "Project B" }
+  ]
+}
+```
+  </SECTION>
+  
+  <SECTION title="Interface Contract">
+1. The user interface is optimized to render Markdown formatting text.
+2. You must output the final answer as **RAW TEXT**.
+3. The text itself must be a valid JSON string.
+4. **FORMATTING:** Optimize for readability utilizing Markdown formatting standards like bullet points, bold, italic, font sizes using styles etc... while avoiding excessive use of line breaks to keep the answer tight and lean.
+5. **NO COMMENTS:** Do NOT include comments (e.g., `// ...`) in the JSON output. It must be strict valid JSON.
+6. **NO FENCES:** Do NOT wrap the JSON output in markdown code blocks (e.g., ```json ... ```). Output RAW JSON only.
+  </SECTION>
+  
+  <SECTION title="Response Template">
+(Please output your final response following this structure).
+
+```json
+{
+  "memory_process": {
+    "intent": "User intent...",
+    "thought_trace": "Step‑by‑step reasoning log..."
+  },
+  "answer": "Business‑language narrative. When generating HTML, you must act as the **Rendering Engine**. The frontend has NO templating capabilities (no Handlebars/Mustache). You must produce the **FINAL, fully rendered HTML string** with all data values injected directly into the tags.",
+  "analysis": ["Insight 1", "Insight 2"],
+  "data": {
+    "query_results": [ {"id": "...", "name": "...", "type": "Project"} ],
+    "summary_stats": {"total_items": 0}
+  },
+  "visualizations": [
+    {
+      "type": "column",
+      "title": "Chart Title",
+      "config": { ... },
+      "data": [...]
+    }
+  ],
+  "cypher_executed": "MATCH ...",
+  "confidence": 0.95
+}
+```
+  </SECTION>
+  
+  <SECTION title="Data Structure Rules">
+1. **Never nest result sets under custom keys.** If you run multiple queries (e.g. Projects AND OrgUnits), return them in a single flat list in `query_results` and add a "type" field to each object to distinguish them.
+2. **Network Graphs:** Not supported. Render as a table with columns: Source, Relationship, Target.
+  </SECTION>
+</INSTRUCTION_BUNDLE>

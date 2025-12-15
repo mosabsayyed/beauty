@@ -1,0 +1,666 @@
+/* JOSOOR Architecture - Exact Figma Design */
+
+.josoor-arch {
+  width: 100%;
+  min-height: 100vh;
+  background: #13171E;
+  color: #fff;
+  font-family: Inter, -apple-system, Roboto, Helvetica, sans-serif;
+  padding: 1rem;
+}
+
+/* Header Bar */
+.josoor-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 1rem;
+}
+
+.josoor-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #F5A623 0%, #D4AF37 100%);
+  border-radius: 4px;
+}
+
+.josoor-brand-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.josoor-brand-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #000;
+}
+
+.josoor-brand-subtitle {
+  font-size: 0.875rem;
+  color: #000;
+  opacity: 0.8;
+}
+
+.josoor-header-controls {
+  display: flex;
+  gap: 2rem;
+}
+
+.josoor-control-box {
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #F5A623 0%, #D4AF37 100%);
+  border-radius: 4px;
+}
+
+.josoor-control-label {
+  color: #000;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.josoor-status-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #000;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.josoor-status-group img {
+  cursor: pointer;
+  width: 46px;
+  height: 23px;
+}
+
+.status-active {
+  font-weight: 700;
+}
+
+.josoor-stage-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.josoor-stage-group button {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border: 2px solid #B8860B;
+  background: transparent;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: capitalize;
+}
+
+.josoor-stage-group button.stage-active {
+  background: #05DF72;
+  border-color: #05DF72;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Terminal */
+.josoor-terminal {
+  background: #1A1F2E;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  margin-bottom: 1rem;
+  color: #0F0;
+}
+
+.terminal-text {
+  color: #0F0;
+  margin-bottom: 0.25rem;
+}
+
+.terminal-item {
+  color: #0F0;
+  padding-left: 1rem;
+}
+
+/* Stakeholders */
+.josoor-stakeholders {
+  background: rgba(29, 41, 61, 0.3);
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.stakeholders-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+
+.stakeholders-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.stakeholder-card {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #fff;
+}
+
+.stakeholder-card img {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 0.5rem;
+  display: block;
+}
+
+/* Interface Layer */
+.josoor-interface-layer {
+  background: rgba(29, 41, 61, 0.3);
+  padding: 1rem;
+  border-radius: 4px;
+  border-bottom: 0.8px solid rgba(49, 65, 88, 0.5);
+  margin-bottom: 1rem;
+}
+
+.interface-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.interface-header img {
+  width: 37px;
+  height: 37px;
+}
+
+.interface-header h2 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin: 0;
+  color: #fff;
+}
+
+.interface-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.interface-section h3 {
+  color: #D4AF37;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+.interface-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.interface-card {
+  background: rgba(29, 41, 61, 0.6);
+  border: 0.8px solid rgb(49, 65, 88);
+  border-radius: 4px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 98px;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.1);
+}
+
+.interface-card img {
+  max-width: 51px;
+  max-height: 44px;
+}
+
+.interface-card span {
+  color: #fff;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* Main 3-Column Layout */
+.josoor-main-layout {
+  display: grid;
+  grid-template-columns: 350px 1fr 180px;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.josoor-left-column,
+.josoor-center-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.josoor-section {
+  background: rgba(29, 41, 61, 0.3);
+  border: 0.8px solid rgba(49, 65, 88, 0.5);
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.section-header h2 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin: 0;
+  color: #fff;
+  line-height: 1.3;
+}
+
+/* Orchestration Grid */
+.orch-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.orch-card {
+  background: rgba(29, 41, 61, 0.6);
+  border: 0.8px solid rgb(49, 65, 88);
+  border-radius: 4px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 98px;
+  box-shadow: 0 4px 15px rgba(51, 65, 85, 0.1);
+}
+
+.orch-card img {
+  max-width: 52px;
+  max-height: 46px;
+}
+
+.orch-card span {
+  color: #fff;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* Cognitive Core */
+.cognitive-core {
+  padding: 1rem;
+}
+
+.mcp-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.mcp-btn {
+  padding: 0.4rem 1rem;
+  background: linear-gradient(180deg, #F5A623 0%, #D4AF37 100%);
+  border: none;
+  border-radius: 4px;
+  color: #000;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.mcp-label {
+  color: #FFD700;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.knowledge-graph {
+  background: rgba(29, 41, 61, 0.6);
+  border: 1.6px solid rgba(212, 175, 55, 0.7);
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.knowledge-graph h3 {
+  color: #fff;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 0 0.25rem 0;
+}
+
+.knowledge-graph p {
+  color: rgb(153, 161, 175);
+  text-align: center;
+  font-size: 0.75rem;
+  margin: 0 0 1rem 0;
+}
+
+.kg-visual {
+  position: relative;
+  height: 180px;
+  background: linear-gradient(135deg, transparent 0%, transparent 50%, rgba(184, 134, 11, 0.2) 100%);
+  border-radius: 4px;
+}
+
+.kg-left {
+  position: absolute;
+  left: 5%;
+  bottom: 20px;
+  width: 66px;
+}
+
+.kg-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 132px;
+}
+
+.kg-right {
+  position: absolute;
+  right: 5%;
+  bottom: 20px;
+  width: 65px;
+}
+
+.external-btn {
+  padding: 0.5rem 2rem;
+  background: linear-gradient(180deg, #F5A623 0%, #D4AF37 100%);
+  border: none;
+  border-radius: 4px;
+  color: #000;
+  font-weight: 600;
+  cursor: pointer;
+  display: block;
+  margin: 0 auto;
+}
+
+/* LLM Ecosystem */
+.llm-ecosystem {
+  min-height: 380px;
+}
+
+.llm-diagram {
+  position: relative;
+  height: 300px;
+  margin-bottom: 1rem;
+}
+
+.llm-network {
+  position: absolute;
+  left: 50%;
+  top: 10%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 314px;
+}
+
+.llm-core {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  transform: translateX(-50%);
+  width: 86px;
+}
+
+.llm-components {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.llm-components > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.llm-components img {
+  width: 44px;
+  height: auto;
+  max-height: 72px;
+}
+
+.llm-components span {
+  color: #fff;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* Data Sections */
+.data-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.data-section {
+  padding: 1rem;
+  border-right: 0.8px solid rgba(49, 65, 88, 0.5);
+}
+
+.data-card {
+  background: rgba(29, 41, 61, 0.6);
+  border: 0.8px solid rgb(49, 65, 88);
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 109px;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.1);
+}
+
+.data-card h3 {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
+}
+
+.blue-title { color: rgb(142, 197, 255); }
+.gold-title { color: #FFD700; }
+.orange-title { color: rgb(255, 184, 106); }
+.gray-title { color: rgb(209, 213, 220); }
+
+.data-card img {
+  width: 57px;
+  height: auto;
+}
+
+/* Government Cloud */
+.govt-cloud {
+  position: relative;
+}
+
+.cloud-servers {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.server-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.server-rack {
+  width: 32px;
+  height: 48px;
+  background: linear-gradient(180deg, #F5A623 0%, #D4AF37 100%);
+  border-radius: 4px;
+  box-shadow: 0 10px 15px -3px rgba(212, 175, 55, 0.2);
+}
+
+.server-line {
+  width: 96px;
+  height: 2px;
+  background: linear-gradient(180deg, #F5A623 0%, #FFD700 50%, #F5A623 100%);
+}
+
+.server-shield {
+  width: 96px;
+  height: 48px;
+  background: rgba(29, 41, 61, 0.6);
+  border: 0.8px solid rgb(49, 65, 88);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.1);
+}
+
+.govt-emblem {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  width: 78px;
+  height: 82px;
+}
+
+/* Right Sidebar - Governance */
+.josoor-right-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.governance-badge {
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(180deg, #F5A623 0%, #D4AF37 100%);
+  border-radius: 4px;
+  color: #000;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.governance-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.gov-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.gov-item span {
+  color: #fff;
+  font-size: 0.5rem;
+  line-height: 1.4;
+}
+
+.gov-item img {
+  max-width: 67px;
+  max-height: 67px;
+}
+
+/* Responsive - Stack on smaller screens */
+@media (max-width: 1400px) {
+  .josoor-main-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .data-sections {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .josoor-right-sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .governance-items {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .josoor-header-bar {
+    flex-direction: column;
+  }
+  
+  .stakeholders-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .interface-sections {
+    grid-template-columns: 1fr;
+  }
+  
+  .data-sections {
+    grid-template-columns: 1fr;
+  }
+  
+  .cloud-servers {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Hero image (single image view) */
+.arch-container {
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.arch-hero-image {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.arch-overlay-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Let clicks pass through to the image if needed */
+  z-index: 10;
+}

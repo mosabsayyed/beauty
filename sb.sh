@@ -23,6 +23,14 @@ if [ -f "$ROOT_DIR/backend/.env" ]; then
   set +a
 fi
 
+# Also load root .env for OPENAI_API_KEY and other shared secrets
+if [ -f "$ROOT_DIR/.env" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . "$ROOT_DIR/.env"
+  set +a
+fi
+
 MCP_PORT=${NEO4J_MCP_SERVER_PORT:-8080}
 echo "Using MCP port: $MCP_PORT"
 
@@ -34,17 +42,21 @@ if [ "${1:-}" = "--fg" ] || [ "${1:-}" = "-f" ]; then
 fi
 echo "Run mode: $MODE"
 
-echo "Ensuring ngrok is running to expose MCP (port ${MCP_PORT})..."
-# If an ngrok process is already running, reuse it. Otherwise start a new one.
+# Persona MCP router URLs (defaults for local dev)
+export NOOR_MCP_ROUTER_URL="${NOOR_MCP_ROUTER_URL:-http://127.0.0.1:8201}"
+export MAESTRO_MCP_ROUTER_URL="${MAESTRO_MCP_ROUTER_URL:-http://127.0.0.1:8202}"
+
+echo "Ensuring ngrok is running to expose MCP (ports 8201 and 8202 via config)..."
+# If an ngrok process is already running, reuse it. Otherwise start with config.
 EXISTING_NGROK_PID=$(pgrep -x ngrok || true)
 if [ -n "$EXISTING_NGROK_PID" ]; then
   NGROK_PID=$(echo "$EXISTING_NGROK_PID" | awk '{print $1}')
   echo "Found existing ngrok process (pid $NGROK_PID); will reuse it."
 else
-  echo "Starting ngrok..."
-  nohup ngrok http "$MCP_PORT" --log=stdout >> "$ROOT_DIR/logs/ngrok.log" 2>&1 &
+  echo "Starting ngrok with config (both Noor 8201 and Maestro 8202 tunnels)..."
+  nohup ngrok start --all --log=stdout >> "$ROOT_DIR/logs/ngrok.log" 2>&1 &
   NGROK_PID=$!
-  sleep 1
+  sleep 2
   if ! kill -0 "$NGROK_PID" 2>/dev/null; then
     echo "ngrok failed to start (pid $NGROK_PID). See $ROOT_DIR/logs/ngrok.log"
     tail -n 200 "$ROOT_DIR/logs/ngrok.log" || true
@@ -66,6 +78,31 @@ for i in $(seq 1 10); do
     exit 1
   fi
 done
+
+# Fetch public URL (both tunnels share same domain, load-balanced)
+NGROK_TUNNELS=$(curl -sS --max-time 3 "$NGROK_API" || true)
+NGROK_PUBLIC_URL=$(printf "%s" "$NGROK_TUNNELS" | python3 -c "import sys,json
+try:
+    d=json.load(sys.stdin)
+    tunnels=d.get('tunnels',[])
+    if tunnels:
+        print(tunnels[0].get('public_url',''))
+except Exception:
+    pass")
+
+if [ -n "$NGROK_PUBLIC_URL" ]; then
+  export NOOR_MCP_ROUTER_URL_PUBLIC="$NGROK_PUBLIC_URL/mcp/"
+  export MAESTRO_MCP_ROUTER_URL_PUBLIC="$NGROK_PUBLIC_URL/mcp/"
+  echo "ngrok public URL: $NGROK_PUBLIC_URL (load-balanced across 8201 and 8202)"
+  
+  # Override localhost defaults with public URL if still set to local
+  if [ "${NOOR_MCP_ROUTER_URL}" = "http://127.0.0.1:8201" ]; then
+    export NOOR_MCP_ROUTER_URL="$NOOR_MCP_ROUTER_URL_PUBLIC"
+  fi
+  if [ "${MAESTRO_MCP_ROUTER_URL}" = "http://127.0.0.1:8202" ]; then
+    export MAESTRO_MCP_ROUTER_URL="$MAESTRO_MCP_ROUTER_URL_PUBLIC"
+  fi
+fi
 
 echo "Checking MCP port ($MCP_PORT) binding..."
 if ss -ltnp 2>/dev/null | egrep -q "[:.]$MCP_PORT\b"; then
@@ -122,6 +159,129 @@ else
     echo "mcp-neo4j-cypher CLI not found in MCP venv at $MCP_VENV/bin/mcp-neo4j-cypher"
     exit 1
   fi
+
+  # Start MCP Routers (3 instances: Noor, Maestro, Embeddings)
+  echo "Starting MCP Routers..."
+  MCP_ROUTER_DIR="$ROOT_DIR/backend/mcp-server/servers/mcp-router"
+  
+  # Use the isolated router venv to avoid dependency conflicts (fastmcp vs pydantic)
+  MCP_ROUTER_VENV="$MCP_ROUTER_DIR/.venv-mcp-router"
+  if [ -x "$MCP_ROUTER_VENV/bin/python" ]; then
+      ROUTER_PYTHON="$MCP_ROUTER_VENV/bin/python"
+  else
+      echo "Router venv not found at $MCP_ROUTER_VENV, falling back to shared venv..."
+      ROUTER_PYTHON="$MCP_VENV/bin/python"
+      "$ROUTER_PYTHON" -m pip install -r "$MCP_ROUTER_DIR/requirements.txt" >/dev/null 2>&1 || echo "Warning: Failed to install router deps"
+  fi
+
+  # Set PYTHONPATH to include router src
+  export PYTHONPATH="$MCP_ROUTER_DIR/src:${PYTHONPATH:-}"
+  
+  # 1. Noor Router (Read-Only, Port 8201)
+  echo "  - Starting Noor Router (read-only) on port 8201..."
+  NOOR_CONFIG="$MCP_ROUTER_DIR/router_config.yaml"
+  if [ ! -f "$NOOR_CONFIG" ]; then
+      NOOR_CONFIG="$MCP_ROUTER_DIR/router_config.example.yaml"
+  fi
+  
+  if [ "$MODE" = "bg" ]; then
+    nohup "$ROUTER_PYTHON" -c "from mcp_router.server import run_http; run_http(port=8201, config_path='$NOOR_CONFIG')" \
+      >> "$ROOT_DIR/backend/logs/mcp_router_noor.log" 2>&1 &
+    NOOR_ROUTER_PID=$!
+    sleep 1
+    if ! kill -0 "$NOOR_ROUTER_PID" 2>/dev/null; then
+      echo "    ❌ Noor Router died immediately (pid $NOOR_ROUTER_PID). See logs"
+      tail -n 20 "$ROOT_DIR/backend/logs/mcp_router_noor.log" || true
+    else
+      echo "    ✅ Noor Router started (pid $NOOR_ROUTER_PID)"
+    fi
+  else
+    nohup "$ROUTER_PYTHON" -c "from mcp_router.server import run_http; run_http(port=8201, config_path='$NOOR_CONFIG')" \
+      >> "$ROOT_DIR/backend/logs/mcp_router_noor.log" 2>&1 &
+    NOOR_ROUTER_PID=$!
+  fi
+
+  # 2. Maestro Router (Read/Write, Port 8202)
+  echo "  - Starting Maestro Router (read/write) on port 8202..."
+  MAESTRO_CONFIG="$MCP_ROUTER_DIR/maestro_router_config.yaml"
+  
+  if [ -f "$MAESTRO_CONFIG" ]; then
+    if [ "$MODE" = "bg" ]; then
+      nohup "$ROUTER_PYTHON" -c "from mcp_router.server import run_http; run_http(port=8202, config_path='$MAESTRO_CONFIG')" \
+        >> "$ROOT_DIR/backend/logs/mcp_router_maestro.log" 2>&1 &
+      MAESTRO_ROUTER_PID=$!
+      sleep 1
+      if ! kill -0 "$MAESTRO_ROUTER_PID" 2>/dev/null; then
+        echo "    ❌ Maestro Router died immediately (pid $MAESTRO_ROUTER_PID). See logs"
+        tail -n 20 "$ROOT_DIR/backend/logs/mcp_router_maestro.log" || true
+      else
+        echo "    ✅ Maestro Router started (pid $MAESTRO_ROUTER_PID)"
+      fi
+    else
+      nohup "$ROUTER_PYTHON" -c "from mcp_router.server import run_http; run_http(port=8202, config_path='$MAESTRO_CONFIG')" \
+        >> "$ROOT_DIR/backend/logs/mcp_router_maestro.log" 2>&1 &
+      MAESTRO_ROUTER_PID=$!
+    fi
+  else
+    echo "    ⚠️ Maestro config not found at $MAESTRO_CONFIG - skipping"
+    MAESTRO_ROUTER_PID="not_started"
+  fi
+
+  # 3. Start Embeddings Server (Port 8204)
+  echo "  - Starting Embeddings Server on port 8204..."
+  EMBEDDINGS_SERVER="$ROOT_DIR/backend/mcp-server/servers/embeddings-server/embeddings_server.py"
+  
+  if [ -f "$EMBEDDINGS_SERVER" ]; then
+    if [ "$MODE" = "bg" ]; then
+      nohup "$ROUTER_PYTHON" "$EMBEDDINGS_SERVER" \
+        >> "$ROOT_DIR/backend/logs/embeddings_server.log" 2>&1 &
+      EMBEDDINGS_SERVER_PID=$!
+      sleep 2
+      if ! kill -0 "$EMBEDDINGS_SERVER_PID" 2>/dev/null; then
+        echo "    ❌ Embeddings Server died immediately (pid $EMBEDDINGS_SERVER_PID). See logs"
+        tail -n 20 "$ROOT_DIR/backend/logs/embeddings_server.log" || true
+      else
+        echo "    ✅ Embeddings Server started (pid $EMBEDDINGS_SERVER_PID)"
+      fi
+    else
+      nohup "$ROUTER_PYTHON" "$EMBEDDINGS_SERVER" \
+        >> "$ROOT_DIR/backend/logs/embeddings_server.log" 2>&1 &
+      EMBEDDINGS_SERVER_PID=$!
+    fi
+  else
+    echo "    ⚠️ Embeddings Server not found at $EMBEDDINGS_SERVER - skipping"
+    EMBEDDINGS_SERVER_PID="not_started"
+  fi
+
+  # 4. Embeddings Router (Port 8203)
+  echo "  - Starting Embeddings Router on port 8203..."
+  EMBEDDINGS_CONFIG="$MCP_ROUTER_DIR/embeddings_router_config.yaml"
+  
+  if [ -f "$EMBEDDINGS_CONFIG" ]; then
+    # Wait for embeddings server to be ready
+    sleep 2
+    if [ "$MODE" = "bg" ]; then
+      nohup "$ROUTER_PYTHON" -c "from mcp_router.server import run_http; run_http(port=8203, config_path='$EMBEDDINGS_CONFIG')" \
+        >> "$ROOT_DIR/backend/logs/mcp_router_embeddings.log" 2>&1 &
+      EMBEDDINGS_ROUTER_PID=$!
+      sleep 1
+      if ! kill -0 "$EMBEDDINGS_ROUTER_PID" 2>/dev/null; then
+        echo "    ❌ Embeddings Router died immediately (pid $EMBEDDINGS_ROUTER_PID). See logs"
+        tail -n 20 "$ROOT_DIR/backend/logs/mcp_router_embeddings.log" || true
+      else
+        echo "    ✅ Embeddings Router started (pid $EMBEDDINGS_ROUTER_PID)"
+      fi
+    else
+      nohup "$ROUTER_PYTHON" -c "from mcp_router.server import run_http; run_http(port=8203, config_path='$EMBEDDINGS_CONFIG')" \
+        >> "$ROOT_DIR/backend/logs/mcp_router_embeddings.log" 2>&1 &
+      EMBEDDINGS_ROUTER_PID=$!
+    fi
+  else
+    echo "    ⚠️ Embeddings Router config not found at $EMBEDDINGS_CONFIG - skipping"
+    EMBEDDINGS_ROUTER_PID="not_started"
+  fi
+  
+  ROUTER_PID=$NOOR_ROUTER_PID  # For backward compatibility
 fi
 
 echo "Verifying MCP HTTP endpoint..."
@@ -170,5 +330,13 @@ for i in $(seq 1 30); do
   fi
 done
 
-echo "All backend services started successfully. PIDs: ngrok=$NGROK_PID MCP=${MCP_PID:-unknown} backend=$BACKEND_PID"
+echo "All backend services started successfully."
+echo "PIDs:"
+echo "  - ngrok: $NGROK_PID"
+echo "  - MCP Server: ${MCP_PID:-unknown}"
+echo "  - Noor Router (8201): ${NOOR_ROUTER_PID:-unknown}"
+echo "  - Maestro Router (8202): ${MAESTRO_ROUTER_PID:-not_started}"
+echo "  - Embeddings Server (8204): ${EMBEDDINGS_SERVER_PID:-not_started}"
+echo "  - Embeddings Router (8203): ${EMBEDDINGS_ROUTER_PID:-not_started}"
+echo "  - Backend: $BACKEND_PID"
 exit 0

@@ -14,7 +14,7 @@ function CanvasTestPageContent() {
   const translations = {
     title: language === 'ar' ? 'صفحة اختبار اللوحة' : 'Canvas Test Suite',
     subtitle: language === 'ar' ? 'اختبار جميع أنواع المحتوى' : 'Testing all content types',
-    switchLang: language === 'ar' ? 'Switch to English' : 'التبديل إلى العربية',
+    switchLang: language === 'ar' ? 'التبديل إلى الإنجليزية' : 'Switch to Arabic',
   };
 
   // Comprehensive test data for ALL content types
@@ -276,8 +276,8 @@ Diana Prince,29,Philadelphia,68000,Marketing`,
       <div style={{
         width: 280,
         background: 'var(--bg-secondary)',
-        borderRight: isRTL ? 'none' : '1px solid var(--border-default)',
-        borderLeft: isRTL ? '1px solid var(--border-default)' : 'none',
+        borderRight: isRTL ? 'none' : '1px solid var(--component-panel-border)',
+        borderLeft: isRTL ? '1px solid var(--component-panel-border)' : 'none',
         padding: 20,
         overflowY: 'auto',
       }}>
@@ -286,11 +286,11 @@ Diana Prince,29,Philadelphia,68000,Marketing`,
             fontSize: 18, 
             fontWeight: 600, 
             marginBottom: 12,
-            color: 'var(--text-primary)',
+            color: 'var(--component-text-primary)',
           }}>
             {translations.title}
           </h2>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+          <p style={{ fontSize: 13, color: 'var(--component-text-secondary)', marginBottom: 16 }}>
             {translations.subtitle}
           </p>
           
@@ -301,9 +301,8 @@ Diana Prince,29,Philadelphia,68000,Marketing`,
               width: '100%',
               padding: '8px 12px',
               background: 'var(--gold)',
-              color: '#000',
+              color: 'var(--component-text-primary)',
               border: 'none',
-              borderRadius: 6,
               cursor: 'pointer',
               fontSize: 13,
               fontWeight: 600,
@@ -320,7 +319,7 @@ Diana Prince,29,Philadelphia,68000,Marketing`,
             <h3 style={{ 
               fontSize: 12, 
               fontWeight: 600, 
-              color: 'var(--text-tertiary)', 
+              color: 'var(--component-text-muted)', 
               textTransform: 'uppercase',
               marginBottom: 8,
               letterSpacing: '0.05em',
@@ -335,9 +334,8 @@ Diana Prince,29,Philadelphia,68000,Marketing`,
                   style={{
                     padding: '10px 14px',
                     background: selectedTest === btn.id ? 'var(--gold)' : 'transparent',
-                    color: selectedTest === btn.id ? '#000' : 'var(--text-primary)',
-                    border: '1px solid var(--border-default)',
-                    borderRadius: 6,
+                    color: selectedTest === btn.id ? 'var(--component-text-primary)' : 'var(--component-text-primary)',
+                    border: '1px solid var(--component-panel-border)',
                     cursor: 'pointer',
                     fontSize: 13,
                     fontWeight: selectedTest === btn.id ? 600 : 400,
@@ -377,13 +375,13 @@ Diana Prince,29,Philadelphia,68000,Marketing`,
             fontSize: 24, 
             fontWeight: 600, 
             marginBottom: 8,
-            color: 'var(--text-primary)',
+            color: 'var(--component-text-primary)',
           }}>
             {testButtons.find(b => b.id === selectedTest)?.label}
           </h1>
           <p style={{ 
             fontSize: 14, 
-            color: 'var(--text-secondary)', 
+            color: 'var(--component-text-secondary)', 
             marginBottom: 24,
           }}>
             {language === 'ar' 
@@ -395,8 +393,7 @@ Diana Prince,29,Philadelphia,68000,Marketing`,
           {/* Render the selected test case */}
           <div style={{
             background: 'var(--canvas-card-bg)',
-            border: '1px solid var(--border-default)',
-            borderRadius: 12,
+            border: '1px solid var(--component-panel-border)',
             padding: 24,
             minHeight: 400,
           }}>

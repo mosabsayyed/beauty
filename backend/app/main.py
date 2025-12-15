@@ -4,13 +4,19 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 from app.api.v1 import health, setup
-from app.api.routes import chat, debug, embeddings, sync, auth, files # Import files router
+from app.api.routes import chat, debug, embeddings, sync, auth, files, dashboard, neo4j_routes
 from app.db.supabase_client import supabase_client
 from app.db.neo4j_client import neo4j_client
+from app.utils.tracing import init_tracing, is_tracing_enabled
 import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Initialize tracing
+    init_tracing(app)
+    if is_tracing_enabled():
+        print("🔍 OpenTelemetry tracing enabled")
+    
     await supabase_client.connect()
     print("✅ Supabase connected successfully via REST API")
     
@@ -48,6 +54,7 @@ else:
         "http://localhost:3000",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000",
+        "*",  # Added for public tunnel access
     ]
 
 # If a wildcard origin is used, browsers will not accept credentials for security reasons.
@@ -70,7 +77,9 @@ app.include_router(debug.router, prefix="/api/v1", tags=["Debug"])
 app.include_router(embeddings.router, prefix="/api/v1/embeddings", tags=["Embeddings"])
 app.include_router(sync.router, prefix="/api/v1/sync", tags=["Data Sync"])
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
-app.include_router(files.router, prefix="/api/v1/files", tags=["Files"]) # Include files router
+app.include_router(files.router, prefix="/api/v1/files", tags=["Files"])
+app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["Dashboard"])
+app.include_router(neo4j_routes.router, prefix="/api", tags=["Neo4j"])
 
 frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "frontend")
 if os.path.exists(frontend_dir):

@@ -1,0 +1,98 @@
+<!-- Bundle Tag: cypher_query_patterns -->
+<!-- Version: 1.0.0 -->
+<!-- Status: active -->
+<!-- Category: foundation -->
+<INSTRUCTION_BUNDLE tag="cypher_query_patterns" version="1.0.0">
+  <PURPOSE>Provide optimized Cypher query patterns and tool usage rules for Step 3 (RECALL) execution. Ensures efficient Neo4j queries with proper aggregation, pagination, and optional enrichment.</PURPOSE>
+  
+  <SECTION title="Cypher Query Patterns">
+**Pattern 1: Optimized Retrieval (Token Aware)**
+*Goal: Get 2027 Projects with total count in one call.*
+```cypher
+MATCH (p:EntityProject)
+WHERE p.year = 2027 AND p.level = 'L3'
+WITH p ORDER BY p.name
+// CHANGE: Return count FIRST so the model sees it immediately
+RETURN count(p) AS total_count, collect(p { .id, .name })[0..30] AS records
+```
+
+**Pattern 2: Impact Analysis (Chain 1)**
+*Goal: Strategy to Execution flow.*
+```cypher
+MATCH (p:EntityProject {name: 'Digital Transformation', year: 2025, level: 'L3'})
+MATCH (p)-[:ADDRESSES_GAP]->(c:EntityCapability)
+MATCH (c)-[:EXECUTES]->(t:SectorPolicyTool)
+WHERE c.level = 'L3' AND t.level = 'L3'
+RETURN p.name, c.name, t.name
+```
+
+**Pattern 3: Safe Portfolio Health Check (Aggregation First + Optional Enrichment)**
+*Goal: Get 2026 L3 Projects (sample + count) then enrich with gaps, capabilities, and critical risks without losing rows when relationships are missing.*
+```cypher
+// Separate Existence Check from Enrichment — count first, then OPTIONAL MATCH for enrichment
+MATCH (p:EntityProject)
+WHERE p.year = 2026 AND p.level = 'L3' AND (p.start_date IS NULL OR p.start_date <= date('<datetoday>'))
+WITH p
+ORDER BY p.name
+WITH count(p) AS total_projects, collect(p { .id, .name, .budget, .progress_percentage })[0..30] AS sample_projects
+// Enrichment: optional joins, with filters scoped inside OPTIONAL MATCH to avoid implicit row elimination
+OPTIONAL MATCH (p)-[:ADDRESSES_GAP]->(g:EntityOrgUnit)
+WHERE g.year = 2026 AND g.level = 'L3'
+OPTIONAL MATCH (p)-[:ADDRESSES_GAP]->(g2:EntityITSystem)
+WHERE g2.year = 2026 AND g2.level = 'L3'
+OPTIONAL MATCH (p)-[:ADDRESSES_GAP]->(g3:EntityProcess)
+WHERE g3.year = 2026 AND g3.level = 'L3'
+OPTIONAL MATCH (p)-[:ADDRESSES_GAP]->(c:EntityCapability)
+WHERE c.year = 2026 AND c.level = 'L3'
+OPTIONAL MATCH (c)-[:MONITORED_BY]->(r:EntityRisk)
+WHERE r.year = 2026 AND r.level = 'L3' AND r.risk_score > 7
+// Calculate budget utilization safely — default nulls to 0
+WITH total_projects, sample_projects,
+     collect(g)[0..5] AS gaps, collect(c)[0..5] AS capabilities,
+     COUNT(DISTINCT r) AS critical_risks,
+     SUM(COALESCE(p.budget, 0) * COALESCE(p.progress_percentage, 0) / 100.0) AS budget_utilized
+RETURN total_projects, sample_projects, gaps, capabilities, critical_risks, budget_utilized
+```
+  </SECTION>
+  
+  <SECTION title="Tool Rules">
+**Tool:** `router__read_neo4j_cypher` (Primary).
+
+1. **Separate Existence Check from Temporal Filters** – First run a lightweight count query that only filters by year and level. If the count is zero, flag a data‑gap warning; otherwise, apply additional conditions such as start_date <= date('<datetoday>').
+
+2. **Conditional Start‑Date Clause** – Apply the start_date filter only when the intent explicitly asks for active projects. For a generic "list all projects" request, omit this clause to avoid unintentionally excluding future‑start projects that are still part of the portfolio.
+
+3. **Fallback Path for Empty Results** – Embed a fallback UNION that returns a single placeholder row with a status like "No projects found – verify data completeness". This makes the system's reasoning transparent and prevents silent zero‑result conclusions.
+
+4. **Index‑Driven Year‑Level Lookup** – Ensure an index on (year, level) exists and reference it in the initial count query. This guarantees fast existence checks even on large datasets.
+
+5. **Explicit Intent Flag** – Add a short‑hand flag in the user query parsing stage (e.g., include_future = true/false). The instruction set can then automatically decide whether to add the start‑date constraint.
+
+6. **Audit Log for Filter Application** – Record which filters were applied in the memory_process.thought_trace so auditors can trace why a project was excluded.
+
+7. **Graceful Degradation** – If the enriched query (with gaps, capabilities, risks) returns no rows, automatically re‑run a simplified query that only returns basic project attributes, ensuring the user always receives a meaningful list.
+
+8. **Aggregation First** – Use count(n) for totals and collect(n)[0..30] for samples in a SINGLE QUERY.
+
+9. **Trust Protocol** – If the tool returns valid JSON, **TRUST IT**. Do not re‑query to "verify" counts. The system does not truncate JSON keys.
+
+10. **Continuity Strategy (Keyset Pagination)**:
+    * To get the next batch, filter by the last seen ID: WHERE n.id > $last_seen_id.
+    * Always ORDER BY n.id to maintain the timeline.
+    * Do NOT emit SKIP or OFFSET queries.
+
+11. **Efficiency** – Return only id and name. No embeddings.
+
+12. **Server‑Side Execution** – The tool runs remotely. Do NOT hallucinate the output. Wait for the system to return the tool result.
+
+13. **Use OPTIONAL MATCH Correctly** – Place the OPTIONAL MATCH clauses after the primary MATCH; avoid referencing variables from optional patterns in subsequent WHERE clauses. Instead, move any filters on optional nodes into the OPTIONAL MATCH itself (e.g., OPTIONAL MATCH (p)-[:CLOSES_GAPS]->(g) WHERE g:EntityOrgUnit OR g:EntityITSystem OR g:EntityProcess). This ensures projects without those links are still retained.
+
+14. **Separate Existence Check from Enrichment** – Start with a lightweight existence query (e.g., `count`) scoped to year/level. Only add OPTIONAL MATCH enrichment clauses after confirming the existence count is greater than zero to prevent false negatives.
+
+15. **Document Assumptions** – Include brief Cypher `//` comments describing the purpose of each clause and any assumptions (e.g., filtering rationale). This helps future reviewers and reduces hidden logic errors.
+
+16. **ARGUMENT FORMAT** – You MUST pass arguments as a valid JSON object.
+    * **CORRECT:** `router__read_neo4j_cypher(query="MATCH ...")` (which implies `{"query": "MATCH ..."}`)
+    * **WRONG:** `router__read_neo4j_cypher("MATCH ...")` (Do NOT pass raw string)
+  </SECTION>
+</INSTRUCTION_BUNDLE>

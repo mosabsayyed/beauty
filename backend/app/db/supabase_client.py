@@ -37,8 +37,8 @@ class SupabaseClient:
     async def execute_mutation(self, query: str, params: Optional[List[Any]] = None) -> str:
         raise NotImplementedError("Use table-based methods instead of raw SQL with REST API")
 
-    async def table_select(self, table: str, columns: str = "*", filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-        """Select data from a table."""
+    async def table_select(self, table: str, columns: str = "*", filters: Optional[Dict[str, Any]] = None, order: Optional[Dict[str, Any]] = None, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Select data from a table with optional filtering, ordering, and limiting."""
         if not self.client:
             await self.connect()
 
@@ -48,6 +48,13 @@ class SupabaseClient:
         if filters:
             for key, value in filters.items():
                 query = query.eq(key, value)
+        
+        if order:
+            # order dict should be {'column': 'col_name', 'desc': True/False}
+            query = query.order(order['column'], desc=order.get('desc', False))
+            
+        if limit:
+            query = query.limit(limit)
 
         response = query.execute()
         return response.data or []
@@ -88,6 +95,22 @@ class SupabaseClient:
 
         response = query.execute()
         return response.data or []
+
+    async def table_count(self, table: str, filters: Optional[Dict[str, Any]] = None) -> int:
+        """Get count of rows in a table matching filters."""
+        if not self.client:
+            await self.connect()
+
+        client = self._ensure_connected()
+        # Use select with count='exact' and head=True to get just the count
+        query = client.table(table).select("*", count="exact", head=True)
+
+        if filters:
+            for key, value in filters.items():
+                query = query.eq(key, value)
+
+        response = query.execute()
+        return response.count or 0
 
     async def rpc(self, function_name: str, params: Optional[Dict[str, Any]] = None) -> Any:
         if not self.client:

@@ -1,0 +1,8 @@
+function TableRenderer({ artifact, language, fullHeight }: { artifact: TableArtifact; language: 'en' | 'ar'; fullHeight?: boolean | number }) {
+  const { content } = artifact;
+  const [sortColumn, setSortColumn] = useState<number | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  // Handle different data structures that might come from streaming
+  const normalizedData = useMemo(() => {
+    const data = content.data || content;

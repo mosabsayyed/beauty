@@ -1,0 +1,32 @@
+.chat-container-root { display:flex; flex-direction:column; flex:1; min-height:0; min-width:0; background-color: var(--component-bg-primary); }
+.chat-top-controls { display:flex; justify-content:flex-end; align-items:center; padding:8px 12px; }
+.chat-content-wrapper { margin:0 auto; width:100%; max-width:1100px; padding:32px 24px; }
+.welcome-screen { display:flex; flex-direction:column; min-height:60vh; }
+.welcome-hero { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+.welcome-logo { border-radius: 4px; background-repeat:no-repeat; background-position:center; background-size:cover; }
+.welcome-avatar { width: 80px; height: 80px; border-radius: 50%; background-repeat: no-repeat; background-position: center; background-size: contain; margin-bottom: 16px; }
+.welcome-title { margin-bottom:8px; font-size:24px; font-weight:600; color: var(--component-text-primary); }
+.welcome-sub { color: var(--component-text-secondary); margin-bottom:32px; max-width:448px; }
+.example-grid { width:100%; max-width:800px; }
+.example-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.canvas-toggle-small-wrapper { width: 100%; display: flex; align-items:center; }
+.example-button { display:flex; align-items:center; gap:12px; border-radius: 4px; border:1px solid var(--component-panel-border); background-color: var(--component-panel-bg); padding:16px; transition:all 0.2s ease; cursor:pointer; font-family:inherit; justify-content:flex-start; }
+.example-icon { margin-top:2px; height:20px; width:20px; flex-shrink:0; color: var(--component-text-secondary); transition:color 0.2s ease; }
+.example-text { font-size:14px; color: var(--component-text-primary); text-align:left; }
+.example-button:hover { border-color: rgba(26,36,53,0.3); box-shadow: 0 0 0 1px rgba(26,36,53,0.1); }
+
+/* RTL adjustments: reuse the existing classes and flip order/alignment when dir=rtl */
+[dir='rtl'] .example-list { direction: rtl; }
+[dir='rtl'] .example-button { 
+  justify-content: flex-start; 
+  direction: rtl; 
+  flex-direction: row-reverse;
+}
+[dir='rtl'] .example-text { 
+  text-align: right; 
+}
+
+.messages-list { display:flex; flex-direction:column; gap:24px; }
+
+/* Prevent large container hover transform that would cause layout shift */
+/* Previously we disabled hover transform on large containers; removals are safe because clickable is applied only to small actionable elements now. */

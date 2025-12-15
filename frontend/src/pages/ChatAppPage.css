@@ -4,7 +4,7 @@
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background: #F9FAFB;
+  background: var(--component-bg-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   position: relative;
 }
@@ -12,7 +12,7 @@
 /* Sidebar - Left column with slide functionality */
 .chat-app-sidebar {
   flex-shrink: 0;
-  background: #FFFFFF;
+  background: var(--component-panel-bg);
   border-right: 1px solid #E5E7EB;
   overflow-y: auto;
   display: flex;
@@ -41,7 +41,7 @@
 
 .chat-app-sidebar::-webkit-scrollbar-thumb {
   background: #D1D5DB;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .chat-app-sidebar::-webkit-scrollbar-thumb:hover {
@@ -55,7 +55,7 @@
   flex-direction: column;
   overflow: hidden;
   position: relative;
-  background: #FFFFFF;
+  background: var(--component-panel-bg);
   min-width: 0;
   z-index: 20;
 }
@@ -67,7 +67,7 @@
   align-items: center;
   padding: 0 20px;
   border-bottom: 1px solid #E5E7EB;
-  background: #FFFFFF;
+  background: var(--component-panel-bg);
   position: relative;
   z-index: 25;
 }
@@ -84,7 +84,7 @@
   height: 40px;
   border: none;
   background: transparent;
-  border-radius: 8px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,7 +108,7 @@
   width: 16px;
   height: 16px;
   border: 2px solid #6B7280;
-  border-radius: 2px;
+  border-radius: 4px;
   position: relative;
 }
 
@@ -125,7 +125,7 @@
 .conversation-title {
   font-size: 16px;
   font-weight: 600;
-  color: #111827;
+  color: var(--component-text-primary);
   margin: 0;
   flex: 1;
   text-align: center;
@@ -138,8 +138,8 @@
   top: 0;
   height: 100vh;
   width: 420px;
-  background: #FFFFFF;
-  border-left: 1px solid #E5E7EB;
+  background: transparent;
+  border-left: 1px solid var(--color-border-default, #E5E7EB);
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.04);
   transition: transform 0.3s ease;
   transform: translateX(100%);
@@ -162,7 +162,7 @@
 
 .chat-app-canvas::-webkit-scrollbar-thumb {
   background: #D1D5DB;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .chat-app-canvas::-webkit-scrollbar-thumb:hover {
@@ -232,17 +232,13 @@
   }
 }
 
-/* Canvas Panel Specific Styles */
-.canvas-panel {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
+
 
 .canvas-header {
   height: 64px;
-  background: #1F2937;
-  color: #FFFFFF;
+  /* Use CSS var so the header background can be themed sitewide */
+  background: var(--canvas-header-bg, #1F2937);
+  color: var(--text-inverted, #FFFFFF);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -268,7 +264,7 @@
   border: none;
   background: transparent;
   color: #D1D5DB;
-  border-radius: 6px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -299,7 +295,7 @@
   height: 40px;
   border: none;
   background: transparent;
-  border-radius: 8px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -316,7 +312,7 @@
 /* Chat Input Container */
 .chat-input-container {
   flex-shrink: 0;
-  background: #FFFFFF;
+  background: var(--component-panel-bg);
   border-top: 1px solid #E5E7EB;
   padding: 0;
 }
@@ -352,7 +348,7 @@
   width: 4px;
   height: 4px;
   background: currentColor;
-  border-radius: 50%;
+  border-radius: 4px;
 }
 
 /* Toggle button hover states */

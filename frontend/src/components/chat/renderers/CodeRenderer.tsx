@@ -7,6 +7,9 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
+import { useLanguage } from '../../../contexts/LanguageContext';
+import en from '../../../locales/en.json';
+import ar from '../../../locales/ar.json';
 
 interface CodeRendererProps {
   code: string;
@@ -17,11 +20,13 @@ interface CodeRendererProps {
 
 export function CodeRenderer({ 
   code, 
-  language = 'python', 
+  language: codeLanguage = 'python', 
   title,
   showLineNumbers = true 
 }: CodeRendererProps) {
   const [copied, setCopied] = useState(false);
+  const { language } = useLanguage();
+  const translations = language === 'ar' ? ar : en;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -30,35 +35,21 @@ export function CodeRenderer({
   };
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column',
-      height: '100%',
-      background: '#1e1e1e',
-      borderRadius: 8,
-      overflow: 'hidden',
-    }}>
+    <div className="code-renderer renderer-panel">
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '12px 16px',
-        background: '#2d2d2d',
-        borderBottom: '1px solid #3e3e3e',
-      }}>
+      <div className="code-renderer-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ 
             fontSize: 12, 
             fontWeight: 600, 
-            color: '#fff',
+            color: 'var(--component-text-primary)',
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
           }}>
-            {language}
+            {codeLanguage}
           </span>
           {title && (
-            <span style={{ fontSize: 13, color: '#888' }}>
+            <span style={{ fontSize: 13, color: 'var(--component-text-secondary)' }}>
               {title}
             </span>
           )}
@@ -70,30 +61,29 @@ export function CodeRenderer({
             alignItems: 'center',
             gap: 6,
             padding: '6px 12px',
-            background: copied ? '#10B981' : 'rgba(255,255,255,0.1)',
-            color: '#fff',
+            background: copied ? 'var(--component-color-success)' : 'rgba(255,255,255,0.06)',
+            color: 'var(--component-text-on-accent)',
             border: 'none',
-            borderRadius: 4,
             fontSize: 12,
             cursor: 'pointer',
             transition: 'all 150ms ease',
           }}
         >
           <DocumentDuplicateIcon className="w-4 h-4" />
-          <span>{copied ? 'Copied!' : 'Copy'}</span>
+          <span>{copied ? translations.copied : translations.copy}</span>
         </button>
       </div>
 
       {/* Code */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
-        <SyntaxHighlighter
-          language={language}
+      <div className="code-renderer-body">
+          <SyntaxHighlighter
+          language={codeLanguage}
           style={vscDarkPlus}
           showLineNumbers={showLineNumbers}
           customStyle={{
             margin: 0,
             padding: '16px',
-            background: '#1e1e1e',
+            background: 'inherit',
             fontSize: 13,
             lineHeight: 1.6,
           }}

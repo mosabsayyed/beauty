@@ -1,0 +1,42 @@
+name: 'MCP Router - Tests'
+
+on:
+  push:
+    branches: [ 'main', 'feature/*' ]
+  pull_request:
+    branches: [ 'main' ]
+  workflow_dispatch:
+    inputs:
+      run_integration:
+        description: 'Run integration tests (set true to enable)'
+        required: false
+        default: 'false'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r mcp-router/requirements.txt || true
+      - name: Run unit tests
+        env:
+          PYTHONPATH: '${{ github.workspace }}/mcp-router/src'
+        run: |
+          source .venv/bin/activate
+          pytest mcp-router/tests/unit -q
+      - name: Run integration tests (optional)
+        if: ${{ github.event.inputs.run_integration == 'true' || github.event.pull_request.head.ref == 'run-integration' }}
+        env:
+          PYTHONPATH: '${{ github.workspace }}/mcp-router/src'
+        run: |
+          source .venv/bin/activate
+          INTEGRATION=1 pytest mcp-router/tests/integration -q || true

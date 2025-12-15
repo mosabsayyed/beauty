@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Vector Search Tool Schema",
+  "type": "object",
+  "required": ["args"],
+  "properties": {
+    "args": {
+      "type": "object",
+      "required": ["query"],
+      "properties": {
+        "query": {"type": "string"},
+        "top_k": {"type": "integer", "minimum": 1, "maximum": 100}
+      }
+    }
+  }
+}

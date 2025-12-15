@@ -2,15 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Language } from '../types';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Card } from '../components/ui/card';
 import { CheckCircle2 } from 'lucide-react';
 // Use public logo asset instead of figma: URI (build can't handle figma: scheme)
 import { register as apiRegister, signInWithProvider } from '../services/authService';
 import { useAuth } from '../contexts/AuthContext';
-const josoorLogo = 'https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2Fefbe50adfc8743cfa8a2c93570680bae';
+import { useLanguage } from '../contexts/LanguageContext';
+import Header from '../components/layout/Header';
+const josoorLogo = '/icons/josoor.svg';
 
 
 interface LoginPageProps {
@@ -40,6 +39,7 @@ export function LoginPage({ language: propLanguage, onLanguageChange, onSkip, on
         'Live Transformation Simulation',
         'Re-imagined True-Intelligence Dashboards',
         'Full Multi-Media Body of Knowledge',
+        'ٍSoveriegn compliant with KSA Policies',
         'Working Space for UC 001'
       ],
       login: 'Login',
@@ -53,21 +53,24 @@ export function LoginPage({ language: propLanguage, onLanguageChange, onSkip, on
       switchToLogin: 'Login here',
       skip: 'Skip and Continue as Guest',
       submit: 'Continue',
-      or: 'OR'
+      or: 'OR',
+      socialLoginCaption: 'Sign in quickly using Google',
+      socialRegisterCaption: 'Register quickly using Google'
     },
     ar: {
-      title: 'مرحباً بك في التوأمة الحية',
-      subtitle: 'بوابتك إلى التحول الإدراكي',
+      title: 'مرحباً بكم في جسور',
+      subtitle: 'بوابتك إلى التحول المعرفي',
       whyRegister: 'لماذا التسجيل؟',
       free: 'التسجيل مجاني واختياري',
       purpose: 'الهدف',
       purposeDesc: 'احفظ جلستك مع نور، تتبع تقدم التعلم، واحتفظ بنتائج العمل التي تنشئها.',
-      whatYouGet: 'ما يقدمه هذا القس��',
+      whatYouGet: 'ما يقدمه هذا القسم',
       features: [
-        'محاكاة التحول المباشرة',
-        'لوحات معلومات الذكاء الحقيقي المعاد تصورها',
-        'مجموعة معرفية متعددة الوسائط بالكامل',
-        'مساحة عمل لحالة الاستخدام الأولى للتوأم الرقمي في مؤسستك'
+        'محاكاة مباشرة للتحول',
+        'لوحات معلومات ذكيةأعيد تخيلها',
+        'جسم معرفي غني بالوسائط المتعددة',
+        'خصوصية تامة متوافقة مع المعايير السعودية',
+        'بيئة عمل متكاملة لتوأم مؤسستك'
       ],
       login: 'تسجيل الدخول',
       register: 'التسجيل',
@@ -80,53 +83,212 @@ export function LoginPage({ language: propLanguage, onLanguageChange, onSkip, on
       switchToLogin: 'سجل دخولك هنا',
       skip: 'تخطي والمتابعة كضيف',
       submit: 'متابعة',
-      or: 'أو'
+      or: 'أو',
+      socialLoginCaption: 'سجّل الدخول بسرعة باستخدام Google',
+      socialRegisterCaption: 'سجّل حسابًا جديدًا بسرعة باستخدام Google'
     }
   };
 
-  // Resolve language: prefer prop, then localStorage, then default 'en'
-  const [languageState, setLanguageState] = useState<Language>(() => {
-    try {
-      const saved = localStorage.getItem('josoor_language');
-      return (propLanguage as Language) || (saved as Language) || 'en';
-    } catch {
-      return (propLanguage as Language) || 'en';
-    }
-  });
-
-  const language = (propLanguage as Language) || languageState;
+  // Use global LanguageContext so Header toggle syncs with Login page
+  const { language: contextLanguage, setLanguage: setContextLanguage } = useLanguage();
+  
+  // Fallback to prop or context
+  const language = (propLanguage as Language) || contextLanguage;
   const t = content[language];
 
   const auth = useAuth();
 
-  // Inject responsive CSS for the login page to match requested diff
+  // Sync local toggle with global context
+  const setLanguageState = (newLang: Language) => {
+    setContextLanguage(newLang);
+    try { localStorage.setItem('josoor_language', newLang); } catch {}
+    if (onLanguageChange) onLanguageChange(newLang);
+  };
+
+  // Inject CSS for the split layout - RTL-aware
+  const isRTL = language === 'ar';
   useEffect(() => {
+    // For RTL (Arabic): gradient goes 270deg (dark on right)
+    // For LTR (English): gradient goes 90deg (dark on left)
+    const gradientDirection = isRTL ? '270deg' : '90deg';
     const css = `
-      @media (max-width: 991px) {
-        #login-page .card-base { background-color: rgba(0,0,0,1) !important; color: #fff; }
-        #login-page .login-title { color: #fff !important; }
-        #login-page .login-subtitle { color: #fff !important; }
-        #login-page .feature-icon, #login-page svg { stroke: rgb(255,255,255) !important; color: rgb(255,255,255) !important; }
-        #login-page .login-form { display: flex !important; flex-direction: column !important; align-items: stretch !important; gap: 10px !important; }
-        #login-page .label-col { width: 30% !important; }
-        #login-page .input-field { margin-left: 10px !important; }
-        #login-page .helper-box { background-color: rgba(0,0,0,1) !important; width: 50% !important; height: 100% !important; }
-        #login-page .features-list { display: flex !important; flex-direction: row !important; }
-        #login-page .feature-text { margin-left: 20px !important; width: 100% !important; }
+      .login-container {
+        display: flex;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+        /* create the split background colors - RTL-aware */
+        background: linear-gradient(${gradientDirection}, #0F172A 50%, #FFFFFF 50%);
+        font-family: var(--component-font-family), 'Inter', sans-serif;
+        font-style: normal;
+        position: relative;
+      }
+
+      /* Background Image Overlay - RTL-aware */
+      .login-container::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-image: url('/att/landing-screenshots/vector_login.svg');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        pointer-events: none;
+        background-size: 100% 100%;
+        z-index: 1;
+        opacity: 0.3;
+        ${isRTL ? 'transform: scaleX(-1);' : ''}
+      }
+      
+      /* LEFT SIDE: HERO CONTENT WRAPPER */
+      .login-hero {
+        width: 50%;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center; 
+        padding: 60px;
+        color: white; 
+        z-index: 2; 
+      }
+      
+      .hero-content {
+        position: relative;
+        width: 100%;
+        max-width: 480px; 
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left; 
+      }
+
+      /* Middle section (Features) - Center vertically */
+      .hero-middle {
+        margin: auto 0;
+      }
+
+      /* RIGHT SIDE: FORM WRAPPER */
+      .login-form-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+        background: transparent; 
+        position: relative;
+        z-index: 2; 
+        /* Ensure text is standard dark on the white side */
+        color: #111827;
+      }
+
+      .login-card {
+        width: 100%;
+        max-width: 440px;
+        padding: 32px;
+        background: rgba(255, 255, 255, 0.95);
+        border: 2px solid #fff;
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+      
+      /* Override text colors for Right Side to be Dark */
+      .login-card h2 { color: #111827 !important; }
+      .login-card p { color: #4B5563 !important; }
+      .login-card label { color: #374151 !important; }
+
+      .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        background: #F8FAFC;
+        border: 1px solid #000000; /* Black border */
+        border-radius: 6px;
+        color: #0F172A;
+        font-size: 14px;
+        outline: none;
+        transition: all 0.2s;
+        font-family: inherit;
+      }
+
+      .form-input:focus {
+        border-color: var(--component-text-accent);
+        box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
+      }
+
+      .submit-btn {
+        width: 100%;
+        padding: 14px;
+        background-color: var(--component-text-accent);
+        color: var(--component-text-on-accent);
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        margin-top: 10px;
+        font-family: inherit;
+      }
+      .submit-btn:hover { opacity: 0.9; }
+
+      .google-btn {
+        width: 100%;
+        padding: 12px;
+        background: white;
+        color: #374151;
+        border: 1px solid #000000; /* Black border */
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: background 0.2s;
+        font-family: inherit;
+      }
+      .google-btn:hover { background: #F9FAFB; }
+
+      .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      @media (max-width: 1024px) {
+        .login-container { 
+          background: #FFFFFF; 
+          flex-direction: column;
+          overflow-y: auto;
+        }
+        .login-hero { display: none; }
+        .login-form-container { width: 100%; padding: 20px; }
       }
     `;
     const style = document.createElement('style');
-    style.setAttribute('data-generated', 'login-responsive');
-    style.appendChild(document.createTextNode(css));
+    style.textContent = css;
     document.head.appendChild(style);
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
+    return () => { document.head.removeChild(style); };
+  }, [isRTL]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Backup guest conversations to avoid accidental removal during login (safety net)
+      try {
+        const guestConvos = localStorage.getItem('josoor_guest_conversations');
+        if (guestConvos) {
+          localStorage.setItem('josoor_guest_conversations_backup', guestConvos);
+        }
+      } catch (err) {
+        // ignore
+      }
       if (isRegistering) {
         await apiRegister(email, password, name || undefined);
       }
@@ -147,141 +309,171 @@ export function LoginPage({ language: propLanguage, onLanguageChange, onSkip, on
   };
 
   return (
-    <div dir={language === 'ar' ? 'rtl' : 'ltr'}>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 pt-32 pb-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Logo and Title */}
-          <motion.div id="login-page" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-              <img src={josoorLogo} alt="JOSOOR" style={{ width: 80, height: 80, objectFit: 'contain', filter: 'drop-shadow(0 0 20px rgba(212,175,55,0.3))' }} />
-            </div>
-            <h1 className="mb-3 login-title">{t.title}</h1>
-            <p className="login-subtitle" style={{ color: 'var(--text-secondary)' }}>{t.subtitle}</p>
-          </motion.div>
+    <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="login-container">
+      <Header />
+      
+      {/* Language Toggle - Fixed position top-right */}
+      <button
+        onClick={() => {
+          const newLang = language === 'en' ? 'ar' : 'en';
+          setLanguageState(newLang);
+          try { localStorage.setItem('josoor_language', newLang); } catch {}
+          if (onLanguageChange) onLanguageChange(newLang);
+        }}
+        style={{
+          position: 'fixed',
+          top: '20px',
+          [language === 'ar' ? 'left' : 'right']: '20px',
+          zIndex: 100,
+          padding: '8px 16px',
+          background: '#1F2937',
+          border: '2px solid #D97706',
+          borderRadius: '8px',
+          color: '#fff',
+          fontSize: '14px',
+          fontWeight: 600,
+          cursor: 'pointer',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}
+        title={language === 'en' ? 'التبديل إلى العربية' : 'Switch to English'}
+      >
+        <span>{language === 'en' ? '🇸🇦' : '🇬🇧'}</span>
+        <span>{language === 'en' ? 'AR' : 'EN'}</span>
+      </button>
 
-          {/* Two Column Layout */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-              gap: 32,
-              maxWidth: 1100,
-              margin: '0 auto',
-              paddingLeft: 16,
-              paddingRight: 16,
-            }}
-          >
-          
-          {/* Left Column - Information */}
-          <motion.div initial={{ opacity: 0, x: language === 'ar' ? 30 : -30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className={language === 'ar' ? 'lg:col-start-2' : ''}>
-            <Card className="card-base" style={{ padding: 24 }}>
-              <div className="space-y-6">
-                
-                <div>
-                  <h2 style={{ margin: 0 }}>
-                    <span style={{ fontSize: 14 }}>
-                      <span style={{ fontWeight: 700 }}>{t.free}</span>
-                    </span>
-                  </h2>
-                </div>
+      {/* LEFT PANEL: BRANDING / HERO */}
+      <motion.div 
+        initial={{ opacity: 0, x: -50 }} 
+        animate={{ opacity: 1, x: 0 }} 
+        transition={{ duration: 0.8 }}
+        className="login-hero"
+      >
+        {/* Branding Content */}
+        <div className="hero-content">
+          <img src={josoorLogo} alt="JOSOOR" style={{ width: '80px', marginBottom: '32px', filter: 'drop-shadow(0 0 15px rgba(255,215,0,0.5))' }} />
+          <h1 style={{ fontSize: '48px', fontWeight: 700, margin: '0 0 16px 0', lineHeight: 1.1 }}>{t.title}</h1>
+          <p style={{ fontSize: '20px', color: '#E5E7EB', lineHeight: 1.5, maxWidth: '400px' }}>{t.subtitle}</p>
+        </div>
 
-                <div>
-                  <h3 className="text-[#D4AF37] mb-2">{t.purpose}</h3>
-                  <p className="text-slate-700">{t.purposeDesc}</p>
-                </div>
-
-                <div>
-                  <h3 className="text-[#D4AF37] mb-4">{t.whatYouGet}</h3>
-                  <div className="space-y-3">
-                    {t.features.map((feature, i) => (
-                      <div key={i} className={`flex items-start gap-3 ${language === 'ar' ? 'flex-row-reverse' : ''} features-list`}>
-                        <CheckCircle2 className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5 feature-icon" />
-                        <span className="text-slate-700 feature-text">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
+        <div className="hero-content hero-middle">
+          <h3 style={{ fontSize: '24px', fontWeight: 600, color: 'var(--component-text-accent)', marginBottom: '24px' }}>{t.whatYouGet}</h3>
+          <div style={{ width: '100%' }}>
+            {t.features.map((feature, i) => (
+              <div key={i} className="feature-item">
+                <CheckCircle2 size={24} color="#FFD700" />
+                <span style={{ fontSize: '18px', color: 'rgba(255,255,255,0.9)' }}>{feature}</span>
               </div>
-            </Card>
-          </motion.div>
-
-          {/* Right Column - Login/Register Form */}
-          <motion.div initial={{ opacity: 0, x: language === 'ar' ? -30 : 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className={language === 'ar' ? 'lg:col-start-1 lg:row-start-1' : ''}>
-            <Card className="card-base" style={{ padding: 24 }}>
-              <form onSubmit={handleSubmit} className="login-form" style={{ display: 'grid', gap: 16 }}>
-                
-                <div className="text-center mb-6">
-                  <h2 className="text-primary-dark mb-2">
-                    {isRegistering ? t.register : t.login}
-                  </h2>
-                </div>
-
-                {isRegistering && (
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-[#1A2435]">{t.name}</Label>
-                    <Input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} required className="input-field" dir={language === 'ar' ? 'rtl' : 'ltr'} />
-                  </div>
-                )}
-
-                <div className="space-y-2" style={{ display: 'flex', alignItems: 'center' }}>
-                  <Label htmlFor="email" className="text-[#1A2435] label-col">{t.email}</Label>
-                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="input-field" dir="ltr" />
-                </div>
-
-                <div className="space-y-2" style={{ display: 'flex', alignItems: 'center' }}>
-                  <Label htmlFor="password" className="text-[#1A2435] label-col">{t.password}</Label>
-                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="input-field" dir="ltr" />
-                </div>
-
-                <Button type="submit" className="btn-primary" style={{ width: '100%' }}>{t.submit}</Button>
-
-                <div className="text-center">
-                  <p className="text-slate-600 text-sm mb-2">
-                    {isRegistering ? t.haveAccount : t.noAccount}
-                  </p>
-                  <button type="button" onClick={() => setIsRegistering(!isRegistering)} style={{ color: 'var(--color-gold)', background: 'transparent', border: 'none', cursor: 'pointer' }}>{isRegistering ? t.switchToLogin : t.switchToRegister}</button>
-                </div>
-
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-slate-300"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-white text-slate-500">{t.or}</span>
-                  </div>
-                </div>
-
-                {/* Social sign in buttons */}
-                <div style={{ display: 'flex', gap: 8, flexDirection: 'column' }}>
-                  <Button type="button" className="btn-social" style={{ width: '100%' }} onClick={() => {
-                    // Google OAuth
-                    signInWithProvider('google').catch((err) => alert(err.message || String(err)));
-                  }}>Continue with Google</Button>
-                  <Button type="button" className="btn-social" style={{ width: '100%' }} onClick={() => {
-                    // Apple OAuth (iPhone)
-                    signInWithProvider('apple').catch((err) => alert(err.message || String(err)));
-                  }}>Continue with Apple</Button>
-                </div>
-
-                <Button type="button" className="btn-secondary" style={{ width: '100%' }} onClick={() => {
-                  if (onSkip) return onSkip();
-                  try { localStorage.setItem('josoor_authenticated', 'true'); } catch {}
-                  navigate('/chat', { replace: true });
-                }}>{t.skip}</Button>
-
-              </form>
-            </Card>
-          </motion.div>
-
+            ))}
           </div>
         </div>
-      </div>
 
-      <div className="helper-box" style={{ display: 'flex', flexDirection: 'column', position: 'relative', marginTop: 20, height: 200 }}>
-        {/* Responsive helper box */}
-      </div>
+        <div className="hero-content" style={{ fontSize: '13px', color: '#9CA3AF' }}>
+          © 2025 AI Twin Tech. All rights reserved.
+        </div>
+      </motion.div>
 
+      {/* RIGHT PANEL: FORM */}
+      <motion.div 
+        initial={{ opacity: 0, x: 50 }} 
+        animate={{ opacity: 1, x: 0 }} 
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="login-form-container"
+      >
+        <div className="login-card">
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            {/* Mobile Logo */}
+            <div style={{ display: 'none' }} className="mobile-logo">
+               <img src={josoorLogo} alt="JOSOOR" style={{ width: '60px', margin: '0 auto 16px' }} />
+            </div>
+            <h2 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--component-text-primary)', marginBottom: '8px' }}>
+              {isRegistering ? t.register : t.login}
+            </h2>
+            <p style={{ color: 'var(--component-text-secondary)' }}>
+              {isRegistering ? t.free : t.subtitle}
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {isRegistering && (
+              <div>
+                <Label htmlFor="name" style={{ display: 'block', marginBottom: '8px', color: 'var(--component-text-primary)' }}>{t.name}</Label>
+                <input 
+                  id="name" 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)} 
+                  className="form-input"
+                />
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor="email" style={{ display: 'block', marginBottom: '8px', color: 'var(--component-text-primary)' }}>{t.email}</Label>
+              <input 
+                id="email" 
+                type="email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                required 
+                className="form-input"
+                dir="ltr"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="password" style={{ display: 'block', marginBottom: '8px', color: 'var(--component-text-primary)' }}>{t.password}</Label>
+              <input 
+                id="password" 
+                type="password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                required 
+                className="form-input"
+                dir="ltr"
+              />
+            </div>
+
+            <button type="submit" className="submit-btn">
+              {t.submit}
+            </button>
+          </form>
+
+          <div style={{ marginTop: '32px' }}>
+            <div style={{ position: 'relative', textAlign: 'center' }}>
+              <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '1px', background: '#E5E7EB' }}></div>
+              <span style={{ position: 'relative', background: '#FFFFFF', padding: '0 10px', color: '#6B7280', fontSize: '14px' }}>{t.or}</span>
+            </div>
+
+            <div style={{ marginTop: '24px' }}>
+              <button 
+                type="button" 
+                className="google-btn"
+                onClick={() => signInWithProvider('google').catch((err) => alert(err.message || String(err)))}
+              >
+                <img src="https://www.google.com/favicon.ico" alt="Google" style={{ width: '20px' }} />
+                <span>
+                  {isRegistering ? (language === 'ar' ? 'سجّل باستخدام Google' : 'Register with Google') : (language === 'ar' ? 'المتابعة باستخدام Google' : 'Continue with Google')}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div style={{ marginTop: '32px', textAlign: 'center', fontSize: '14px' }}>
+            <span style={{ color: '#4B5563' }}>
+              {isRegistering ? t.haveAccount : t.noAccount}
+            </span>
+            <button 
+              type="button" 
+              onClick={() => setIsRegistering(!isRegistering)} 
+              style={{ background: 'none', border: 'none', color: 'var(--component-text-accent)', fontWeight: 600, cursor: 'pointer', marginLeft: '8px' }}
+            >
+              {isRegistering ? t.switchToLogin : t.switchToRegister}
+            </button>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }

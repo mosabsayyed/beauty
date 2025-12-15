@@ -55,10 +55,10 @@ export function CommentsSection({ artifactId }: CommentsSectionProps) {
   };
 
   return (
-    <div className="border-t border-gray-200 bg-gray-50 p-4 flex flex-col h-full max-h-[300px]">
+    <div className="border-t border-gray-200 canvas-sidebar p-4 flex flex-col h-full max-h-[300px]">
       <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
         {translations.title}
-        <span className="bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full">
+        <span className="badge">
           {comments.length}
         </span>
       </h3>
@@ -72,13 +72,13 @@ export function CommentsSection({ artifactId }: CommentsSectionProps) {
             <div key={comment.id} className="flex gap-3">
               <div className="shrink-0">
                 {comment.avatar ? (
-                  <img src={comment.avatar} alt={comment.user} className="w-8 h-8 rounded-full" />
+                  <img src={comment.avatar} alt={comment.user} className="w-8 h-8 " />
                 ) : (
                   <UserCircleIcon className="w-8 h-8 text-gray-400" />
                 )}
               </div>
               <div className="flex-1">
-                <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+                <div className="panel p-3 shadow-sm">
                   <div className="flex justify-between items-start mb-1">
                     <span className="text-sm font-medium text-gray-900">{comment.user}</span>
                     <span className="text-xs text-gray-400">
@@ -100,12 +100,12 @@ export function CommentsSection({ artifactId }: CommentsSectionProps) {
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder={translations.placeholder}
-          className="w-full rounded-lg border border-gray-300 pl-4 pr-12 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+          className="w-full border border-gray-300 pl-4 pr-12 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
         />
         <button
           type="submit"
           disabled={!newComment.trim()}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-amber-600 hover:bg-amber-50 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-amber-600 hover:bg-amber-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           title={translations.send}
         >
           <PaperAirplaneIcon className="w-5 h-5 -rotate-45 rtl:rotate-135" />

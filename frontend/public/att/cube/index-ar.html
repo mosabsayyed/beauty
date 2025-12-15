@@ -4,7 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RubiksCubeExperience – CDN</title>
+  <link rel="icon" type="image/png" href="./logo-aitwintech.svg" />
   <style>
+    /* Font size variables - edit these to change all heading and paragraph sizes */
+    :root {
+      --h1-font-size: 76px;
+      --h1-line-height: 84px;
+      --h2-font-size: 52px;
+      --h2-line-height: 54px;
+      --p-font-size: 28px;
+      --p-line-height: 44px;
+      --intro1-h1-font-size: 62px;
+      --intro1-h1-line-height: 84px;
+    }
     /* :root { --panel:#0a0f1c; --text:#e5e7eb; --accent:#7c3aed; }*/
   /* Changed background color on this line to light grey (#e0e0e0) */
   html, body { height: 100%; margin: 0; background: #797979; color: var(--text); font-family: 'Tajawal', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif; scrollbar-width: none; -ms-overflow-style: none; direction: rtl; }
@@ -15,8 +27,8 @@
     #scroll-hint { position: fixed; left: 50%; transform: translateX(-50%) translateY(12px); bottom: 28px; background: rgba(0,0,0,0.56); color: #fff; padding: 8px 14px; border-radius: 999px; display:flex; gap:10px; align-items:center; z-index:10000; font-weight:700; pointer-events:auto; border: 1px solid rgba(255,255,255,0.12); opacity: 0; transition: opacity .32s ease, transform .32s ease; }
     #scroll-hint.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     #scroll-hint .hint-text { font-size: 13px; letter-spacing: .02em; }
-    #scroll-hint .hint-arrow { width:14px; height:14px; display:inline-block; border-left:2px solid #fff; border-bottom:2px solid #fff; transform: rotate(45deg); margin-top:2px; animation: hint-bounce 1.2s infinite; }
-    @keyframes hint-bounce { 0%{ transform: translateY(0) rotate(45deg) } 50%{ transform: translateY(6px) rotate(45deg) } 100%{ transform: translateY(0) rotate(45deg) } }
+    #scroll-hint .hint-hand { width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; font-size:20px; animation: hint-hand-scroll 1.2s infinite; }
+    @keyframes hint-hand-scroll { 0%{ transform: translateY(0); } 50%{ transform: translateY(8px); } 100%{ transform: translateY(0); } }
 
     /* Top controls: visible toggle + skip styling (mirror LTR) */
     #rubiks-top-controls { gap: 10px; }
@@ -25,7 +37,7 @@
     .simple-toggle .knob { position:absolute; top:3px; left:3px; width:18px; height:18px; background:#fff; border-radius:50%; transition: left .18s cubic-bezier(.2,.9,.3,1); box-shadow:0 1px 2px rgba(0,0,0,0.4); }
     .simple-toggle.pressed { background: linear-gradient(135deg,#D4AF37 0%,#B8960F 100%); }
     .simple-toggle.pressed .knob { left: calc(100% - 21px); }
-    #rubiks-top-controls .lang-label { font-size:13px; color:#fff; font-weight:600; }
+    #rubiks-top-controls .lang-label { font-size:11px; color:#fff; font-weight:600; }
     #rubiks-top-controls .top-skip { color: #fff; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.12); padding:8px 12px; border-radius:8px; font-weight:700; }
     @media (max-width:640px) { #rubiks-top-controls { left:8px; right:auto; } }
 
@@ -33,15 +45,15 @@
 .hero-row { display: none; }
   .text-col { width: 450px; max-width: 640px; padding: 0 19px 0 60px; color: #ffffff; font-family: 'Tajawal', sans-serif; position: sticky; top: 60px; }
 .text-section { min-height: 590.4px; display: flex; align-items: flex-start; justify-content: flex-start; padding-top: 60px; }
-.text-col h1 { margin: 20px 0 12px; font: 400 62px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 2px rgba(255,255,255,0.544), 0 0 12px rgba(76,201,255,0.531), 0 0 28px rgba(76,201,255,0.498), 0 0 56px rgba(30,144,255,0.476), 0 0 110px rgba(14,110,253,0.434); }
+.text-col h1 { margin: 20px 0 12px; font: 400 72px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 2px rgba(255,255,255,0.544), 0 0 12px rgba(76,201,255,0.531), 0 0 28px rgba(76,201,255,0.498), 0 0 56px rgba(30,144,255,0.476), 0 0 110px rgba(14,110,253,0.434); }
 .hero-row section:nth-of-type(2) .text-col h1 { font: 400 62px/84px "Allerta Stencil", sans-serif; }
 .hero-row section:nth-of-type(3) .text-col h1 { font: 400 62px/84px "Allerta Stencil", sans-serif; }
 .hero-row section:nth-of-type(1) .text-col { width: 640px; }
-.hero-row section:nth-of-type(1) .text-col h1 { font: 400 62px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
-.hero-row section:nth-of-type(1) .text-col h2 { font-size: 38px; }
-.text-col h2 { font-weight: 700; margin: 0 0 20px; text-transform: uppercase; letter-spacing: 1.30458px; font-size: 38px; color: rgba(37, 128, 250, 1); }
-.text-col p  { font-weight: 300; margin: 0; font-size: 24px; line-height: 36px; }
-.hero-row section:nth-of-type(1) .text-col p { font-size: 24px; line-height: 36px; }
+.hero-row section:nth-of-type(1) .text-col h1 { font: 400 72px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
+.hero-row section:nth-of-type(1) .text-col h2 { font-size: 52px; line-height: 54px; }
+.text-col h2 { font-weight: 700; margin: 0 0 20px; text-transform: uppercase; letter-spacing: 1.30458px; font-size: 52px; line-height: 54px; color: rgba(37, 128, 250, 1); }
+.text-col p  { font-weight: 300; margin: 0; font-size: 28px; line-height: 44px; }
+.hero-row section:nth-of-type(1) .text-col p { font-size: 28px; line-height: 44px; }
   .sticky-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; background: transparent; z-index: 2; }
   #stage { background: none; }
     #stage { width: 100%; height: 100%; display:block; }
@@ -52,16 +64,16 @@
   .phase-text-block { position: absolute; top: 0; right: 0; width: 625px !important; max-width: none !important; padding: 0 56px 0 19px; box-sizing: content-box; opacity: 1; pointer-events: none; font-family: 'Tajawal', Calibri, sans-serif; color: #ffffff; transform: translateY(0); transition: none; z-index: 1; visibility: hidden; will-change: transform; background: transparent !important; text-align: right; direction: rtl; }
     .phase-text-block.finale-blocks { pointer-events: auto; }
     /* Match backup typography inside overlay */
-    .phase-overlay .phase-text-block h1 { margin: 20px 0 12px; font: 400 62px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 2px rgba(255,255,255,0.544), 0 0 12px rgba(76,201,255,0.531), 0 0 28px rgba(76,201,255,0.498), 0 0 56px rgba(30,144,255,0.476), 0 0 110px rgba(14,110,253,0.434); }
+    .phase-overlay .phase-text-block h1 { margin: 20px 0 12px; font: 400 72px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 2px rgba(255,255,255,0.544), 0 0 12px rgba(76,201,255,0.531), 0 0 28px rgba(76,201,255,0.498), 0 0 56px rgba(30,144,255,0.476), 0 0 110px rgba(14,110,253,0.434); }
     .phase-overlay .phase-text-block[data-key="intro-1"] h1 { font: 400 62px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
-    .phase-overlay .phase-text-block[data-key="p89-future"] h1 { font: 400 62px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
-    .phase-overlay .phase-text-block h2 { font-weight: 700; margin: 0 0 20px; text-transform: uppercase; letter-spacing: 1.30458px; font-size: 38px; color: rgba(37, 128, 250, 1); }
-        .phase-overlay .phase-text-block:not([data-key="intro-1"]) h2 { font-size: 38px; font-weight: 700; color: rgba(37, 128, 250, 1); }
-    .phase-overlay .phase-text-block[data-key="intro-1"] h2 { font-size: 38px; font-weight: 700; color: rgba(37, 128, 250, 1); }
-    .phase-overlay .phase-text-block[data-key="p89-future"] h2 { font-size: 38px; font-weight: 700; color: rgba(37, 128, 250, 1); }
-    .phase-overlay .phase-text-block p  { font-weight: 300; margin: 0; font-size: 24px; line-height: 36px; }
-    .phase-overlay .phase-text-block[data-key="intro-1"] p { font-size: 24px; line-height: 36px; }
-    .phase-overlay .phase-text-block[data-key="p89-future"] p { font-size: 24px; line-height: 36px; }
+    .phase-overlay .phase-text-block[data-key="p89-future"] h1 { font: 400 72px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
+    .phase-overlay .phase-text-block h2 { font-weight: 700; margin: 0 0 20px; text-transform: uppercase; letter-spacing: 1.30458px; font-size: 52px; line-height: 54px; color: rgba(37, 128, 250, 1); }
+        .phase-overlay .phase-text-block:not([data-key="intro-1"]) h2 { font-size: 52px; font-weight: 700; line-height: 54px; color: rgba(37, 128, 250, 1); }
+    .phase-overlay .phase-text-block[data-key="intro-1"] h2 { font-size: 52px; font-weight: 700; color: rgba(37, 128, 250, 1); line-height: 54px; }
+    .phase-overlay .phase-text-block[data-key="p89-future"] h2 { font-size: 52px; font-weight: 700; line-height: 54px; color: rgba(37, 128, 250, 1); }
+    .phase-overlay .phase-text-block p  { font-weight: 300; margin: 0; font-size: 28px; line-height: 44px; }
+    .phase-overlay .phase-text-block[data-key="intro-1"] p { font-size: 28px; line-height: 44px; }
+    .phase-overlay .phase-text-block[data-key="p89-future"] p { font-size: 28px; line-height: 44px; }
     .phase-text-block.active { z-index: 2; visibility: visible; }
     .phase-viewport { position: relative; overflow: visible; height: 600px; }
   @media (prefers-reduced-motion: reduce) { .phase-text-block { transition: none !important; } .phase-text-block.leaving { transition: none !important; } }
@@ -69,20 +81,16 @@
 
     /* Overlay-specific typography and sizing */
     .phase-overlay .phase-text-block[data-key="intro-1"] { width: 650px !important; max-width: none !important; }
-    .phase-overlay .phase-text-block[data-key="p89-future"] { width: 580px !important; max-width: none !important; }
-    .phase-overlay .phase-text-block[data-key="intro-2"],
+    .phase-overlay .phase-text-block[data-key="p89-future"] { width: 650px !important; max-width: none !important; }
     .phase-overlay .phase-text-block[data-key="intro-3"],
-    .phase-overlay .phase-text-block[data-key="p23-your-org"],
-    .phase-overlay .phase-text-block[data-key="p4-hidden"],
-    .phase-overlay .phase-text-block[data-key="p56-where"],
-    .phase-overlay .phase-text-block[data-key="p7-two-years"] { width: 600px !important; max-width: none !important; } 
+    .phase-overlay .phase-text-block[data-key="p4-hidden"] { width: 650px !important; max-width: none !important; } 
         /* Ensure children use container width */
   .phase-text-block > h1, .phase-text-block > h2, .phase-text-block > p { display: block; max-width: 100%; text-align: right; direction: rtl; }
     /* Ensure consistent top alignment between blocks */
     #phaseOverlay .phase-text-block h1:first-child { margin-top: 20px; }
-        .phase-overlay .phase-text-block[data-key="intro-1"] h1 { font: 400 62px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
-    .phase-overlay .phase-text-block[data-key="intro-1"] h2 { font-size: 38px; font-weight: 700; color: rgba(37, 128, 250, 1); }
-    .phase-overlay .phase-text-block[data-key="intro-1"] p  { font-size: 24px; line-height: 36px; }
+        .phase-overlay .phase-text-block[data-key="intro-1"] h1 { font: 400 72px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
+    .phase-overlay .phase-text-block[data-key="intro-1"] h2 { font-size: 52px; font-weight: 700; line-height: 54px; color: rgba(37, 128, 250, 1); }
+    .phase-overlay .phase-text-block[data-key="intro-1"] p  { font-size: 28px; line-height: 44px; }
     
     /* Finale columns styling */
     .finale-columns {
@@ -128,7 +136,7 @@
     }
     
     .finale-columns h1 {
-      font: 400 62px/84px "Allerta Stencil", sans-serif;
+      font: 400 72px/84px "Allerta Stencil", sans-serif;
       color: #ffffff;
       text-shadow: 0 0 2px rgba(255,255,255,0.544), 0 0 12px rgba(76,201,255,0.531), 0 0 28px rgba(76,201,255,0.498);
       margin: 0;
@@ -136,7 +144,8 @@
     
     .finale-columns h2 {
       font-weight: 700;
-      font-size: 38px;
+      font-size: 48px;
+      line-height: 54px;
       color: rgba(37, 128, 250, 1);
       text-transform: uppercase;
       letter-spacing: 1.2px;
@@ -145,8 +154,8 @@
     
     .finale-columns p {
       font-weight: 300;
-      font-size: 24px;
-      line-height: 36px;
+      font-size: 28px;
+      line-height: 44px;
       margin: 0 0 24px 0;
     }
     
@@ -236,6 +245,12 @@
 </head>
 <body>
   <div class="wrap">
+    <!-- Header (RTL): company logo + name on right (opposite controls) -->
+    <div id="rubiks-header" style="position:fixed; top:12px; right:12px; z-index:9999; display:flex; gap:8px; align-items:center; pointer-events:auto; direction: rtl;">
+      <img src="./logo-aitwintech.svg" alt="AI Twin Tech Logo" style="width:44px; height:39.6px; object-fit:cover;" />
+      <span style="color:#fff; font-size:13px; font-weight:700; letter-spacing:0.05em; font-family:'Tajawal', sans-serif;">اي أي توين تك</span>
+      
+    </div>
     <!-- Top controls (RTL): language toggle, Skip and "Skip next time" checkbox -->
     <div id="rubiks-top-controls" style="position:fixed; top:12px; left:12px; z-index:9999; display:flex; gap:8px; align-items:center; pointer-events:auto;">
       <div class="lang-toggle" style="display:flex; align-items:center; gap:8px;">
@@ -243,16 +258,15 @@
         <button id="lang-toggle" class="simple-toggle" aria-label="Toggle language"><span class="knob"></span></button>
         <span id="lang-en" class="lang-label" style="opacity:0.6">EN</span>
       </div>
-      <button id="top-skip-btn" class="top-skip" style="padding:8px 12px;">تخطى</button>
-      <label style="display:flex; align-items:center; gap:6px; color:#fff; font-size:13px; background: rgba(10,15,28,0.6); padding:6px 8px; border-radius:8px;">
-        <input id="topSkipCheckbox" type="checkbox" style="width:16px; height:16px;" />
-        <span style="font-size:13px;">تخطى في المرة القادمة</span>
+      <label style="display:flex; align-items:center; gap:6px; color:#fff; font-size:11px; background: rgba(10,15,28,0.6); padding:4px 6px; border-radius:8px;">
+        <input id="topSkipCheckbox" type="checkbox" style="width:14px; height:14px;" />
+        <span style="font-size:11px;">تخطى في المرة القادمة</span>
       </label>
     </div>
     <!-- Scroll hint overlay (RTL) -->
     <div id="scroll-hint" role="status" aria-hidden="true">
-      <span class="hint-text">مرّر للاستكشاف</span>
-      <span class="hint-arrow" aria-hidden="true"></span>
+      <span class="hint-text">مرّر الماوس للاستكشاف</span>
+      <span class="hint-hand" aria-hidden="false">👆</span>
     </div>
   <!-- <img class="bg-image" src="/att/cube/images/HomeBackground.png" alt="Background" style="position:fixed; inset:0; width:100vw; height:100vh; object-fit:cover; z-index:0;" /> -->
     <div class="bg-tint"></div>
@@ -263,135 +277,42 @@
   <div class="overlay-inner">
 
     <div class="phase-text-block" dir="rtl" data-key="intro-1">
-      <h1>برنامج تحوّل معقد؟ <br><b>ممتاز.</b></h1>
-      <h2>جسور: نظام تشغيل رؤية المملكة 2030</h2>
-      <p>مرحبا بكم الى عصر التناسق المؤسسي<br>
-        <br>هنا يتم الترحيب بالتعقيد واحتواؤه من خلال إطلاق العنان لكامل إمكانات الذكاء الاصطناعي في مؤسستك الحكومية.<br><br>
-        <b>حوّل عملية تنفيذ الاستراتيجية إلى تجربة جديدة كليًا.</b>
-      </p>
-    </div>
-
-    <div class="phase-text-block" dir="rtl" data-key="intro-2">
-      <h1>هل أنت مستعد للسعودية 2026؟</h1>
-      <h2>استعد للمرحلة الثالثة – <b>تسارع الرؤية</b></h2>
-      <p>
-        سيشهد عام 2026 سباقًا متسارعًا بين القطاعات والمشاريع العملاقة لتسريع خطط الإنجاز،
-        ليشكّل اختبارًا حقيقيًا لكامل منظومة الرؤية،
-        ويُولّد منافسة معقدة على الموارد
-        <b>(تمويلًا، وعقولًا، ودعمًا مركزيًا)</b>.<br><br>
-        مما يحتم على جميع الجهات الحكومية العمل بتناغم،
-        وبكفاءة تتجاوز قدرات الأدوات الحالية.<br><br>
-        <b>هل أنت مستعد؟</b>
+      <h1>برنامـج التحـوّل <br>عالي التعقيـد؟ 
+       <br> جيد!</h1>
+      <h2>العام ٢٠٢٦ متوقع أن يكون أكثر تعقيدًا…؟ <br>ممتاز!</h2>
+      <p>مرحبًا بكم في العصر الرقمي الحقيقي، حيث يتحوّل التعقيد إلى أثمن أصولكم المؤسسية. 
+        محولا الطموح المتصاعد لرؤية ٢٠٣٠ والمنافسة على الموارد الوطنية ميزة تنافسية لكم.
       </p>
     </div>
 
     <div class="phase-text-block" dir="rtl" data-key="intro-3">
-      <h1>سرعة انجاز بسرعة الطموح</h1>
-      <h2>عبر قفزة نوعية في الكفاءة</h2>
-      <p>
-        طموحٌ يتحدى الجميع لتقديم الأفضل،
-        والتقدّم بقفزات شاسعة لا بخطوات متدرجة.<br><br>
-        السبيل الوحيد لتحقيق ذلك هو تسخير الامكانات الكاملة للذكاء الاصطناعي. <br><br>
-        <b>مم يتطلب فكر مختلف، بعقلٍ جريء ومبدع، يهدف إلى إعادة رسم قواعد العمل.</b>
-      </p>
-    </div>
-
-    <div class="phase-text-block" dir="rtl" data-key="p23-your-org">
-      <h1>التوأم المعرفي للمؤسسة</h1>
-      <h2>تعرّف على الذكاء المؤسسي</h2>
-      <p>
-        هي وصفة بسيطة<br>
-         لبناء <b>توأم رقمي متكامل</b> —
-        يجمع بين البيانات والنماذج والروابط ضمن شبكة معرفية ذكية.<br><br>
-        بجعله <b>ذاكرة حية</b> لذكائك التوليدي،
-        ودعمه بالهندسة التوجيهية لتبث فيه روح التفاعل الحيوي.
+      <h1>التوأم المعرفي المخـصـص رقميا لمنظمتكم</h1>
+      <h2>ليبني جسورا تنطلق منها بسرعة طموح المملكة</h2>
+      <p>نموذج حي لمنظمتكم صُهر والذكاء التوليدي مشكلا ذاكرته، منتجاً نظام تشغيل حقيقي لرؤية 2030، قائم على مبدأ التصميم "الذكاءالاصطناعي-أولا"، جاعلا كل قرار موثوق ومرتكز على بيانات حقيقية
       </p>
     </div>
 
     <div class="phase-text-block" dir="rtl" data-key="p4-hidden">
-      <h1>كيف تميّز الشركاء الأنسب؟</h1>
-      <h2>مرشّحات ضوضاء لسوقٍ مزدحم</h2>
-      <p>
-        <b>1) معرفة وظيفية عميقة:</b> طالب بخبرات تمتلك فهمًا شاملًا لإدارة المؤسسات،
-        وتتخصص في تسخير خبراتها لحل التعقيد ورفع الكفاءة.<br><br>
-        <b>2) الذكاء الاصطناعي أولوية للتصميم:</b> استمع لمن يفتتح الحديث بهذه
-        <b>«كيف تبدو هذه التجربة عند دمج ذكاء مأتمت، متأقلم ودائم التعلم؟»</b>
-        لا لمن يسأل <b>«كيف نحسّن ماهو قائم؟»</b>
-      </p>
-    </div>
-
-    <div class="phase-text-block" dir="rtl" data-key="p56-where">
-      <h1>عامان من تشريح التعقيد</h1>
-      <h2>أثمن ما نمتلك من أصول</h2>
-      <p>
-        رحلة لفهم كل زاوية من التعقيد المؤسسي قادت إلى نتيجة واحدة:<br>
-        التعقيد ليس عدوًا، بل معلّمٌ يمتلك الدروس والحكمة لمن يصغي.<br><br>
-        توقفت تلك الرحلة لبرهة بنموذجٍ واضحٍ وحلٍ مرسوم،
-        لتأخر التقنية في اللحاق بالركب — <b>حتى الآن.</b>
-      </p>
-    </div>
-
-    <div class="phase-text-block" dir="rtl" data-key="p7-two-years">
-      <h1> تخيّل الجهة الحكومية المستقبلية</h1>
-      <h2>تجارب جديدة، وقدرات فائقة</h2>
-      <p>
-        حيث تمتلك المؤسسة القدرة على:<br>
-        • وصف ما يحدث الآن بدقة<br>
-        • استشراف ما قد يحدث لاحقًا بشمولية<br>
-        • اتخاذ القرار الأنسب بثقة عالية <br>
-        <b>كل هذا يتم في دقائق وساعات بدلًا من أيام وأسابيع.</b><br><br>
-        <b>منظومة عالية التنسيق في توجهها وأولوياتها وسرعتها.</b>
-      </p>
+      <h1>مابعد الشرائح وعروض الذكاء الاصطناعي العامة </h1>
+      <h2>معرفة عميقة وتقنيات أجنتيكس مبتكرة في السعودية </h2>
+      <p>نجزم، بعد زخم الأفكار الرقمية مؤخرا، أن تكونوا قد اطلعتم على ملامح المستقبل مع الذكاء الاصطناعي، ليحين لنا الان أن نقدم لكم انموذجا حيا،  مصاغ من خبرة عميقة في رؤية 2030، ومدعم  بتقنيات أجنتيكس طورت حصرا سعوديا.
+</p>
     </div>
 
     <div class="phase-text-block" dir="rtl" data-key="p89-future">
-      <h1>حكومة المستقبل المعرفية</h1>
-      <h2>السعودية - جهوزية عالية</h2>
-      <p>
-        أثمرت استثمارات المملكة السابقة في تجهيز كافة عوامل النجاح من أطر تنظيمية، هياكل هندسية، بنية تقنية، شراكات دولية،
-        وريادة وطنية <br> لتهيىء ركائز رحلة التطور    <b>من الامتثال إلى التناسق إلى الذكاء المعرفي.</b><br><br>
-        <b>جاهز للبدء؟</b>
-      </p>
+      <h1>منظومة محكمة الأداء لحكومة معرفية </h1>
+      <h2>اكتملت تجهيزات المملكة التأسيسية.. لأجلكم </h2>
+      <p>   من التشريعات والبنية التحتية إلى جهة وطنية رائدة يُحتفى بها، 
+        هيّأت المملكة البيئة لانتقال الجهات من الامتثال إلى الأداء المحكم وصولا للحكومة المعرفية المنشودة.
         <div style="margin-top: 40px; display: flex; flex-direction: column; align-items: right; gap: 18px;">
-          <button id="enterPortalBtn" class="finale-enter-btn" style="margin-top:0;">فلنبدأ بالخطوة الأولى</button>
+          <button id="enterPortalBtn" class="finale-enter-btn" style="margin-top:0; display:flex; align-items:center; gap:8px; justify-content:center;"><img src="/icons/josoor.svg" alt="JOSOOR" style="width:48px; height:48px;" />جسور - المكون الأخير في الصورة الكُبرى</button>
         </div>
-        </div>
+      </div>
 
-          <div class="phase-text-block" dir="rtl" data-key="twinlab">
-            <h1>توين لاب</h1>
-            <h2>مركز المعرفة</h2>
-            <p>ساهم بالأفكار والأبحاث والرؤى لتشكيل مستقبل التحولات. انضم إلى مجتمع من المفكرين يستكشف حدود تعقيد المنظمات.</p>
-          </div>
-          <div class="phase-text-block" dir="rtl" data-key="twinstudio">
-            <h1>توين ستوديو</h1>
-            <h2>مركز البناء</h2>
-            <p>ابدأ رحلتك في تنفيذ الاستراتيجية. ضع التوأم الرقمي للعمل مع الأدوات والقوالب والتنفيذ الموجه. ابدأ التحول برؤى قابلة للتنفيذ.</p>
-          </div>
-            <div class="phase-text-block finale-blocks" data-key="finale-twinlab-twinstudio">
-              <div class="finale-columns">
-                <div class="finale-left-column">
-                  <div class="finale-header">
-                    <img src="/assets/cosmic/twinlab-logo.png" alt="علوم التوأمة Logo" class="finale-logo">
-                    <h1>علوم التوأمة</h1>
-                  </div>
-                  <h2>مركز المعرفة</h2>
-                  <p>ساهم بالأفكار والأبحاث والرؤى لتشكيل مستقبل التحولات. انضم إلى مجتمع من المفكرين يستكشف حدود تعقيد المنظمات.</p>
-                  <div style="height: 36px;"></div>
-                  <a href="#/twinscience" class="finale-enter-btn" aria-label="دخول علوم التوأمة platform" title="Navigate to علوم التوأمة - Knowledge Path" target="_top">دخول</a>
-                </div>
-                <div class="finale-right-column">
-                  <div class="finale-header">
-                    <img src="/images/josoorlogo.png" alt="ستوديو التوأمة Logo" class="finale-logo">
-                    <h1>ستوديو التوأمة</h1>
-                  </div>
-                  <h2>طريق البناء</h2>
-                  <p>ابدأ رحلتك في تنفيذ الاستراتيجية. ضع التوأم الرقمي للعمل مع الأدوات والقوالب والتنفيذ الموجه. حوّل منظمتك برؤى قابلة للتنفيذ.</p>
-                  <div style="height: 36px;"></div>
-                  <a href="#/twinscience" class="finale-enter-btn" aria-label="دخول ستوديو التوأمة" title="Navigate to ستوديو التوأمة - Roadmap" target="_top">دخول</a>
-                </div>
-              </div>
-            </div>
+          <!-- Finale columns removed, replaced by single portal entry above -->
         </div>
+        
+        <!-- Finale columns removed, replaced by single portal entry above -->
       </div>
     </div>
 
@@ -454,6 +375,17 @@ FLOW</h2>
   const SITE_GOLD = 0xD4AF37; // transient popcorn color
   const FINAL_GOLD = 0x987D0C; // final sculpture fill color (restored to first darker grade)
 
+  // --- Auto-redirect based on language preference ---
+  (function checkLanguageRedirect() {
+    try {
+      const savedLang = localStorage.getItem('josoor_language');
+      if (savedLang === 'en' && window.location.href.indexOf('index-ar') !== -1) {
+        window.location.href = './index.html';
+        return; // Exit early, don't run the rest of the script
+      }
+    } catch(_) {}
+  })();
+
   // --- Top controls and Portal Button logic (Arabic) ---
     window.addEventListener('DOMContentLoaded', function() {
       // Scroll hint behavior: show until user scrolls or taps; persist seen state (RTL)
@@ -462,20 +394,19 @@ FLOW</h2>
           const HKEY = 'rubiks_scroll_hint_seen';
           const hint = document.getElementById('scroll-hint');
           if (!hint) return;
-          const wasSeen = (()=>{ try{ return localStorage.getItem(HKEY) === '1'; }catch(e){return false;} })();
-          if (wasSeen) return; // don't show
-          setTimeout(()=>hint.classList.add('show'), 400);
+          const userSkipped = (()=>{ try{ return localStorage.getItem('topSkipCheckboxState') === 'true'; }catch(e){return false;} })();
+          if (userSkipped) return; // only hide if user checked "Skip next time"
+          // show immediately
+          hint.classList.add('show');
           function dismiss(){
             hint.classList.remove('show');
-            try{ localStorage.setItem(HKEY,'1'); }catch(e){}
             window.removeEventListener('scroll', onScroll);
             hint.removeEventListener('click', onClick);
           }
-          function onScroll(){ if (window.scrollY>8) dismiss(); }
+          function onScroll(){ if (window.scrollY>150) dismiss(); }
           function onClick(){ window.scrollBy({ top: 120, left:0, behavior: 'smooth' }); setTimeout(dismiss, 500); }
           window.addEventListener('scroll', onScroll, { passive:true });
           hint.addEventListener('click', onClick);
-          setTimeout(()=>{ if (hint.classList.contains('show')) dismiss(); }, 6000);
         }catch(e){/* defensive */}
       })();
       var enterBtn = document.getElementById('enterPortalBtn');
@@ -532,7 +463,13 @@ FLOW</h2>
               try { window.parent && window.parent.postMessage({ type: 'RUBIKS_SKIP' }, '*'); } catch (_){ }
             }
           } catch (_){ }
-          window.top.location.href = '/chat';
+          // navigate based on auth
+          try {
+            const isAuth = window.parent.localStorage.getItem('josoor_authenticated') === 'true';
+            window.top.location.href = isAuth ? '/chat' : '/landing';
+          } catch (e) {
+            window.top.location.href = '/landing';
+          }
         });
       }
 
@@ -543,8 +480,9 @@ FLOW</h2>
             try { localStorage.setItem('josoor_seen_cube', 'true'); } catch (_){ }
           }
           try {
-            // navigate to chat (SPA)
-            window.top.location.href = '/chat';
+            // navigate based on auth
+            const isAuth = window.parent.localStorage.getItem('josoor_authenticated') === 'true';
+            window.top.location.href = isAuth ? '/chat' : '/landing';
           } catch (_){
             try { window.parent && window.parent.postMessage({ type: 'navigate', route: 'twinlife' }, '*'); } catch (_){ }
           }
@@ -1944,60 +1882,14 @@ FLOW</h2>
     function updateOverlayText(gPhase, introT){
       const p = getPhase(gPhase).id;
       if (p === 1 && externalProgress === null) {
-        if (introT < 0.33) setActive('intro-1');
-        else if (introT < 0.66) setActive('intro-2');
+        if (introT < 0.5) setActive('intro-1');
         else setActive('intro-3');
         return;
       }
-      if (p===2 || p===3) return setActive('p23-your-org');
+      if (p===2 || p===3 || p===5 || p===6) return; // No overlay for these phases
       if (p===4) return setActive('p4-hidden');
-      if (p===5 || p===6) return setActive('p56-where');
-      if (p===7) {
-        // Phase 7: Add noticeable 5% pause when small purple cubes form circles
-        const phase7 = PHASES[6];
-        const phase7Start = phase7.start;
-        const phase7End = phase7.end;
-        const phase7Progress = clamp((gPhase - phase7Start) / (phase7End - phase7Start), 0, 1);
-        
-        if (phase7Progress < 0.95) {
-          // Normal phase 7 text for 95% of the phase
-          setActive('p7-two-years');
-        } else {
-          // 5% pause at the end - keep text visible and prevent transition to phase 8
-          setActive('p7-two-years');
-          return; // Stay in Phase 7 pause - don't continue to Phase 8 yet
-        }
-      }
-      if (p===8) {
-        // Calculate scroll progress within phase 8
-        const phase8 = PHASES[7];
-        const phase8Start = phase8.start;
-        const phase8End = phase8.end;
-        const scrollProgress = clamp((gPhase - phase8Start) / (phase8End - phase8Start), 0, 1);
-        
-        // Keep Phase 7 text briefly (first 30% of Phase 8), then transition to Phase 9 text
-        if (scrollProgress < 0.3) {
-          // Keep showing Phase 7 text briefly in early Phase 8
-          setActive('p7-two-years');
-        } else {
-          // Transition from p7-two-years to p89-future with sliding animation
-          setActive('p89-future');
-        }
-      }
-      if (p===9) {
-        setActive('p89-future');
-      }
-      if (p===10) {
-        setActive('finale-twinlab-twinstudio');
-      }
-      if (p === 8) {
-        // Ensure finale columns are hidden in phase 8
-        const finaleColumns = document.getElementById('finaleColumns');
-        if (finaleColumns) {
-          finaleColumns.style.display = 'none';
-          finaleColumns.removeAttribute('data-slide-state');
-        }
-      }
+      if (p===7 || p===8 || p===9) return setActive('p89-future');
+      if (p===10) return setActive('p89-future');
     }
 
     // ===== Animation per phase =====

@@ -1,4 +1,5 @@
 from typing import Dict, Any, List, Optional
+import json
 from datetime import datetime
 from app.db.supabase_client import SupabaseClient
 
@@ -47,13 +48,53 @@ class SupabaseConversationManager:
         user_id: int,
         limit: int = 50
     ) -> List[Dict[str, Any]]:
+        # Try to run a single aggregated SQL query to fetch conversations along
+        # with their message counts. This avoids an N+1 query pattern and
+        # ensures the API returns an accurate `message_count` for each
+        # conversation.
+        # try:
+        #     sql = f"""
+        #     SELECT c.id, c.user_id, c.persona_id, c.title, c.created_at, c.updated_at,
+        #            COALESCE(mc.count, 0) AS message_count
+        #     FROM conversations c
+        #     LEFT JOIN (
+        #         SELECT conversation_id, COUNT(*) AS count
+        #         FROM messages
+        #         GROUP BY conversation_id
+        #     ) mc ON mc.conversation_id = c.id
+        #     WHERE c.user_id = {int(user_id)}
+        #     ORDER BY c.updated_at DESC
+        #     LIMIT {int(limit)};
+        #     """
+
+        #     rows = await self.client.execute_raw_sql(sql)
+        #     if rows and isinstance(rows, list):
+        #         return rows
+        # except Exception:
+        #     # Fall back to table_select if raw SQL execution is unavailable
+        #     # (e.g., RPC not configured in Supabase). The caller will handle
+        #     # missing `message_count` fields by treating them as zero.
+        #     pass
+
         conversations = await self.client.table_select(
             'conversations',
             '*',
             {'user_id': user_id}
         )
         conversations.sort(key=lambda x: x.get('updated_at', ''), reverse=True)
-        return conversations[:limit]
+        
+        # Limit first, then fetch counts to minimize queries
+        limited_conversations = conversations[:limit]
+        
+        # Populate message counts manually
+        for conv in limited_conversations:
+            try:
+                count = await self.client.table_count('messages', {'conversation_id': conv['id']})
+                conv['message_count'] = count
+            except Exception:
+                conv['message_count'] = 0
+                
+        return limited_conversations
     
     async def delete_conversation(
         self,
@@ -101,20 +142,32 @@ class SupabaseConversationManager:
         conversation_id: int,
         limit: int = 100
     ) -> List[Dict[str, Any]]:
+        # Fetch messages sorted by created_at DESC with limit
+        # This gets the *latest* N messages efficiently from the DB
         messages = await self.client.table_select(
             'messages',
             '*',
-            {'conversation_id': conversation_id}
+            {'conversation_id': conversation_id},
+            order={'column': 'created_at', 'desc': True},
+            limit=limit
         )
-        messages.sort(key=lambda x: x.get('created_at', ''))
-        return messages[-limit:] if len(messages) > limit else messages
+        # Reverse to return in chronological order (oldest first)
+        messages.reverse()
+        return messages
     
     async def build_conversation_context(
         self,
         conversation_id: int,
         max_messages: int = 10
     ) -> List[Dict[str, str]]:
-        """Build conversation context as list of message dicts for orchestrator"""
+        """Build conversation context as list of message dicts for orchestrator.
+
+        IMPORTANT:
+        - Message `content` in DB may be a large structured JSON blob.
+        - Feeding large blobs back into the LLM repeatedly can blow up context and
+          increase Groq tool-validation failures.
+        - This method returns a compacted form suitable for prompt history.
+        """
         messages = await self.get_messages(conversation_id, limit=max_messages)
         
         if not messages:
@@ -123,11 +176,36 @@ class SupabaseConversationManager:
         messages.sort(key=lambda x: x.get('created_at', ''), reverse=True)
         messages = list(reversed(messages[-max_messages:]))
         
-        # Return list of {role, content} dicts
-        return [
-            {
-                "role": msg['role'],
-                "content": msg['content']
-            }
-            for msg in messages
-        ]
+        def _compact_content(role: str, content: Any, max_chars: int) -> str:
+            if content is None:
+                return ""
+            if not isinstance(content, str):
+                content = str(content)
+            raw = content.strip()
+            if len(raw) <= max_chars:
+                return raw
+
+            # If assistant content is JSON, keep only the human-facing answer.
+            if role == "assistant" and raw.startswith("{"):
+                try:
+                    parsed = json.loads(raw)
+                    if isinstance(parsed, dict):
+                        answer = parsed.get("answer") or parsed.get("message")
+                        if isinstance(answer, str) and answer.strip():
+                            answer = answer.strip()
+                            return (answer[: max_chars - 1] + "…") if len(answer) > max_chars else answer
+                except Exception:
+                    pass
+
+            return raw[: max_chars - 1] + "…"
+
+        compacted: List[Dict[str, str]] = []
+        for msg in messages:
+            role = (msg.get("role") or "user").strip()
+            max_chars = 2400 if role == "assistant" else 1400
+            compacted.append({
+                "role": role,
+                "content": _compact_content(role, msg.get("content"), max_chars=max_chars),
+            })
+
+        return compacted

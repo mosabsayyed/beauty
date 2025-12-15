@@ -10,11 +10,15 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import '../../canvas.css';
+import { useLanguage } from '../../contexts/LanguageContext';
+import en from '../../locales/en.json';
+import ar from '../../locales/ar.json';
 import { UniversalCanvas } from './UniversalCanvas';
 import { CanvasHeader } from './CanvasHeader';
 import { CommentsSection } from './CommentsSection';
 import { Artifact } from '../../types/api';
-import { shareArtifact, printArtifact, saveArtifact, downloadArtifact } from '../../utils/canvasActions';
+import { shareArtifact, printArtifact, downloadArtifact } from '../../utils/canvasActions';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 interface CanvasPanelProps {
@@ -37,12 +41,60 @@ export function CanvasPanel({
   const [showComments, setShowComments] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
+  // Debug: when canvas opens, scan for elements with non-transparent backgrounds
+  useEffect(() => {
+    if (!panelRef.current) return;
+    const scan = () => {
+      try {
+        const els = Array.from(panelRef.current!.querySelectorAll('*')) as HTMLElement[];
+        const offenders: Array<{ el: HTMLElement; bg: string; node: string }> = [];
+        els.forEach(el => {
+          const cs = window.getComputedStyle(el);
+          const bg = cs.getPropertyValue('background-color') || cs.getPropertyValue('background');
+          const img = cs.getPropertyValue('background-image');
+          if (img && img !== 'none') {
+            offenders.push({ el, bg: 'image', node: el.outerHTML.slice(0,200) });
+          } else if (bg && bg !== 'transparent' && !/^rgba\(0,\s*0,\s*0,\s*0\)/.test(bg) && bg !== 'rgba(0, 0, 0, 0)') {
+            // check alpha channel if rgba
+            const match = bg.match(/rgba?\(([^)]+)\)/);
+            if (match) {
+              const parts = match[1].split(',').map(p => p.trim());
+              const alpha = parts.length === 4 ? parseFloat(parts[3]) : 1;
+              if (alpha > 0) offenders.push({ el, bg, node: el.outerHTML.slice(0,200) });
+            } else {
+              // non-rgba opaque color
+              offenders.push({ el, bg, node: el.outerHTML.slice(0,200) });
+            }
+          }
+        });
+        if (offenders.length) {
+          console.warn('[CanvasPanel DEBUG] Found elements with non-transparent backgrounds inside canvas:', offenders);
+        } else {
+
+        }
+      } catch (e) {
+        console.error('[CanvasPanel DEBUG] Scan failed', e);
+      }
+    };
+
+    // Run scan shortly after open to allow children to render
+    const t = setTimeout(scan, 500);
+    return () => clearTimeout(t);
+  }, [panelRef, isZenMode]);
+
   // Update current index when initialIndex changes
   useEffect(() => {
     if (initialIndex >= 0 && initialIndex < artifacts.length) {
       setCurrentIndex(initialIndex);
     }
   }, [initialIndex, artifacts.length]);
+
+  // Auto-trigger Zen mode for Graphv001
+  useEffect(() => {
+    if (artifacts[currentIndex]?.artifact_type === 'GRAPHV001') {
+      setIsZenMode(true);
+    }
+  }, [currentIndex, artifacts]);
 
   const currentArtifact = artifacts[currentIndex];
   const hasMultiple = artifacts.length > 1;
@@ -68,52 +120,55 @@ export function CanvasPanel({
     switch (action) {
       case 'share': shareArtifact(currentArtifact); break;
       case 'print': printArtifact(); break;
-      case 'save': saveArtifact(currentArtifact); break;
       case 'download': downloadArtifact(currentArtifact); break;
     }
   };
 
+  const { isRTL, language } = useLanguage();
+  const translations = language === 'ar' ? ar : en;
+
   const NavigationControls = () => (
-    <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-200">
+    <div className="canvas-nav-controls">
       <button
         onClick={handlePrev}
         disabled={currentIndex === 0}
-        className={`p-1 rounded-full ${currentIndex === 0 ? 'text-gray-300' : 'text-gray-600 hover:bg-gray-200'}`}
+        style={{ padding: '0.25rem', cursor: currentIndex === 0 ? 'default' : 'pointer', color: currentIndex === 0 ? '#D1D5DB' : '#4B5563' }} className={currentIndex === 0 ? 'clickable' : 'clickable header-button'}
       >
-        <ChevronLeftIcon className="w-5 h-5" />
+        {isRTL ? <ChevronRightIcon style={{ width: '1.25rem', height: '1.25rem' }} /> : <ChevronLeftIcon style={{ width: '1.25rem', height: '1.25rem' }} />}
       </button>
-      <span className="text-xs text-gray-500 font-medium">
+      <span style={{ fontSize: '0.75rem', color: '#6B7280', fontWeight: 500 }}>
         {currentIndex + 1} / {artifacts.length}
       </span>
       <button
         onClick={handleNext}
         disabled={currentIndex === artifacts.length - 1}
-        className={`p-1 rounded-full ${currentIndex === artifacts.length - 1 ? 'text-gray-300' : 'text-gray-600 hover:bg-gray-200'}`}
+        style={{ padding: '0.25rem', cursor: currentIndex === artifacts.length - 1 ? 'default' : 'pointer', color: currentIndex === artifacts.length - 1 ? '#D1D5DB' : '#4B5563' }} className={currentIndex === artifacts.length - 1 ? 'clickable' : 'clickable header-button'}
       >
-        <ChevronRightIcon className="w-5 h-5" />
+        {isRTL ? <ChevronLeftIcon style={{ width: '1.25rem', height: '1.25rem' }} /> : <ChevronRightIcon style={{ width: '1.25rem', height: '1.25rem' }} />}
       </button>
     </div>
   );
 
   // Inline Mode
-  if (mode === 'inline') {
+    if (mode === 'inline') {
     return (
-      <div className={`border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col max-w-5xl ${isZenMode ? 'fixed inset-0 z-50 m-0 rounded-none h-full w-full' : 'h-full w-[45%] min-w-[600px]'}`}>
-        <CanvasHeader 
-          title={currentArtifact?.title || 'Canvas'} 
-          onClose={onClose}
-          onZenToggle={toggleZenMode}
-          isZenMode={isZenMode}
-          onAction={handleAction}
-          hideClose={!onClose}
-          onToggleComments={toggleComments}
-          showComments={showComments}
-        />
+      <div className="canvas-panel glass-panel" style={{ display: 'flex', flexDirection: 'column', maxWidth: isZenMode ? 'none' : '80rem', overflow: 'visible', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)', position: isZenMode ? 'fixed' : 'relative', inset: isZenMode ? 0 : 'auto', zIndex: isZenMode ? 50 : 'auto', margin: isZenMode ? 0 : 'auto', height: isZenMode ? '100%' : '100%', width: isZenMode ? '100%' : '45%', minWidth: isZenMode ? 'auto' : '600px' }}>
+          <CanvasHeader 
+            title={currentArtifact?.title || translations.canvas} 
+            onClose={onClose}
+            onZenToggle={toggleZenMode}
+            isZenMode={isZenMode}
+            onAction={handleAction}
+            hideClose={!onClose}
+            onToggleComments={toggleComments}
+            showComments={showComments}
+            showLanguageToggle={currentArtifact?.artifact_type === 'TWIN_KNOWLEDGE'}
+          />
         {hasMultiple && <NavigationControls />}
-        <div className="flex-1 flex overflow-hidden relative">
-          <div className={`flex-1 overflow-y-auto bg-gray-50 transition-all duration-300 ${showComments ? 'w-2/3' : 'w-full'}`}>
+        <div style={{ flex: 1, display: 'flex', overflow: 'visible', position: 'relative' }}>
+          <div className={currentArtifact?.artifact_type === 'GRAPHV001' ? 'glass' : 'canvas-content glass'} style={{ flex: 1, overflowY: 'auto', transition: 'all 0.3s', width: showComments ? '66.666%' : '100%', padding: currentArtifact?.artifact_type === 'GRAPHV001' ? 0 : undefined }}>
             {currentArtifact ? (
-              <div className="h-full w-full p-6">
+              <div style={{ height: '100%', width: '100%', padding: currentArtifact?.artifact_type === 'GRAPHV001' ? 0 : '1.5rem' }}>
                 <UniversalCanvas 
                   content={currentArtifact.content} 
                   title={currentArtifact.title}
@@ -121,13 +176,13 @@ export function CanvasPanel({
                 />
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-400">
-                Select an item to view details
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9CA3AF' }}>
+                {translations.select_item_to_view}
               </div>
             )}
           </div>
           {showComments && (
-            <div className="w-1/3 border-l border-gray-200 bg-white h-full overflow-hidden transition-all duration-300">
+            <div className="canvas-sidebar" style={{ width: '33.333%', height: '100%', overflow: 'hidden', transition: 'all 0.3s' }}>
                <CommentsSection artifactId={currentArtifact?.title || 'demo'} />
             </div>
           )}
@@ -147,45 +202,52 @@ export function CanvasPanel({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+            className="canvas-backdrop" style={{ position: 'fixed', inset: 0, zIndex: 40 }}
           />
           
           {/* Panel */}
           <motion.div
             ref={panelRef}
-            initial={{ x: '100%', opacity: 0.5 }}
+            initial={{ x: isRTL ? '-100%' : '100%', opacity: 0.5 }}
             animate={{ 
               x: 0, 
               opacity: 1,
               width: isZenMode ? '100vw' : (showComments ? '60%' : '45%'),
               maxWidth: isZenMode ? '100vw' : '1200px'
             }}
-            exit={{ x: '100%', opacity: 0.5 }}
+            exit={{ x: isRTL ? '-100%' : '100%', opacity: 0.5 }}
             transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
-            className={`fixed top-0 right-0 h-full bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200 ${
-              isZenMode ? 'glass-panel' : ''
-            }`}
-            style={{
-               // Width handled by motion.div animate prop
+            className="canvas-panel glass-panel clickable" 
+            style={{ 
+              position: 'fixed', 
+              top: 0, 
+              height: '100%', 
+              zIndex: 50, 
+              display: 'flex', 
+              flexDirection: 'column',
+              right: isRTL ? 'auto' : 0,
+              left: isRTL ? 0 : 'auto'
             }}
           >
             {/* Header */}
             <CanvasHeader 
-              title={currentArtifact?.title || 'Canvas'} 
+              title={currentArtifact?.title || translations.canvas} 
               onClose={onClose}
               onZenToggle={toggleZenMode}
               isZenMode={isZenMode}
               onAction={handleAction}
+              hideClose={isZenMode}
+              showLanguageToggle={currentArtifact?.artifact_type === 'TWIN_KNOWLEDGE'}
               onToggleComments={toggleComments}
               showComments={showComments}
             />
             {hasMultiple && <NavigationControls />}
 
             {/* Content */}
-            <div className="flex-1 flex overflow-hidden">
-              <div className="flex-1 overflow-y-auto bg-gray-50">
+            <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+              <div className={currentArtifact?.artifact_type === 'GRAPHV001' ? 'glass' : 'canvas-content glass'} style={{ flex: 1, overflowY: 'auto', padding: currentArtifact?.artifact_type === 'GRAPHV001' ? 0 : undefined }}>
                 {currentArtifact ? (
-                  <div className="h-full w-full p-6">
+                  <div style={{ height: '100%', width: '100%', padding: currentArtifact?.artifact_type === 'GRAPHV001' ? 0 : '1.5rem' }}>
                     <UniversalCanvas 
                       content={currentArtifact.content} 
                       title={currentArtifact.title}
@@ -193,13 +255,13 @@ export function CanvasPanel({
                     />
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center h-full text-gray-400">
-                    No content to display
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9CA3AF' }}>
+                    {translations.no_content_to_display}
                   </div>
-                )}
+                  )}
               </div>
               {showComments && (
-                <div className="w-80 border-l border-gray-200 bg-gray-50 h-full overflow-hidden flex-shrink-0">
+                <div className="canvas-sidebar" style={{ width: '20rem', borderLeft: '1px solid #E5E7EB', height: '100%', overflow: 'hidden', flexShrink: 0 }}>
                    <CommentsSection artifactId={currentArtifact?.title || 'demo'} />
                 </div>
               )}

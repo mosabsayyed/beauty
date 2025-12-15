@@ -24,7 +24,7 @@ Manual verification
 2. Open the app and call `startGuestSession()` (or open the UI path that triggers the guest flow).
 3. Add messages — they should be saved via `josoor_guest_conversations` in localStorage and NOT show in backend `conversations` table.
 4. Attempt to call `/api/v1/auth/guest` or `/api/v1/auth/transfer_guest` — they should return 410 with a message pointing to this doc.
-5. Register or login using Supabase — `persistSession()` should clear guest keys and server-side conversations should be used thereafter.
+5. Register or login using Supabase — `persistSession()` does not clear guest keys automatically. Instead, after login the app will prompt you to migrate local guest conversations to your account and only then will guest keys be cleared (via `clearGuestConversations()`) once migration completes.
 
 Notes
 - If, in a later iteration, we choose to support server-side guest persistence and transfer flows, we must update `docs/MULTI-USER_SUPPORT.md` and explicitly allow those endpoints.

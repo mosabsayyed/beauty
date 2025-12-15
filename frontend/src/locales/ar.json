@@ -39,4 +39,38 @@
   "restore": "استعادة",
   "close_canvas": "إغلاق اللوحة",
   "no_artifacts_yet": "لا توجد عناصر حتى الآن."
+  ,
+  "copy": "نسخ",
+  "copied": "تم النسخ!"
+  ,
+  "logout": "تسجيل الخروج"
+  ,
+  "toggle_color_theme": "تبديل سمة اللون",
+  "switch_to_light_mode": "التبديل إلى الوضع الفاتح",
+  "switch_to_dark_mode": "التبديل إلى الوضع الداكن",
+  "dark": "داكن",
+  "light": "فاتح"
+  ,
+  "account_menu": "قائمة الحساب",
+  "profile": "الملف الشخصي"
+  ,
+  "guest_leave_warning": "أنت تستخدم التطبيق كضيف ولديك محفوظات محلية. إذا غادرت فسوف تفقد السجل والملفات. المتابعة إلى تسجيل الدخول؟"
+  ,
+  "pagination": "التنقل",
+  "go_to_previous_page": "الانتقال إلى الصفحة السابقة",
+  "go_to_next_page": "الانتقال إلى الصفحة التالية",
+  "previous": "السابق",
+  "next": "التالي",
+  "more_pages": "المزيد من الصفحات"
+  ,
+  "breadcrumb": "مسار التنقل"
+  ,
+  "select_item_to_view": "اختر عنصرًا لعرض التفاصيل",
+  "no_content_to_display": "لا يوجد محتوى للعرض"
+  ,
+  "loading_highcharts": "جارٍ تحميل Highcharts...",
+  "export_svg": "تصدير SVG",
+  "export_png": "تصدير PNG",
+  "chart_type": "نوع المخطط:",
+  "created": "تاريخ الإنشاء:"
 }

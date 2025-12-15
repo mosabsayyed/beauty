@@ -1,0 +1,85 @@
+<?xml version="1.0" standalone="no"?>
+<svg id="svg-policy-streams" class="w-full h-auto max-w-[1400px] bg-white" width="1400" height="600" viewBox="0 0 1400 600" xmlns="http://www.w3.org/2000/svg"><style xmlns="http://www.w3.org/1999/xhtml">
+                .dimmed { opacity: 0.15; }
+                .highlighted { opacity: 1.0; }
+                text { font-family: 'Segoe UI', sans-serif; }
+                .strong-glow { filter: drop-shadow(0 0 8px #4682B4); }
+            </style>
+            <defs>
+                <style>
+                    /* Font sizes increased by +2 again (Total +4 from base) */
+                    .h1 { font-size: 28px; font-weight: bold; font-family: 'Segoe UI', sans-serif; }
+                    .h2 { font-size: 20px; font-weight: 600; font-family: 'Segoe UI', sans-serif; letter-spacing: 0.5px; text-transform: uppercase; }
+                    .li { font-size: 18px; font-family: 'Segoe UI', sans-serif; line-height: 1.8; }
+                    .label { font-size: 17px; font-style: italic; fill: #666; }
+                </style>
+                <marker id="arrowGray" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                    <path d="M0,0 L8,4 L0,8 L1,4 Z" fill="#CCCCCC"/>
+                </marker>
+            </defs>
+            
+            <!-- Canvas Background -->
+            <rect width="1400" height="600" fill="white"/>
+
+            <g transform="translate(100, 100)">
+                <!-- Chevron 1: Up-Stream -->
+                <g id="chev-1">
+                    <path d="M0,0 L380,0 L430,175 L380,350 L0,350 L0,0 Z" fill="#E6F2FF" stroke="#0066CC" stroke-width="2"/>
+                    <!-- Content -->
+                    <g transform="translate(40, 50)">
+                        <text x="0" y="0" class="h1" fill="#003366">Up-Stream</text>
+                        <text x="0" y="30" class="h2" fill="#444">Policy Formation</text>
+                        <line x1="0" y1="45" x2="300" y2="45" stroke="#0066CC" stroke-width="1" opacity="0.3"/>
+                        <g transform="translate(10, 80)">
+                            <text x="0" y="0" class="li" fill="#333">• Vision setting</text>
+                            <text x="0" y="35" class="li" fill="#333">• Strategic planning</text>
+                            <text x="0" y="70" class="li" fill="#333">• Policy frameworks</text>
+                            <text x="0" y="105" class="li" fill="#333">• Regulatory design</text>
+                            <text x="0" y="140" class="li" fill="#333">• Investment priorities</text>
+                        </g>
+                    </g>
+                </g>
+
+                <!-- Chevron 2: Mid-Stream -->
+                <g id="chev-2" transform="translate(410, 0)">
+                    <path d="M0,0 L380,0 L430,175 L380,350 L0,350 L50,175 Z" fill="#0066CC" stroke="#003366" stroke-width="2"/>
+                    <!-- Content -->
+                    <g transform="translate(90, 50)">
+                        <text x="0" y="0" class="h1" fill="white">Mid-Stream</text>
+                        <text x="0" y="30" class="h2" fill="#E6F2FF">Policy Execution</text>
+                        <line x1="0" y1="45" x2="260" y2="45" stroke="white" stroke-width="1" opacity="0.3"/>
+                        <g transform="translate(10, 80)">
+                            <text x="0" y="0" class="li" fill="white">• Program management</text>
+                            <text x="0" y="35" class="li" fill="white">• Budget allocation</text>
+                            <text x="0" y="70" class="li" fill="white">• Institutional coordination</text>
+                            <text x="0" y="105" class="li" fill="white">• Performance monitoring</text>
+                            <text x="0" y="140" class="li" fill="white">• Stakeholder engagement</text>
+                        </g>
+                    </g>
+                </g>
+
+                <!-- Chevron 3: Down-Stream -->
+                <g id="chev-3" transform="translate(820, 0)">
+                    <path d="M0,0 L380,0 L430,175 L380,350 L0,350 L50,175 Z" fill="#003366" stroke="#002244" stroke-width="2"/>
+                    <!-- Content -->
+                    <g transform="translate(90, 50)">
+                        <text x="0" y="0" class="h1" fill="white">Down-Stream</text>
+                        <text x="0" y="30" class="h2" fill="#CCC">Service Delivery</text>
+                        <line x1="0" y1="45" x2="260" y2="45" stroke="white" stroke-width="1" opacity="0.3"/>
+                        <g transform="translate(10, 80)">
+                            <text x="0" y="0" class="li" fill="white">• Operational procedures</text>
+                            <text x="0" y="35" class="li" fill="white">• Frontline services</text>
+                            <text x="0" y="70" class="li" fill="white">• Citizen interactions</text>
+                            <text x="0" y="105" class="li" fill="white">• Feedback collection</text>
+                            <text x="0" y="140" class="li" fill="white">• Continuous improvement</text>
+                        </g>
+                    </g>
+                </g>
+            </g>
+
+            <!-- Flow Indicator -->
+            <g transform="translate(100, 520)">
+                <line x1="20" y1="0" x2="1200" y2="0" stroke="#CCCCCC" stroke-width="2" marker-end="url(#arrowGray)" stroke-dasharray="8 4"/>
+                <text x="610" y="-15" text-anchor="middle" class="label">Continuous Implementation Flow</text>
+            </g>
+        </svg>

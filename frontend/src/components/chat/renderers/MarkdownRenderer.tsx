@@ -15,26 +15,21 @@ interface MarkdownRendererProps {
 
 export function MarkdownRenderer({ content, title }: MarkdownRendererProps) {
   return (
-    <div style={{ 
-      padding: 24,
-      background: '#fff',
-      height: '100%',
-      overflow: 'auto',
-    }}>
+    <div className="markdown-renderer renderer-panel">
       {title && (
-        <h1 style={{ 
-          fontSize: 24, 
-          fontWeight: 600, 
+        <h1 className="markdown-renderer-title" style={{
+          fontSize: 24,
+          fontWeight: 600,
           marginBottom: 20,
           paddingBottom: 12,
-          borderBottom: '2px solid var(--border-default)',
+          borderBottom: '2px solid var(--component-panel-border)',
         }}>
           {title}
         </h1>
       )}
       <div className="markdown-content">
-        <ReactMarkdown 
-          remarkPlugins={[remarkGfm]} 
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeRaw]}
         >
           {content}

@@ -1,4 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useLanguage } from './contexts/LanguageContext';
+import en from './locales/en.json';
+import ar from './locales/ar.json';
 import Highcharts from 'highcharts';
 import 'highcharts/highcharts-more';
 import 'highcharts/modules/exporting';
@@ -26,11 +29,11 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ artifact, showHeader = tr
     // If chartData already has proper Highcharts structure, use it directly
     if (chartData.xAxis && chartData.yAxis && chartData.series) {
       return {
-        chart: {
-          type: chartData.type || chartData.chart?.type || 'column',
-          backgroundColor: '#ffffff',
+          chart: {
+            type: chartData.type || chartData.chart?.type || 'column',
+            backgroundColor: 'transparent',
           style: {
-            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+            fontFamily: "'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif"
           },
           ...chartData.chart
         },
@@ -39,14 +42,14 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ artifact, showHeader = tr
           style: {
             fontSize: '20px',
             fontWeight: '600',
-            color: '#1a1a1a'
+            color: 'var(--component-text-primary)'
           }
         },
         subtitle: chartData.subtitle || {
           text: chartData.subtitle || '',
           style: {
             fontSize: '14px',
-            color: '#666'
+            color: 'var(--component-text-secondary)'
           }
         },
         xAxis: chartData.xAxis,
@@ -77,9 +80,9 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ artifact, showHeader = tr
     const baseConfig = {
       chart: {
         type: chartData.type || 'column',
-        backgroundColor: '#ffffff',
+        backgroundColor: 'transparent',
         style: {
-          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+          fontFamily: "'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif"
         }
       },
       title: {
@@ -87,14 +90,14 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ artifact, showHeader = tr
         style: {
           fontSize: '20px',
           fontWeight: '600',
-          color: '#1a1a1a'
+          color: 'var(--component-text-primary)'
         }
       },
       subtitle: {
         text: chartData.subtitle || '',
         style: {
           fontSize: '14px',
-          color: '#666'
+          color: 'var(--component-text-secondary)'
         }
       },
       credits: {
@@ -473,6 +476,9 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ artifact, showHeader = tr
     return new Date(dateString).toLocaleDateString();
   };
 
+  const { language } = useLanguage();
+  const translations = language === 'ar' ? ar : en;
+
   return (
     <div className="artifact-container">
       {showHeader && (
@@ -481,19 +487,19 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ artifact, showHeader = tr
           <div className="artifact-meta-row">
             <div className="artifact-meta-item">
               <span>📊</span>
-              <span>Chart Type: {getChartTypeLabel(artifact.content.type)}</span>
+              <span>{translations.chart_type} {getChartTypeLabel(artifact.content.type)}</span>
             </div>
             <div className="artifact-meta-item">
               <span>📅</span>
-              <span>Created: {formatDate(artifact.created_at)}</span>
+              <span>{translations.created} {formatDate(artifact.created_at)}</span>
             </div>
           </div>
           <div className="artifact-actions">
             <button className="export-btn secondary" onClick={() => exportChart('svg')}>
-              📥 Export SVG
+              📥 {translations.export_svg}
             </button>
             <button className="export-btn" onClick={() => exportChart('png')}>
-              📥 Export PNG
+              📥 {translations.export_png}
             </button>
           </div>
         </div>
@@ -503,7 +509,7 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ artifact, showHeader = tr
         {isLoading && (
           <div className="canvas-loading">
             <div className="canvas-loading-spinner"></div>
-            <div style={{ marginTop: '10px' }}>Loading Highcharts...</div>
+            <div style={{ marginTop: '10px' }}>{translations.loading_highcharts}</div>
           </div>
         )}
         

@@ -1,0 +1,51 @@
+backends:
+  - name: local-backend-wrapper
+    type: script
+    command: /home/mosab/projects/chatmodule/backend/.venv/bin/python
+    args:
+      - /home/mosab/projects/chatmodule/backend/tools/mcp_wrapper.py
+
+  - name: neo4j-cypher
+    type: http_mcp
+    url: http://127.0.0.1:8080/mcp/
+    auth_header_key: NEO4J_MCP_TOKEN
+    transport: http
+
+tools:
+  - name: recall_memory
+    backend: local-backend-wrapper
+    type: script
+    description: "Search personal or project memory using semantic vector search."
+
+  - name: retrieve_instructions
+    backend: local-backend-wrapper
+    type: script
+    description: "Load instruction bundles based on interaction mode. Supports v3.3 three-tier: tier='data_mode_definitions' for Tier 2, tier='elements' with elements=[...] for Tier 3."
+
+  - name: read_neo4j_cypher
+    backend: neo4j-cypher
+    type: mcp-forward
+    description: "Execute Cypher query against Neo4j knowledge graph via Neo4j MCP server."
+
+  - name: get_neo4j_schema
+    backend: neo4j-cypher
+    type: mcp-forward
+    description: "Get the Neo4j database schema including nodes, properties, and relationships."
+
+  - name: write_neo4j_cypher
+    backend: neo4j-cypher
+    type: mcp-forward
+    description: "Execute a write Cypher query against Neo4j knowledge graph."
+
+governance:
+  default_rate_limit_per_min: 80
+  admin_tools:
+    - populate_all_embeddings
+
+secrets:
+  provider: env
+
+server:
+  host: 127.0.0.1
+  port: 8201
+  transport: http

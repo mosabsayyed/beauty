@@ -5,6 +5,7 @@ Manages connections and basic operations for Neo4j graph database
 from neo4j import GraphDatabase, Driver
 from typing import Optional, Dict, Any, List
 from app.config import settings
+from app.utils.tracing import trace_database_query
 import logging
 
 logger = logging.getLogger(__name__)
@@ -83,20 +84,30 @@ class Neo4jClient:
         Returns:
             List of result records as dictionaries
         """
-        if not self.is_connected():
-            if not self.connect():
-                return []
-        
-        try:
-            db = database or settings.NEO4J_DATABASE
-            with self.driver.session(database=db) as session:
-                result = session.run(query, parameters or {})
-                return [dict(record) for record in result]
-        except Exception as e:
-            logger.error(f"Neo4j query error: {str(e)}")
-            logger.error(f"Query: {query}")
-            logger.error(f"Parameters: {parameters}")
-            raise
+        with trace_database_query(
+            database="neo4j",
+            operation="read",
+            query=query
+        ) as span:
+            if not self.is_connected():
+                if not self.connect():
+                    return []
+            
+            try:
+                db = database or settings.NEO4J_DATABASE
+                with self.driver.session(database=db) as session:
+                    result = session.run(query, parameters or {})
+                    records = [dict(record) for record in result]
+                    
+                    if span:
+                        span.set_attribute("db.result_count", len(records))
+                    
+                    return records
+            except Exception as e:
+                logger.error(f"Neo4j query error: {str(e)}")
+                logger.error(f"Query: {query}")
+                logger.error(f"Parameters: {parameters}")
+                raise
     
     def execute_write_query(
         self,

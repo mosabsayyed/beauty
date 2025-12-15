@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Router Config Schema",
+  "type": "object",
+  "required": ["backends", "tools"],
+  "properties": {
+    "backends": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": {"type": "string"},
+          "type": {"type": "string", "enum": ["http_mcp", "mcp-forward", "script"]},
+          "url": {"type": "string"},
+          "command": {"type": "string"}
+        }
+      }
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "backend"],
+        "properties": {
+          "name": {"type": "string"},
+          "backend": {"type": "string"},
+          "type": {"type":"string","enum":["http_mcp","mcp-forward","script"]}
+        }
+      }
+    }
+  }
+}

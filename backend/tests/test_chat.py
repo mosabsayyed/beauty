@@ -180,6 +180,22 @@ async def test_send_message_clarification_needed(client: AsyncClient):
     assert data["message"] == "I need more information."
     assert len(data["clarification_questions"]) == 2
 
+
+async def test_send_message_as_guest_does_not_persist(client: AsyncClient, mock_conversation_manager: MockSupabaseConversationManager):
+    # Ensure no preset conversation exists
+    assert len(mock_conversation_manager.conversations) == 0
+
+    response = await client.post(
+        "/api/v1/chat/message",
+        json={"query": "Guest message no-auth"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    # For unauthenticated guests, no conversation should be created on the server
+    assert data.get("conversation_id") is None
+    # Confirm backend manager has not recorded any conversations for guests
+    assert len(mock_conversation_manager.conversations) == 0
+
 async def test_list_conversations(client: AsyncClient):
     # Create a conversation first
     await client.post("/api/v1/chat/message", json={"query": "List test 1"})

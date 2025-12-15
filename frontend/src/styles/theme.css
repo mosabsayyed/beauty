@@ -1,0 +1,123 @@
+/* THEME MAPPING: Map new `uploads/styles.css` variables into the project's old variables. */
+
+/* Core variables (copied from uploads/styles.css) */
+:root{
+  --component-bg-primary: #111827;
+  --component-panel-bg: #1F2937;
+  --component-panel-border: #374151;
+  --component-bg-secondary: #374151;
+
+  --component-text-primary: #F9FAFB;
+  --component-text-secondary: #D1D5DB;
+  --component-text-muted: #9CA3AF;
+
+  --component-text-accent: #FFD700;
+  --component-text-on-accent: #111827;
+
+  --component-color-success: #10B981;
+  --component-color-warning: #FFD700;
+  --component-color-danger: #EF4444;
+
+  --chat-bubble-user-bg: #10B981;
+  --chat-bubble-user-text: #FFFFFF;
+  --chat-bubble-bot-bg: #374151;
+  --chat-bubble-bot-text: #F9FAFB;
+
+  --component-font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif';
+  --component-font-heading: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif';
+  --component-font-mono: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace';
+  
+  /* Fix for white flash on dropdowns and native controls */
+  color-scheme: dark;
+}
+
+/* Map to legacy tokens used by frontend */
+:root{
+  --canvas-page-bg: var(--component-bg-primary);
+  --canvas-card-bg: var(--component-panel-bg);
+  --canvas-inverted-bg: var(--component-text-on-accent);
+
+  /* Canvas styling */
+  --canvas-header-bg: #111827;
+  --canvas-body-bg: #1F2937;
+  /* Glass variables */
+  --glass-blur: blur(6px);
+  --glass-tint-dark: rgba(31,41,55,0.06);
+  --glass-tint-light: rgba(255,255,255,0.06);
+  --glass-border: rgba(255,255,255,0.06);
+  --canvas-backdrop-blur: blur(4px);
+
+  --text-primary: var(--component-text-primary);
+  --text-secondary: var(--component-text-secondary);
+  --text-tertiary: var(--component-text-muted);
+  --text-inverted: var(--component-text-on-accent);
+
+  --border-default: var(--component-panel-border);
+  --border-subtle: var(--component-panel-bg);
+
+  --color-gold: var(--component-text-accent);
+  --color-gold-hover: var(--component-text-accent);
+
+  /* Additional mapping for globals used in the project */
+  --background: var(--component-bg-primary);
+  --foreground: var(--component-text-primary);
+
+  --card: var(--component-panel-bg);
+  --card-foreground: var(--component-text-primary);
+  --primary: var(--component-text-accent);
+  --primary-foreground: var(--component-text-on-accent);
+
+  --input: var(--component-panel-bg);
+  --ring: var(--component-panel-border);
+  --border: var(--component-panel-border);
+
+  --bubble-user-bg: var(--chat-bubble-user-bg);
+  --bubble-user-text: var(--chat-bubble-user-text);
+  --bubble-ai-bg: var(--chat-bubble-bot-bg);
+  --bubble-ai-text: var(--chat-bubble-bot-text);
+}
+
+/* Light theme overrides */
+:root[data-theme="light"]{
+  --component-bg-primary: #F3F4F6;
+  --component-panel-bg: #FFFFFF;
+  --component-panel-border: #E5E7EB;
+  --component-bg-secondary: #F9FAFB;
+
+  --component-text-primary: #1F2937;
+  --component-text-secondary: #4B5563;
+  --component-text-muted: #6B7280;
+
+  --component-text-accent: #D97706;  /* Darker amber for readability */
+  --component-text-on-accent: #FFFFFF;
+
+  --component-color-success: #059669;
+  --component-color-warning: #D97706;  /* Match accent */
+  --component-color-danger: #DC2626;
+
+  --chat-bubble-user-bg: #059669;
+  --chat-bubble-user-text: #FFFFFF;
+  --chat-bubble-bot-bg: #F3F4F6;
+  --chat-bubble-bot-text: #1F2937;
+
+  /* Map legacy tokens in light theme */
+  --canvas-page-bg: var(--component-bg-primary);
+  --canvas-card-bg: var(--component-panel-bg);
+  --text-primary: var(--component-text-primary);
+  --text-secondary: var(--component-text-secondary);
+  --border-default: var(--component-panel-border);
+
+  /* Canvas styling for light theme */
+  --canvas-header-bg: #E8D7A3;
+  --canvas-body-bg: #FFFFFF;
+  
+  /* Fix for light theme controls */
+  color-scheme: light;
+}
+
+/* Back-compat styles for the chat classes (minimal) */
+.message-bubble { display:block; }
+.message-row { display:flex; gap: 1rem; width: 100%; }
+.message-row.user { flex-direction: row-reverse; }
+.avatar { background: var(--component-panel-border); color: var(--component-text-accent); }
+.avatar.user { background: var(--component-color-success); color: #fff; }

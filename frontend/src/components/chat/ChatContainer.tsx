@@ -8,12 +8,19 @@
  * - Welcome screen (when no messages)
  */
 
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useState } from 'react';
 import { MessageBubble, ThinkingIndicator } from './MessageBubble';
 import { ChatInput } from './ChatInput';
 import { ScrollArea } from '../ui/scroll-area';
 import { BarChart3, FileText, Table, MessageSquare } from 'lucide-react';
 import type { Message as APIMessage } from '../../types/api';
+import ThemeToggle from '../ThemeToggle';
+import LanguageToggle from '../LanguageToggle';
+import { useLanguage } from '../../contexts/LanguageContext';
+import '../../styles/chat.css';
+import '../../styles/message-bubble.css';
+import '../../styles/sidebar.css';
+import '../../styles/chat-container.css';
 
 interface ChatContainerProps {
   conversationId: number | null;
@@ -40,7 +47,23 @@ export function ChatContainer({
   onOpenArtifact,
   streamingMessage,
 }: ChatContainerProps) {
+  const { language: ctxLanguage } = useLanguage();
+  const effectiveLanguage = language ?? ctxLanguage;
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    const themeAttr = document.documentElement.getAttribute('data-theme');
+    return (themeAttr as 'light' | 'dark') || 'dark';
+  });
+
+  useEffect(() => {
+    const updateTheme = () => {
+      const themeAttr = document.documentElement.getAttribute('data-theme');
+      setTheme((themeAttr as 'light' | 'dark') || 'dark');
+    };
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
 
   // Combine regular messages with streaming message
   const displayMessages = useMemo(() => {
@@ -53,35 +76,35 @@ export function ChatContainer({
   }, [displayMessages, isLoading]);
 
   const translations = {
-    welcomeTitle: language === 'ar' ? 'مرحباً بك في نور' : 'Welcome to Noor',
-    welcomeSubtitle: language === 'ar' 
+    welcomeTitle: effectiveLanguage === 'ar' ? 'مرحباً بك، أنا نور' : 'Welcome, I am Noor',
+    welcomeSubtitle: effectiveLanguage === 'ar' 
       ? 'مساعدك الذكي في رحلة التحول المعرفي'
       : 'Your AI guide to cognitive transformation',
-    examplesTitle: language === 'ar' ? 'جرب هذه الأمثلة:' : 'Try these examples:',
+    examplesTitle: effectiveLanguage === 'ar' ? 'جرب هذه الأمثلة:' : 'Try these examples:',
     examples: [
       {
         icon: BarChart3,
-        text: language === 'ar' 
-          ? 'اعرض لي تقدم التحول ��لرقمي'
-          : 'Show me digital transformation progress',
+        text: effectiveLanguage === 'ar' 
+          ? 'كيف يتقدم التحول حتى الآن؟'
+          : 'How is the transformation progressing to date?',
       },
       {
         icon: Table,
-        text: language === 'ar'
-          ? 'قائمة الجهات الحكومية وحالة التحول'
-          : 'List government entities and transformation status',
+        text: effectiveLanguage === 'ar'
+          ? 'سرد القدرات الأكثر نضجاً حسب الوحدات التنظيمية'
+          : 'List the most mature capabilities by organisational units',
       },
       {
         icon: FileText,
-        text: language === 'ar'
-          ? 'أنشئ تقرير الربع الرابع 2024'
-          : 'Generate Q4 2024 report',
+        text: effectiveLanguage === 'ar'
+          ? 'إنشاء تقرير مشاريع الربع الثالث لعام 2025'
+          : 'Generate Q3 Projects Report for 2025',
       },
       {
         icon: MessageSquare,
-        text: language === 'ar'
-          ? 'أخبرني عن إطار حوكمة الذكاء الاصطناعي'
-          : 'Tell me about the AI governance framework',
+        text: effectiveLanguage === 'ar'
+          ? 'ما هو إطار الحوكمة للوكالة؟'
+          : 'What is the governance framework for the agency?',
       },
     ],
   };
@@ -89,17 +112,26 @@ export function ChatContainer({
   const hasMessages = displayMessages.length > 0;
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        flex: 1,
-        minHeight: 0,
-        backgroundColor: 'rgb(249, 250, 251)',
-        minWidth: 0,
-        overflow: 'hidden',
-      }}
-    >
+    <div className="chat-container-root">
+      <div className="chat-top-controls" style={{ display: "flex", alignItems: "center", fontWeight: "400", justifyContent: "space-between", padding: "8px 12px", gap: "12px", backgroundColor: theme === 'light' ? 'rgba(250, 236, 195, 0.7)' : 'rgba(31, 41, 55, 0.7)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+        <div dir={effectiveLanguage === 'ar' ? 'rtl' : 'ltr'} style={{ display: "flex", alignItems: "center", gap: "8px", color: theme === 'light' ? '#4B5563' : "white" }}>
+          <img
+            loading="lazy"
+            src="https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2Fba0373f666ef4d3a8e7df76c08d95b9f"
+            style={{ aspectRatio: "1.21", objectFit: "cover", objectPosition: "center", width: "40px", minHeight: "20px", minWidth: "20px", overflow: "hidden", height: "36px", border: "4px hidden rgba(249, 250, 251, 0.07)" }}
+          />
+          <div style={{ font: "700 16px __Inter_d65c78, sans-serif", color: theme === 'light' ? '#4B5563' : "white" }}>
+            AI Twin Tech
+          </div>
+          <div style={{ color: theme === 'light' ? '#4B5563' : "rgb(209, 213, 219)", font: "400 16px __Inter_d65c78, sans-serif" }}>
+            JOSOOR
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <LanguageToggle />
+          <ThemeToggle />
+        </div>
+      </div>
       {/* Messages Area - Takes remaining space */}
       <div
         style={{
@@ -118,54 +150,29 @@ export function ChatContainer({
             flexDirection: 'column',
           }}
         >
-          <div
-            style={{
-              margin: '0 auto',
-              width: '100%',
-              maxWidth: '1100px',
-              padding: '32px 24px',
-            }}
-          >
+          <div className="chat-content-wrapper">
             {!hasMessages ? (
               /* Welcome Screen */
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  minHeight: '60vh',
-                }}
-              >
+              <div className="welcome-screen">
                 {onToggleCanvas && (
                   <div
                     style={{
                       marginBottom: '24px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'flex-end',
                       overflow: 'auto',
                     }}
                   >
-                    <button
-                      onClick={onToggleCanvas}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        backgroundColor: 'transparent',
-                        borderRadius: '8px',
-                        fontFamily: 'Arial',
-                        fontWeight: '600',
-                        height: '40px',
-                        justifyContent: 'center',
-                        transitionDuration: '0.2s',
-                        width: '40px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: 0,
-                      }}
-                      title={language === 'ar' ? 'تبديل اللوحة' : 'Toggle canvas'}
-                    >
-                      <img src="https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2F8943a0e6569a48b6be2490eb6f9c1034" alt="Toggle canvas" className="sidebar-quickaction-icon" style={{ borderRadius: 2 }} />
-                    </button>
+                    <div className="canvas-toggle-small-wrapper" style={{ justifyContent: effectiveLanguage === 'ar' ? 'flex-start' : 'flex-end' }}>
+                      <button
+                        onClick={onToggleCanvas}
+                        className="sidebar-icon-button clickable"
+                        title={effectiveLanguage === 'ar' ? 'تبديل اللوحة' : 'Toggle canvas'}
+                        aria-label={effectiveLanguage === 'ar' ? 'تبديل اللوحة' : 'Toggle canvas'}
+                      >
+                        <img src="/icons/menu.svg" alt="Toggle canvas" className="sidebar-quickaction-icon sidebar-quickaction-small" />
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -179,113 +186,41 @@ export function ChatContainer({
                     textAlign: 'center',
                   }}
                 >
-                  <div
-                    style={{
-                      marginBottom: '24px',
-                      height: '64px',
-                      width: '64px',
-                      borderRadius: '16px',
-                      backgroundColor: 'transparent',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundImage: "url('https://cdn.builder.io/api/v1/image/assets%2Fc88de0889c4545b98ff911f5842e062a%2Fefbe50adfc8743cfa8a2c93570680bae')",
-                      backgroundRepeat: 'no-repeat',
-                      backgroundPosition: 'center',
-                      backgroundSize: 'cover',
-                    }}
-                  />
+                  <div className="welcome-avatar" style={{ backgroundImage: "url('/icons/josoor.svg')" }} />
 
-                  <h1
-                    style={{
-                      marginBottom: '8px',
-                      fontSize: '24px',
-                      fontWeight: '600',
-                      color: 'rgba(26, 36, 53, 1)',
-                    }}
-                  >
-                    {translations.welcomeTitle}
-                  </h1>
-                  <p
-                    style={{
-                      color: 'rgba(107, 114, 128, 1)',
-                      marginBottom: '32px',
-                      maxWidth: '448px',
-                    }}
-                  >
-                    {translations.welcomeSubtitle}
-                  </p>
+                  <h1 className="welcome-title tajawal">{translations.welcomeTitle}</h1>
+                  <p className="welcome-sub cairo">{translations.welcomeSubtitle}</p>
 
                   {/* Example Prompts */}
-                  <div
-                    style={{
-                      width: '100%',
-                      maxWidth: '800px',
-                    }}
-                  >
-                    <p
-                      style={{
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        color: 'rgba(107, 114, 128, 1)',
-                        marginBottom: '16px',
-                      }}
-                    >
-                      {translations.examplesTitle}
-                    </p>
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                        gap: '12px',
-                      }}
-                    >
-                      {translations.examples.map((example, index) => (
-                        <button
-                          key={index}
-                          onClick={() => onSendMessage(example.text)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            gap: '12px',
-                            borderRadius: '8px',
-                            border: '1px solid rgb(229, 231, 235)',
-                            backgroundColor: 'rgb(255, 255, 255)',
-                            padding: '16px',
-                            textAlign: 'left',
-                            transition: 'all 0.2s ease',
-                            cursor: 'pointer',
-                            fontFamily: 'inherit',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = 'rgba(26, 36, 53, 0.3)';
-                            e.currentTarget.style.boxShadow = '0 0 0 1px rgba(26, 36, 53, 0.1)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = 'rgb(229, 231, 235)';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                        >
-                          <example.icon
+                  <div className="example-grid" dir={effectiveLanguage === 'ar' ? 'rtl' : 'ltr'}>
+                    <p className="example-intro">{translations.examplesTitle}</p>
+                    <div className="example-list">
+                      {translations.examples.map((example, index) => {
+                        const isRTL = effectiveLanguage === 'ar';
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => onSendMessage(example.text)}
+                            className={`example-button clickable ${isRTL ? 'rtl-mode' : ''}`}
                             style={{
-                              marginTop: '2px',
-                              height: '20px',
-                              width: '20px',
-                              flexShrink: 0,
-                              color: 'rgba(107, 114, 128, 1)',
-                              transition: 'color 0.2s ease',
-                            }}
-                          />
-                          <span
-                            style={{
-                              fontSize: '14px',
-                              color: 'rgba(26, 36, 53, 1)',
-                            }}
+                              flexDirection: isRTL ? 'row-reverse' : 'row',
+                              justifyContent: 'flex-start',
+                            } as React.CSSProperties}
                           >
-                            {example.text}
-                          </span>
-                        </button>
-                      ))}
+                            <example.icon 
+                              className="example-icon" 
+                              style={{ order: isRTL ? 2 : 0 }}
+                            />
+                            <span className="example-text cairo" style={{ 
+                              textAlign: isRTL ? 'right' : 'left',
+                              width: '100%',
+                              order: isRTL ? 1 : 0,
+                            }}>
+                              {example.text}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -299,19 +234,17 @@ export function ChatContainer({
                   gap: '24px',
                 }}
               >
-                {messages.map((message, index) => (
+                {messages.map((message) => (
                   <MessageBubble
                     key={message.id}
                     message={message}
                     isUser={message.role === 'user'}
-                    language={language}
+                    language={effectiveLanguage}
                     showAvatar={true}
                     onCopy={() => {
                       // Copy handled internally in MessageBubble
                     }}
-                    onFeedback={(isPositive) => {
-
-                    }}
+                    onFeedback={() => {}}
                     onOpenArtifact={(artifact, artifacts) => {
                       if (onOpenArtifact) onOpenArtifact(artifact, artifacts);
                     }}
@@ -338,7 +271,7 @@ export function ChatContainer({
         <ChatInput
           onSend={onSendMessage}
           disabled={isLoading}
-          language={language}
+          language={effectiveLanguage}
         />
       </div>
     </div>

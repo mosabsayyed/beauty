@@ -1,0 +1,304 @@
+/* Twin Knowledge Article Styles - Uses Site Theme */
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--component-bg-primary);
+  color: var(--component-text-primary);
+  font-family: var(--component-font-family);
+  line-height: 1.7;
+  margin: 0;
+  padding: 10px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--component-font-heading);
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0.5em 0 0.75em 0;
+  color: var(--component-text-accent);
+}
+
+h1 { font-size: 2em; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1.1em; }
+
+p {
+  margin: 0 0 1em 0;
+  color: var(--component-text-primary);
+}
+
+a {
+  color: var(--component-text-accent);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+a:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+strong, b {
+  font-weight: 600;
+  color: var(--component-text-primary);
+}
+
+em, i {
+  font-style: italic;
+  color: var(--component-text-secondary);
+}
+
+/* Lists */
+ul, ol {
+  color: var(--component-text-primary);
+  margin: 1em 0;
+  padding-left: 2em;
+}
+
+li {
+  margin: 0.5em 0;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  background: var(--component-panel-bg);
+}
+
+th, td {
+  padding: 12px;
+  border: 1px solid var(--component-panel-border);
+  text-align: left;
+}
+
+/* Dark Mode Header - High Specificity */
+html body :where(th) {
+  background-color: #111827 !important; /* Very dark blue/gray */
+  font-weight: 700 !important;
+  color: #D4AF37 !important;
+  border-bottom: 2px solid #D4AF37 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Light Mode Header Override - High Specificity */
+html[data-theme="light"] body :where(th) {
+  background-color: #E5E7EB !important; /* Distinct light gray */
+  color: #111827 !important; /* Dark text */
+  border-bottom: 2px solid #D4AF37 !important;
+}
+
+td {
+  color: var(--component-text-primary);
+  background-color: var(--component-panel-bg);
+}
+
+/* Images */
+img {
+  max-width: 100%;
+  height: auto;
+  margin: 1em 0; /* Keep margin for standalone images */
+  border: none !important;
+  border-radius: 4px;
+}
+
+figure {
+  margin: 2rem auto; /* Center the figure */
+  text-align: center;
+  max-width: 700px; /* Constrain container width */
+  display: block;
+}
+
+figure img {
+  max-width: 100%; /* Responsive */
+  width: auto;     /* Maintain aspect ratio */
+  height: auto;
+  max-height: 500px; /* Prevent overly tall images */
+  border: none !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  border-radius: 4px; /* Slight rounding */
+}
+
+figcaption {
+  color: var(--component-text-secondary);
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--component-text-secondary);
+  font-style: italic;
+  font-family: var(--component-font-family);
+}
+
+/* Standard Table Styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  background-color: var(--component-bg-secondary);
+  border: 1px solid var(--component-panel-border);
+  border-radius: 8px;
+  overflow: hidden; /* For rounded corners */
+}
+
+thead {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 700;
+  color: var(--component-text-accent); /* Gold Headers */
+  border-bottom: 2px solid var(--component-panel-border);
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--component-panel-border);
+  color: var(--component-text-primary);
+  vertical-align: top;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+/* Dark Mode Header - High Specificity */
+html body :where(th) {
+  background-color: #111827 !important; /* Very dark blue/gray */
+  font-weight: 700 !important;
+  color: #D4AF37 !important;
+  border-bottom: 2px solid #D4AF37 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Light Mode Header Override - High Specificity */
+html[data-theme="light"] body :where(th) {
+  background-color: #E5E7EB !important; /* Distinct light gray */
+  color: #111827 !important; /* Dark text */
+  border-bottom: 2px solid #D4AF37 !important;
+}
+
+/* Layout Table (No Borders) */
+table.layout-table,
+table.layout-table td,
+table.layout-table th,
+table.layout-table tr {
+  border: none !important;
+  background: transparent !important;
+  padding: 8px; /* Minimal padding */
+}
+
+table.layout-table thead,
+table.layout-table th {
+  border-bottom: none !important;
+  background: transparent !important;
+}
+  border-left: 4px solid var(--component-text-accent);
+  padding-left: 1em;
+  margin: 1.5em 0;
+  color: var(--component-text-secondary);
+  font-style: italic;
+}
+
+pre, code {
+  background: var(--component-panel-bg);
+  border: 1px solid var(--component-panel-border);
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+}
+
+pre {
+  padding: 1em;
+  overflow-x: auto;
+}
+
+code {
+  padding: 0.2em 0.4em;
+  font-size: 0.9em;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--component-panel-border);
+  margin: 2em 0;
+}
+
+/* Container */
+.knowledge-article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* RTL Support */
+[dir="rtl"] body {
+  text-align: right;
+}
+
+[dir="rtl"] blockquote {
+  border-left: none;
+  border-right: 4px solid var(--component-text-accent);
+  padding-left: 0;
+  padding-right: 1em;
+}
+
+[dir="rtl"] ul, 
+[dir="rtl"] ol {
+  padding-right: 2em;
+  padding-left: 0;
+}
+
+[dir="rtl"] table th,
+[dir="rtl"] table td {
+  text-align: right;
+}
+
+/* Override any inline styles */
+body[style*="color"] {
+  color: var(--component-text-primary) !important;
+}
+
+h1[style*="color"],
+h2[style*="color"],
+h3[style*="color"] {
+  color: var(--component-text-accent) !important;
+}
+
+a[style*="color"] {
+  color: var(--component-text-accent) !important;
+}
+
+*[style*="font-family"] {
+  font-family: var(--component-font-family) !important;
+}
+
+h1[style*="font-family"],
+h2[style*="font-family"],
+h3[style*="font-family"],
+h4[style*="font-family"],
+h5[style*="font-family"],
+h6[style*="font-family"] {
+  font-family: var(--component-font-heading) !important;
+}
+
+/* Remove MS Word classes */
+.MsoNormal {
+  margin: 0;
+  padding: 0;
+}
+
+/* Utility classes */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.mt-1 { margin-top: 1em; }
+.mb-1 { margin-bottom: 1em; }

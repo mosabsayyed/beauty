@@ -16,7 +16,12 @@ export default function WelcomeEntry() {
     try {
       const seen = localStorage.getItem('josoor_seen_cube');
       if (seen === 'true') {
-        navigate('/chat', { replace: true });
+        const isAuthenticated = localStorage.getItem('josoor_authenticated') === 'true';
+        if (isAuthenticated) {
+          navigate('/chat', { replace: true });
+        } else {
+          navigate('/landing', { replace: true });
+        }
         return;
       }
     } catch (_){

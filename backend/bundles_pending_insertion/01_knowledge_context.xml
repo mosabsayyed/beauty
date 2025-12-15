@@ -1,0 +1,199 @@
+<!-- Bundle Tag: knowledge_context -->
+<!-- Version: 1.0.0 -->
+<!-- Status: active -->
+<!-- Category: foundation -->
+<INSTRUCTION_BUNDLE tag="knowledge_context" version="1.0.0">
+  <PURPOSE>Complete Neo4j graph ontology, relationships, business chains, and data integrity rules for Step 3 (RECALL) query construction.</PURPOSE>
+  
+  <SECTION title="Data Integrity Rules">
+**THE GOLDEN SCHEMA (Immutable Ground Truth)**
+Map user queries strictly to these definitions.
+
+**DATA INTEGRITY RULES:**
+1. **Universal Properties:** *EVERY* node has `id`, `name`, `year`, `quarter`, `level`.
+2. **Composite Key:** Unique entities are defined by **`id` + `year`**. Filter by `year` to avoid duplicates.
+3. **Level Alignment:** Functional relationships between Entity nodes or Sector nodes strictly connect results at the **SAME LEVEL**.
+   * **Rule:** If you query L3 in a node and are trying to find relations in another node in the same domain (e.g. Entity), you MUST connect them to the matching L3 in the other node.
+   * **Exception:** The `PARENT_OF` relationship is the ONLY link that crosses levels (L1->L2->L3) as it exists only in the same node and is designed to prevent orphan L3 and L2 entries.
+4. **Temporal Filtering:** Queries must explicitly filter nodes by `year` (e.g., `WHERE n.year = 2026`) AND `level` (e.g., `AND n.level = 'L3'`) for every node type involved.
+   * Sub‑rule: Always exclude future-start projects from active counts — add a start_date filter `AND (n.start_date IS NULL OR n.start_date <= date('<datetoday>'))` when an entity has a `start_date` property.
+  </SECTION>
+  
+  <SECTION title="Graph Schema">
+**Nodes (PascalCase labels - CRITICAL):**
+- EntityProject (id, name, year, quarter, level, status, progress_percentage, start_date, end_date, parent_id, parent_year)
+- EntityCapability (id, name, year, quarter, level, status, maturity_level, target_maturity_level, description, parent_id, parent_year)
+- EntityRisk (id, name, year, quarter, level, risk_score, risk_category, risk_status, risk_description, likelihood_of_delay, mitigation_strategy)
+- EntityProcess (id, name, year, quarter, level, description)
+- EntityITSystem (id, name, year, quarter, level, operational_status, system_type, criticality, technology_stack)
+- EntityOrgUnit (id, name, year, quarter, level, unit_type, headcount, annual_budget, head_of_unit, location)
+- EntityChangeAdoption (id, name, year, quarter, level)
+- EntityCultureHealth (id, name, year, quarter, level)
+- EntityVendor (id, name, year, quarter, level)
+- SectorObjective (id, name, year, level, status, priority_level, budget_allocated, target, baseline, indicator_type)
+- SectorPolicyTool (id, name, year, quarter, level, status, tool_type, delivery_channel, cost_of_implementation)
+- SectorPerformance (id, name, year, quarter, level)
+- SectorAdminRecord (id, name, year, level)
+- SectorDataTransaction (id, name, year, level)
+- SectorBusiness (id, name, year, level)
+- SectorGovEntity (id, name, year, level)
+- SectorCitizen (id, name, year, level)
+
+**Relationships (VERIFIED from live Neo4j):**
+- OPERATES
+- SETS_PRIORITIES
+- SETS_TARGETS
+- MONITORED_BY
+- FEEDS_INTO
+- MEASURED_BY
+- PARENT_OF
+- EXECUTES
+- REPORTS
+- REALIZED_VIA
+- CASCADED_VIA
+- ROLE_GAPS
+- KNOWLEDGE_GAPS
+- INCREASE_ADOPTION
+- GOVERNED_BY
+- AGGREGATES_TO
+- REFERS_TO
+- APPLIED_ON
+- TRIGGERS_EVENT
+- ADOPTION_ENT_RISKS
+- MONITORS_FOR
+
+**Property Rules:**
+- `risk_score` is 1-10 (High > 7). Do NOT use `severity`.
+- `progress_percentage` is 0-100. Do NOT use `percentComplete`.
+- `budget` is numeric.
+- `level` is always 'L1', 'L2', or 'L3'.
+
+**Traversal Paths:**
+- Project to Capability: (Project)-[:CLOSE_GAPS]->(System/Process/Org)-[:OPERATES]->(Capability)
+- Project to Risk: Project -> ... -> Capability -[:MONITORED_BY]-> Risk
+
+**Risk Dependency:** Risks are structurally tied to Capabilities. Capabilities is the hub to find relations upwards to Sector nodes up till Objectives, or downwards in the Entity domain till Projects and ChangeAdoptions.
+   * **Pattern:** `(:EntityCapability) -[:MONITORED_BY]-> (:EntityRisk)`
+   * **Logic:** To find a Project's risks, you must traverse: Project <-> OrgUnit/ITSystem/Process <-> Capability -> Risk
+  </SECTION>
+  
+  <SECTION title="Level Definitions">
+* `SectorObjective`: L1=Strategic Goals, L2=Cascaded Goals, L3=KPI Parameters.
+* `SectorPolicyTool`: L1=Tool Type, L2=Tool Name, L3=Impact Target.
+* `EntityProject`: L1=Portfolio (collection of Programs and Projects), L2=Program (collection of Projects), L3=Project (Output or Milestones or Key Deliverables).
+* `EntityCapability`: L1=Business Domain (collection of Functions), L2=Function (collection of Competencies), L3=Competency (collection of OrgUnits applying Processes Utilizing ITSystems).
+* `EntityRisk`: L1=Domain Risks (collection of Domain Risks), L2=Functional Risks (collection of Functional Risks), L3=Specific Risk (Single Specific Risk).
+* `EntityOrgUnit`: L1=Department (Single Largest Possible Department), L2=Sub‑Dept (collection of Sub‑Departments), L3=Team (collection of Teams or Individuals).
+* `EntityITSystem`: L1=Platform (Single Largest Platform), L2=Module (collection of Modules), L3=Feature (collection of Features).
+* `EntityChangeAdoption`: L1=Domain (Collection of Business Domain functions being changed), L2=Area (collection of Functional competencies being changed), L3=Behavior (collection of Individual Competencies being changed).
+  </SECTION>
+  
+  <SECTION title="Direct Relationships">
+**DIRECT RELATIONSHIPS (Same‑Level Only):**
+These relationships represent the REAL and ONLY DIRECT world relations between nodes. Their absence in the graph (including "Relationship type does not exist" warnings) represents a gap that must always be raised to validate:
+
+**Sector Operations**
+SectorObjective → Realized Via → SectorPolicyTool
+SectorPolicyTool → Governed By → SectorObjective
+SectorObjective → Cascaded Via → SectorPerformance
+SectorPolicyTool → Refers To → SectorAdminRecord
+SectorAdminRecord → Applied On → SectorBusiness
+SectorAdminRecord → Applied On → SectorGovEntity
+SectorAdminRecord → Applied On → SectorCitizen
+SectorBusiness → Triggers Event → SectorDataTransaction
+SectorGovEntity → Triggers Event → SectorDataTransaction
+SectorCitizen → Triggers Event → SectorDataTransaction
+SectorDataTransaction → Measured By → SectorPerformance
+SectorPerformance → Aggregates To → SectorObjective
+
+**Strategic Integrated Risk Management**
+EntityRisk → Informs → SectorPerformance
+EntityRisk → Informs → SectorPolicyTool
+EntityRisk ← MONITORED_BY ← EntityCapability
+
+**Sector and Entity Relations**
+SectorPolicyTool → Sets Priorities → EntityCapability
+SectorPerformance → Sets Targets → EntityCapability
+EntityCapability → Executes → SectorPolicyTool
+EntityCapability → Reports → SectorPerformance
+
+**Entity Internal Operations**
+EntityCapability → Role Gaps → EntityOrgUnit
+EntityCapability → Knowledge Gaps → EntityProcess
+EntityCapability → Automation Gaps → EntityITSystem
+EntityOrgUnit → Operates → EntityCapability
+EntityProcess → Operates → EntityCapability
+EntityITSystem → Operates → EntityCapability
+EntityCultureHealth → Monitors For → EntityOrgUnit
+EntityOrgUnit → Apply → EntityProcess
+EntityProcess → Automation → EntityITSystem
+EntityITSystem → Depends On → EntityVendor
+
+**Transforming Entity Capabilities**
+EntityOrgUnit → Gaps Scope → EntityProject
+EntityProcess → Gaps Scope → EntityProject
+EntityITSystem → Gaps Scope → EntityProject
+EntityProject → Close Gaps → EntityOrgUnit
+EntityProject → Close Gaps → EntityProcess
+EntityProject → Close Gaps → EntityITSystem
+
+**Project to Operation Transfer**
+EntityProject → Adoption Risks → EntityChangeAdoption
+EntityChangeAdoption → Increase Adoption → EntityProject
+
+// Optional links note: The direct relationships above may be missing for early‑stage or conceptual projects (e.g., CLOSES_GAPS, MONITORED_BY, OPERATES). Queries MUST treat these relations as optional; do not assume their existence when counting or sampling projects. Use OPTIONAL MATCH to enrich only after an existence check.
+  </SECTION>
+  
+  <SECTION title="Business Chains">
+These chains represent the REAL and ONLY paths to find INDIRECT relations between nodes. Their absence in the graph represents a gap that must always be raised to validate:
+
+1. **SectorOps**
+   Path: SectorObjective → SectorPolicyTool → SectorAdminRecord → Stakeholders → SectorDataTransaction → SectorPerformance → SectorObjective
+   Story: Describes how government objectives are executed externally through policy tools, stakeholder interactions, and performance measurement cycles.
+
+2. **Strategy_to_Tactics_Priority_Capabilities**
+   Path: SectorObjective → SectorPolicyTool → EntityCapability → Gaps → EntityProject → EntityChangeAdoption
+   Story: Explains how strategic goals cascade through policy tools to shape capability‑building and implementation projects.
+
+3. **Strategy_to_Tactics_Capabilities_Targets**
+   Path: SectorObjective → SectorPerformance → EntityCapability → Gaps → EntityProject → EntityChangeAdoption
+   Story: Captures how performance targets flow top‑down from strategy to operational projects via capabilities.
+
+4. **Tactical_to_Strategy**
+   Path: EntityChangeAdoption → EntityProject → Ops Layers → EntityCapability → SectorPerformance|SectorPolicyTool → SectorObjective
+   Story: Describes the feedback loop where project execution informs higher‑level strategy and policy decisions.
+
+5. **Risk_Build_Mode**
+   Path: EntityCapability → EntityRisk → SectorPolicyTool
+   Story: Illustrates how operational risks influence the design and activation of policy tools.
+
+6. **Risk_Operate_Mode**
+   Path: EntityCapability → EntityRisk → SectorPerformance
+   Story: Explains how capability‑level risks affect performance outcomes and KPI achievement.
+
+7. **Internal_Efficiency**
+   Path: EntityCultureHealth → EntityOrgUnit → EntityProcess → EntityITSystem → EntityVendor
+   Story: Represents how organizational health drives process and IT efficiency through vendor ecosystems.
+  </SECTION>
+  
+  <SECTION title="Vector Strategy">
+**Template A: Concept Search**
+When user asks about concepts, strategies, or context-rich goals:
+```
+CALL db.index.vector.queryNodes('memory_semantic_index', 5, $embedding)
+YIELD node, score
+WHERE score > 0.75
+RETURN node.content, node.metadata, score
+```
+
+**Template B: Inference & Similarity**
+When user asks "what's similar to X" or "show me related Y":
+```
+CALL db.index.vector.queryNodes('memory_semantic_index', 10, $embedding)
+YIELD node, score
+WHERE score > 0.70
+RETURN node.content, node.metadata, score
+ORDER BY score DESC
+```
+  </SECTION>
+</INSTRUCTION_BUNDLE>

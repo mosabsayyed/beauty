@@ -17,6 +17,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 SUPABASE_URL = settings.SUPABASE_URL
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+# Optional variant that does not raise a 401 if token is missing (use for guest-friendly endpoints)
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -103,3 +105,46 @@ def verify_token(token: str, credentials_exception):
         if user_resp.status_code != 200:
             raise credentials_exception
         return user_resp.json()
+
+
+async def get_optional_user(token: Optional[str] = Depends(oauth2_scheme_optional), user_service: UserService = Depends(lambda: user_service)) -> Optional[User]:
+    """Similar to get_current_user but returns None if token is invalid or missing.
+    This allows endpoints to accept unauthenticated (guest) requests without returning 401.
+    """
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            return None
+        user = await user_service.get_user_by_id(int(user_id))
+        return user
+    except Exception:
+        # Try Supabase validation, but if it fails, return None rather than raising
+        if not SUPABASE_URL:
+            return None
+        try:
+            headers = {"Authorization": f"Bearer {token}", "apikey": settings.SUPABASE_ANON_KEY}
+            user_resp = requests.get(f"{SUPABASE_URL}/auth/v1/user", headers=headers, timeout=5)
+            if user_resp.status_code != 200:
+                return None
+            user_json = user_resp.json()
+            supa_user_id = user_json.get("id")
+            supa_email = user_json.get("email")
+            if not supa_user_id:
+                return None
+            local_user = await user_service.get_user_by_supabase_id(supa_user_id) if hasattr(user_service, 'get_user_by_supabase_id') else None
+            if not local_user and supa_email:
+                local_user = await user_service.get_user_by_email(supa_email)
+            if not local_user:
+                try:
+                    user_metadata = user_json.get('user_metadata') or {}
+                    full_name = user_metadata.get('full_name') or user_json.get('user_metadata', {}).get('full_name') if isinstance(user_json, dict) else None
+                    new_local = await user_service.create_user(email=supa_email, password=None, supabase_id=supa_user_id, full_name=full_name)
+                    return new_local
+                except Exception:
+                    return None
+            return local_user
+        except Exception:
+            return None

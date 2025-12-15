@@ -4,19 +4,55 @@
  * Message composer with:
  * - Auto-growing textarea
  * - Send button
- * - Attachment button (future)
+ * - File attachment with preview
  * - Keyboard shortcuts (Enter to send, Shift+Enter for new line)
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip } from 'lucide-react';
+import { Send, Paperclip, X, FileText, Image as ImageIcon } from 'lucide-react';
+import '../../styles/chat.css';
+
+interface AttachedFile {
+  id: string;
+  file: File;
+  preview?: string;
+}
 
 interface ChatInputProps {
-  onSend: (message: string) => void;
+  onSend: (message: string, fileIds?: string[]) => void;
   disabled?: boolean;
   placeholder?: string;
   language?: 'en' | 'ar';
 }
+
+// Public sector file type policy
+const ALLOWED_FILE_TYPES = {
+  'application/pdf': ['.pdf'],
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+  'text/csv': ['.csv'],
+  'text/plain': ['.txt'],
+  'text/markdown': ['.md'],
+  'image/png': ['.png'],
+  'image/jpeg': ['.jpg', '.jpeg'],
+};
+
+const ACCEPT_STRING = Object.values(ALLOWED_FILE_TYPES).flat().join(',');
+
+const FILE_ERROR_MESSAGES = {
+  en: {
+    invalidType: 'Invalid file type. Allowed: PDF, DOCX, XLSX, CSV, TXT, MD, PNG, JPG',
+    tooLarge: 'File too large. Maximum size: {size}MB',
+    tooMany: 'Maximum 10 files per upload',
+    uploadFailed: 'Upload failed. Please try again.',
+  },
+  ar: {
+    invalidType: 'نوع ملف غير صالح. المسموح: PDF، DOCX، XLSX، CSV، TXT، MD، PNG، JPG',
+    tooLarge: 'الملف كبير جدًا. الحد الأقصى: {size}ميجابايت',
+    tooMany: 'الحد الأقصى 10 ملفات لكل تحميل',
+    uploadFailed: 'فشل التحميل. يرجى المحاولة مرة أخرى.',
+  }
+};
 
 export function ChatInput({
   onSend,
@@ -25,12 +61,15 @@ export function ChatInput({
   language = 'en',
 }: ChatInputProps) {
   const [message, setMessage] = useState('');
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+  const [uploading, setUploading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const isRTL = language === 'ar';
 
-  const defaultPlaceholder = language === 'ar' 
-    ? 'اكتب رسالتك إلى نور...'
-    : 'Message Noor...';
+  const defaultPlaceholder = language === 'ar'
+    ? 'اكتب رسالتك إلى نور... — اضغط Enter للإرسال'
+    : 'Message Noor — Press Enter to send';
 
   // Auto-resize textarea
   useEffect(() => {
@@ -41,15 +80,108 @@ export function ChatInput({
     }
   }, [message]);
 
-  const handleSubmit = () => {
-    if (message.trim() && !disabled) {
-      onSend(message.trim());
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    // Validate file count
+    if (attachedFiles.length + files.length > 10) {
+      alert(FILE_ERROR_MESSAGES[language].tooMany);
+      return;
+    }
+
+    const newFiles: AttachedFile[] = await Promise.all(
+      files.map(async (file) => {
+        const id = crypto.randomUUID();
+        let preview: string | undefined;
+        
+        // Generate preview for images
+        if (file.type.startsWith('image/')) {
+          try {
+            preview = await fileToBase64(file);
+          } catch (error) {
+            console.error('Failed to generate preview:', error);
+          }
+        }
+        
+        return { id, file, preview };
+      })
+    );
+    
+    setAttachedFiles(prev => [...prev, ...newFiles]);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeFile = (id: string) => {
+    setAttachedFiles(prev => prev.filter(f => f.id !== id));
+  };
+
+  const uploadFiles = async (): Promise<string[]> => {
+    if (attachedFiles.length === 0) return [];
+
+    const formData = new FormData();
+    attachedFiles.forEach(({ file }) => {
+      formData.append('files', file);
+    });
+
+    try {
+      const token = localStorage.getItem('josoor_token');
+      const response = await fetch('/api/v1/files/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await response.json();
+      return data.files.map((f: any) => f.file_id);
+    } catch (error) {
+      console.error('File upload error:', error);
+      alert(FILE_ERROR_MESSAGES[language].uploadFailed);
+      return [];
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!message.trim() && attachedFiles.length === 0) return;
+    if (disabled || uploading) return;
+
+    try {
+      setUploading(true);
+
+      // Upload files first if any
+      const fileIds = await uploadFiles();
+
+      // Send message with file IDs
+      onSend(message.trim(), fileIds.length > 0 ? fileIds : undefined);
+      
+      // Clear state
       setMessage('');
+      setAttachedFiles([]);
       
       // Reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -60,104 +192,145 @@ export function ChatInput({
     }
   };
 
-  const canSend = message.trim().length > 0 && !disabled;
+  const canSend = (message.trim().length > 0 || attachedFiles.length > 0) && !disabled && !uploading;
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
 
   return (
-    <div
-      style={{
-        borderTop: '1px solid rgb(229, 231, 235)',
-        backgroundColor: 'rgb(255, 255, 255)',
-        padding: '12px 0',
-      }}
-    >
-      <div
-        style={{
+    <div className="chat-input-area">
+      {/* File Previews */}
+      {attachedFiles.length > 0 && (
+        <div style={{
           display: 'flex',
-          justifyContent: 'center',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            width: '100%',
-            maxWidth: '900px',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '0 20px',
-            margin: '0 auto',
-          }}
-        >
-          {/* Attachment Button (Future) */}
+          gap: '8px',
+          padding: '8px 20px',
+          overflowX: 'auto',
+          maxWidth: '900px',
+          margin: '0 auto'
+        }}>
+          {attachedFiles.map(({ id, file, preview }) => (
+            <div
+              key={id}
+              style={{
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: '8px',
+                border: '1px solid var(--component-panel-border)',
+                background: 'var(--component-panel-bg)',
+                minWidth: '100px',
+                maxWidth: '120px'
+              }}
+            >
+              {/* Remove button */}
+              <button
+                onClick={() => removeFile(id)}
+                style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: '4px',
+                  background: 'rgba(0,0,0,0.6)',
+                  border: 'none',
+                  width: '20px',
+                  height: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: 'white'
+                }}
+              >
+                <X size={14} />
+              </button>
+
+              {/* Preview */}
+              {preview ? (
+                <img
+                  src={preview}
+                  alt={file.name}
+                  style={{
+                    width: '80px',
+                    height: '80px',
+                    objectFit: 'cover',
+                    marginBottom: '4px'
+                  }}
+                />
+              ) : (
+                <div style={{
+                  width: '80px',
+                  height: '80px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'var(--component-bg-primary)',
+                  marginBottom: '4px'
+                }}>
+                  <FileText size={32} color="var(--component-text-secondary)" />
+                </div>
+              )}
+
+              {/* File info */}
+              <div style={{
+                fontSize: '11px',
+                color: 'var(--component-text-secondary)',
+                textAlign: 'center',
+                wordBreak: 'break-word',
+                width: '100%'
+              }}>
+                <div style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  marginBottom: '2px'
+                }}>
+                  {file.name}
+                </div>
+                <div>{formatFileSize(file.size)}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="chat-input-center">
+        <div className="chat-input-row">
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept={ACCEPT_STRING}
+            onChange={handleFileSelect}
+            style={{ display: 'none' }}
+          />
+
+          {/* Attachment Button - NOW FUNCTIONAL */}
           <button
-            style={{
-              flexShrink: 0,
-              borderRadius: '8px',
-              padding: '10px',
-              transition: 'background-color 0.2s ease',
-              backgroundColor: 'transparent',
-              border: 'none',
-              cursor: disabled ? 'not-allowed' : 'pointer',
-            }}
-            disabled={disabled}
+            className={`chat-attach-button clickable ${disabled || uploading ? 'disabled' : ''}`}
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled || uploading}
             title={language === 'ar' ? 'إرفاق ملف' : 'Attach file'}
-            onMouseEnter={(e) => {
-              if (!disabled) {
-                (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(249, 250, 251, 1)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent';
-            }}
           >
-            <Paperclip style={{ width: '20px', height: '20px', color: 'rgba(107, 114, 128, 1)' }} />
+            <Paperclip className="chat-attach-icon" />
           </button>
 
           {/* Textarea */}
-          <div
-            style={{
-              position: 'relative',
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
+          <div className="chat-input-wrapper clickable">
             <textarea
               ref={textareaRef}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={placeholder || defaultPlaceholder}
-              disabled={disabled}
+              disabled={disabled || uploading}
               dir={isRTL ? 'rtl' : 'ltr'}
               rows={1}
-              style={{
-                width: '100%',
-                minHeight: '48px',
-                maxHeight: '120px',
-                borderRadius: '8px',
-                border: '1px solid rgba(74,74,74,1)',
-                backgroundColor: 'rgb(255, 255, 255)',
-                padding: '12px 16px',
-                fontSize: '14px',
-                fontFamily: 'inherit',
-                resize: 'none',
-                transition: 'all 0.2s ease',
-                outline: 'none',
-                minWidth: 0,
-                maxWidth: '100%',
-                opacity: disabled ? 0.5 : 1,
-                cursor: disabled ? 'not-allowed' : 'auto',
-              }}
-              onFocus={(e) => {
-                if (!disabled) {
-                  e.currentTarget.style.borderColor = 'rgba(26, 36, 53, 1)';
-                  e.currentTarget.style.boxShadow = '0 0 0 2px rgba(26, 36, 53, 0.1)';
-                }
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = 'rgb(229, 231, 235)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
+              className={`chat-textarea ${disabled || uploading ? 'disabled' : ''}`}
             />
           </div>
 
@@ -165,54 +338,20 @@ export function ChatInput({
           <button
             onClick={handleSubmit}
             disabled={!canSend}
-            style={{
-              display: 'flex',
-              height: '48px',
-              width: '48px',
-              flexShrink: 0,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '8px',
-              border: 'none',
-              cursor: canSend ? 'pointer' : 'not-allowed',
-              transition: 'all 0.2s ease',
-              backgroundColor: canSend ? 'rgba(26, 36, 53, 1)' : 'rgba(229, 231, 235, 1)',
-              color: canSend ? 'rgba(255, 255, 255, 1)' : 'rgba(156, 163, 175, 1)',
-              marginLeft: 'auto',
-            }}
+            className={`chat-send-button clickable ${canSend ? 'can-send' : 'disabled'}`}
             title={language === 'ar' ? 'إرسال' : 'Send'}
-            onMouseEnter={(e) => {
-              if (canSend) {
-                (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(26, 36, 53, 0.9)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (canSend) {
-                (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(26, 36, 53, 1)';
-              }
-            }}
           >
-            <Send style={{ width: '20px', height: '20px', color: canSend ? 'rgba(255,255,255,1)' : 'rgba(74,74,74,1)' }} />
+            {uploading ? (
+              <div className="spinner" style={{ width: '20px', height: '20px' }} />
+            ) : (
+              <Send className="chat-send-icon" />
+            )}
           </button>
         </div>
       </div>
 
-      {/* Keyboard Hint */}
-      <div
-        style={{
-          marginTop: '8px',
-          fontSize: '12px',
-          color: 'rgba(156, 163, 175, 1)',
-          textAlign: isRTL ? 'right' : 'left',
-          maxWidth: '900px',
-          padding: '0 20px',
-          margin: '8px auto 0 auto',
-        }}
-      >
-        {language === 'ar'
-          ? 'اضغط Enter للإرسال، Shift+Enter لسطر جديد'
-          : 'Press Enter to send, Shift+Enter for new line'}
-      </div>
+      {/* Keyboard hint moved into textarea placeholder to reduce clutter under input */}
     </div>
   );
 }
+

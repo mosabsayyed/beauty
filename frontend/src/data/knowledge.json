@@ -1,0 +1,53 @@
+{
+  "chapters": [
+    {
+      "id": "chapter-1",
+      "title": { "en": "Chapter 1 — The Mechanics of Transformation", "ar": "الفصل 1 — آليات التحول" },
+      "episodes": [
+        { "id": "1-1", "title": { "en": "What is an Organizational Transformation?", "ar": "ما هو التحول التنظيمي؟" } },
+        { "id": "1-2", "title": { "en": "What is a Sector Transformation?", "ar": "ما هو تحول القطاع؟" } },
+        { "id": "1-3", "title": { "en": "The People Transformation", "ar": "التحول البشري" } },
+        { "id": "1-4", "title": { "en": "The Entangled Transformation", "ar": "التحول المتشابك" } }
+      ]
+    },
+    {
+      "id": "chapter-2",
+      "title": { "en": "Chapter 2: Transformation Components Deep Dive", "ar": "الفصل 2: الغوص العميق في مكونات التحول" },
+      "episodes": [
+        { "id": "2-1", "title": { "en": "Strategic Performance (KPIs)", "ar": "الأداء الاستراتيجي (مؤشرات الأداء الرئيسية)" } },
+        { "id": "2-2", "title": { "en": "Portfolios & Initiatives", "ar": "المحافظ والمبادرات" } },
+        { "id": "2-3", "title": { "en": "Process Architecture", "ar": "هيكل العمليات" } },
+        { "id": "2-4", "title": { "en": "Organizational Design", "ar": "التصميم التنظيمي" } }
+      ]
+    },
+    {
+      "id": "chapter-3",
+      "title": { "en": "Chapter 3: Transformation Relations and Interactions", "ar": "الفصل 3: علاقات وتفاعلات التحول" },
+      "episodes": [
+        { "id": "3-1", "title": { "en": "The Integrated Governance", "ar": "الحوكمة المتكاملة" } },
+        { "id": "3-2", "title": { "en": "The Delivery Engine", "ar": "محرك التسليم" } },
+        { "id": "3-3", "title": { "en": "Change Architecture", "ar": "هيكل التغيير" } },
+        { "id": "3-4", "title": { "en": "The Enablers", "ar": "الممكّنات" } }
+      ]
+    },
+    {
+      "id": "chapter-4",
+      "title": { "en": "Chapter 4: The Journey to a Cognitive Government", "ar": "الفصل 4: الرحلة نحو الحكومة المعرفية" },
+      "episodes": [
+        { "id": "4-1", "title": { "en": "The Science of the Digital Twin", "ar": "علوم التوأم الرقمي" } },
+        { "id": "4-2", "title": { "en": "Fine-Tuning AI to Organizational Intelligence", "ar": "تخصيص الذكاء الاصطناعي المؤسسي" } },
+        { "id": "4-3", "title": { "en": "The Saudi Leap", "ar": "الانطلاقة السعودية" } },
+        { "id": "4-4", "title": { "en": "The New Digital Age Manifesto", "ar": "ميثاقُ العصر الرقمي الجديد" } }
+
+      ]
+    },
+    {
+      "media": {
+      "images": { "folder": "/images", "extension": ".png, .gif" },
+      "videos": { "folder": "/videos", "ar": ".mp4" },
+      "audios": { "folder": "/audio", "ar": ".m4a" },
+      "patterns": { "all_filenames_en": "x.y", "all_filenames_ar": "x.y_ar"}  
+    }
+    }
+  ]
+}

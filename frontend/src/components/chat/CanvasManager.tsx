@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
+import '../../canvas.css';
 
 import { UniversalCanvas } from './UniversalCanvas';
 import { Artifact } from '../../types/api';
 import { chatService } from '../../services/chatService';
-import { shareArtifact, printArtifact, saveArtifact, downloadArtifact } from '../../utils/canvasActions';
+import { shareArtifact, printArtifact, downloadArtifact } from '../../utils/canvasActions';
 import { 
   XMarkIcon, 
   ArrowsPointingOutIcon, 
@@ -43,6 +45,19 @@ export function CanvasManager({ isOpen = false, conversationId = null, artifacts
   const [groupCounter, setGroupCounter] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  const { isRTL, language, setLanguage } = useLanguage();
+  const translations = {
+    share: language === 'ar' ? 'مشاركة' : 'Share',
+    print: language === 'ar' ? 'طباعة' : 'Print',
+    save: language === 'ar' ? 'حفظ' : 'Save',
+    download: language === 'ar' ? 'تحميل' : 'Download',
+    enterZen: language === 'ar' ? 'وضع التركيز' : 'Enter Zen Mode',
+    exitZen: language === 'ar' ? 'خروج من وضع التركيز' : 'Exit Zen Mode',
+    close: language === 'ar' ? 'إغلاق' : 'Close',
+    previous: language === 'ar' ? 'السابق' : 'Previous',
+    next: language === 'ar' ? 'التالي' : 'Next',
+  };
+
   // Sync mode with isOpen prop
   useEffect(() => {
     if (isOpen && mode === 'hidden') {
@@ -53,24 +68,48 @@ export function CanvasManager({ isOpen = false, conversationId = null, artifacts
   }, [isOpen, mode]);
 
   // Sync artifacts from props
+  // Sync artifacts from props
   useEffect(() => {
     if (propArtifacts && propArtifacts.length > 0) {
-      console.log('[CanvasManager] Received artifacts from props:', propArtifacts.length);
+
       setArtifacts(propArtifacts);
       
+      // Always update current artifact if explicit initialArtifact is provided
       if (initialArtifact) {
         console.log('[CanvasManager] Setting initial artifact from props:', initialArtifact.title);
         setCurrentArtifact(initialArtifact);
         const index = propArtifacts.findIndex(a => a.id === initialArtifact.id);
         if (index >= 0) setCurrentIndex(index);
         setMode('expanded');
-      } else if (!currentArtifact) {
-        // If no current artifact, set the first one
+      } 
+      // If we have a single artifact passed (like from Demo action), force it as current
+      else if (propArtifacts.length === 1) {
+        setCurrentArtifact(propArtifacts[0]);
+        setCurrentIndex(0);
+      }
+      // Fallback: If no current artifact or current is not in new list, set first
+      else if (!currentArtifact || !propArtifacts.find(a => a.id === currentArtifact.id)) {
         setCurrentArtifact(propArtifacts[0]);
         setCurrentIndex(0);
       }
     }
   }, [propArtifacts, initialArtifact]);
+
+  // Auto-trigger Zen Mode for Graph artifacts and honor per-artifact forceZen flag
+  useEffect(() => {
+    // Original behavior: auto-enable Zen for Graph visualizations
+    if (currentArtifact?.artifact_type === 'GRAPHV001') {
+      console.log('[CanvasManager] Auto-triggering Zen Mode for Graph');
+      setIsZenMode(true);
+    }
+
+    // New: if an artifact explicitly requests Zen mode (forceZen), honor it.
+    // This is intentionally narrow and requires the artifact to set `forceZen: true`.
+    if (currentArtifact?.forceZen) {
+      console.log('[CanvasManager] Artifact requests Zen mode via forceZen flag');
+      setIsZenMode(true);
+    }
+  }, [currentArtifact]);
 
   // --- Mode Management ---
   const setMode = useCallback((newMode: typeof mode) => {
@@ -135,7 +174,6 @@ export function CanvasManager({ isOpen = false, conversationId = null, artifacts
     switch (action) {
       case 'share': shareArtifact(currentArtifact); break;
       case 'print': printArtifact(); break;
-      case 'save': saveArtifact(currentArtifact); break;
       case 'download': downloadArtifact(currentArtifact); break;
     }
   }, [currentArtifact]);
@@ -191,13 +229,18 @@ export function CanvasManager({ isOpen = false, conversationId = null, artifacts
 
   // Load artifacts when conversationId changes
   useEffect(() => {
+    // Only load from conversation if we don't have explicit props
+    if (propArtifacts && propArtifacts.length > 0) {
+      return;
+    }
+
     if (conversationId) {
       loadConversationArtifacts(conversationId);
     } else {
       setArtifacts([]);
       setCurrentArtifact(null);
     }
-  }, [conversationId, loadConversationArtifacts]);
+  }, [conversationId, loadConversationArtifacts, propArtifacts]);
 
   // --- Event Listeners ---
   useEffect(() => {
@@ -279,55 +322,54 @@ export function CanvasManager({ isOpen = false, conversationId = null, artifacts
   const hasMultiple = artifacts.length > 1;
   const effectiveWidth = (isZenMode || mode === 'fullscreen') ? '100%' : (mode === 'expanded' ? '60%' : '384px');
 
+  const anchorStyles: any = isRTL ? {
+    left: 0,
+    right: 'auto',
+    borderLeft: 'none',
+    borderRight: '1px solid var(--component-panel-border)'
+  } : {
+    right: 0,
+    left: 'auto',
+    borderRight: 'none',
+    borderLeft: '1px solid var(--component-panel-border)'
+  };
+
   return (
-    <div style={{
+  <div className="canvas-panel glass-panel" style={{
       position: 'fixed',
       top: isZenMode ? 0 : 0,
-      right: 0,
       height: '100%',
       width: effectiveWidth,
-      backgroundColor: '#fff',
-      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+      /* use frosted (transparent) background in both modes to enable glass effect */
+      backgroundColor: 'transparent',
+      boxShadow: isZenMode ? 'none' : '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
       zIndex: isZenMode ? 9999 : 50,
       display: 'flex',
       flexDirection: 'column',
-      borderLeft: '1px solid #e5e7eb',
-      transition: 'all 0.3s ease'
+      transition: 'all 0.3s ease',
+      ...anchorStyles
     }}>
       {/* Enhanced Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '16px 24px',
-        borderBottom: '1px solid #e5e7eb',
-        backgroundColor: '#fff'
-      }}>
+      <div className="canvas-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--component-panel-border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, overflow: 'hidden' }}>
           {/* Gradient bar */}
           <div style={{
             height: '32px',
             width: '4px',
-            background: 'linear-gradient(to bottom, #F59E0B, #D97706)',
-            borderRadius: '4px',
+            background: 'linear-gradient(to bottom, var(--color-gold), var(--color-gold-hover))',
             flexShrink: 0
           }} />
           <div style={{ overflow: 'hidden' }}>
-            <h2 style={{
-              fontSize: '16px',
-              fontWeight: 600,
-              color: '#111827',
-              margin: 0,
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              overflow: 'hidden'
-            }}>
-              {currentArtifact?.title || 'Artifacts'}
-            </h2>
-            {hasMultiple && (
+            <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0, marginLeft: '12px', color: 'var(--component-text-primary)' }}>
+              {currentArtifact?.artifact_type === 'TWIN_KNOWLEDGE'
+                ? (language === 'ar' ? 'المعرفة التوأمية' : 'Twin Knowledge')
+                : (currentArtifact?.title || 'Artifacts')
+              }
+            </h3>
+            {hasMultiple && !currentArtifact?.hideNavigation && (
               <p style={{
                 fontSize: '12px',
-                color: '#6b7280',
+                      color: 'var(--component-text-secondary)',
                 margin: 0
               }}>
                 {currentIndex + 1} of {artifacts.length}
@@ -340,120 +382,104 @@ export function CanvasManager({ isOpen = false, conversationId = null, artifacts
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <>
               <button
+                className="clickable header-button"
                 onClick={() => handleAction('share')}
                 style={{
                   padding: '8px',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  borderRadius: '6px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}
-                title="Share"
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                title={translations.share}
+              
               >
-                <ShareIcon style={{ width: '18px', height: '18px', color: '#6b7280' }} />
+                <ShareIcon style={{ width: '18px', height: '18px', color: 'var(--component-text-secondary)' }} />
               </button>
               <button
+                className="clickable header-button"
                 onClick={() => handleAction('print')}
                 style={{
                   padding: '8px',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  borderRadius: '6px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}
-                title="Print"
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                title={translations.print}
+              
               >
-                <PrinterIcon style={{ width: '18px', height: '18px', color: '#6b7280' }} />
+                <PrinterIcon style={{ width: '18px', height: '18px', color: 'var(--component-text-secondary)' }} />
               </button>
               <button
-                onClick={() => handleAction('save')}
-                style={{
-                  padding: '8px',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                title="Save"
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-              >
-                <BookmarkIcon style={{ width: '18px', height: '18px', color: '#6b7280' }} />
-              </button>
-              <button
+                className="clickable header-button"
                 onClick={() => handleAction('download')}
                 style={{
                   padding: '8px',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  borderRadius: '6px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}
-                title="Download"
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                title={translations.download}
+              
               >
-                <ArrowDownTrayIcon style={{ width: '18px', height: '18px', color: '#6b7280' }} />
+                <ArrowDownTrayIcon style={{ width: '18px', height: '18px', color: 'var(--component-text-secondary)' }} />
               </button>
-              <div style={{ width: '1px', height: '20px', backgroundColor: '#e5e7eb', margin: '0 4px' }} />
+              <div style={{ width: '1px', height: '20px', backgroundColor: 'var(--component-panel-border)', margin: '0 4px' }} />
             </>
+          
+          {/* Language Toggle - Only for Twin Knowledge */}
+          {currentArtifact?.artifact_type === 'TWIN_KNOWLEDGE' && (
+            <>
+              <button
+                className="clickable canvas-nav-button"
+                onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+                style={{ 
+                  padding: '6px 12px',
+                  fontSize: '13px',
+                  fontWeight: 600
+                }}
+                title={language === 'en' ? 'العربية' : 'English'}
+                onMouseEnter={(e) => (e.currentTarget.classList.add('hovered'))}
+                onMouseLeave={(e) => (e.currentTarget.classList.remove('hovered'))}
+              >
+                {/* Show TARGET language (what you'd switch TO) */}
+                {language === 'en' ? 'AR' : 'EN'}
+              </button>
+              <div style={{ width: '1px', height: '20px', backgroundColor: 'var(--component-panel-border)', margin: '0 4px' }} />
+            </>
+          )}
           
           {/* Zen Mode Toggle */}
           <button
+            className={`clickable canvas-nav-button ${isZenMode ? 'zen-active' : ''}`}
             onClick={toggleZenMode}
-            style={{
-              padding: '8px',
-              backgroundColor: isZenMode ? '#fef3c7' : 'transparent',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            title={isZenMode ? "Exit Zen Mode" : "Enter Zen Mode"}
-            onMouseEnter={(e) => !isZenMode && (e.currentTarget.style.backgroundColor = '#f3f4f6')}
-            onMouseLeave={(e) => !isZenMode && (e.currentTarget.style.backgroundColor = 'transparent')}
+            style={{ padding: '8px' }}
+            title={isZenMode ? translations.exitZen : translations.enterZen}
+            onMouseEnter={(e) => (e.currentTarget.classList.add('hovered'))}
+            onMouseLeave={(e) => (e.currentTarget.classList.remove('hovered'))}
           >
             {isZenMode ? (
               <ArrowsPointingInIcon style={{ width: '18px', height: '18px', color: '#d97706' }} />
             ) : (
-              <ArrowsPointingOutIcon style={{ width: '18px', height: '18px', color: '#6b7280' }} />
+              <ArrowsPointingOutIcon style={{ width: '18px', height: '18px', color: 'var(--component-text-secondary)' }} />
             )}
           </button>
 
           {/* Close Button */}
           <button
+            className="clickable canvas-nav-button header-button"
             onClick={toggleCanvas}
             style={{
               padding: '8px',
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderRadius: '6px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}
-            title="Close"
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            title={translations.close}
+          
           >
             <XMarkIcon style={{ width: '18px', height: '18px', color: '#ef4444' }} />
           </button>
@@ -461,100 +487,69 @@ export function CanvasManager({ isOpen = false, conversationId = null, artifacts
       </div>
 
       {/* Navigation Controls (when viewing artifact and multiple exist) */}
-      {hasMultiple && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '8px 16px',
-          backgroundColor: '#f9fafb',
-          borderBottom: '1px solid #e5e7eb'
-        }}>
+      {hasMultiple && !currentArtifact?.hideNavigation && (
+        <div className="canvas-nav-controls">
           <button
+            className="clickable canvas-nav-button"
             onClick={handlePrev}
             disabled={currentIndex === 0}
-            style={{
-              padding: '6px 12px',
-              backgroundColor: currentIndex === 0 ? '#f3f4f6' : '#fff',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              cursor: currentIndex === 0 ? 'not-allowed' : 'pointer',
-              opacity: currentIndex === 0 ? 0.5 : 1,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontSize: '14px',
-              color: '#374151'
-            }}
+            style={{ padding: '6px 12px', gap: '4px', fontSize: '14px' }}
           >
             <ChevronLeftIcon style={{ width: '16px', height: '16px' }} />
-            Previous
+            {translations.previous}
           </button>
-          <span style={{ fontSize: '14px', color: '#6b7280' }}>
+          <span style={{ fontSize: '14px', color: 'var(--component-text-secondary)' }}>
             {currentIndex + 1} / {artifacts.length}
           </span>
           <button
+            className="clickable canvas-nav-button"
             onClick={handleNext}
             disabled={currentIndex === artifacts.length - 1}
-            style={{
-              padding: '6px 12px',
-              backgroundColor: currentIndex === artifacts.length - 1 ? '#f3f4f6' : '#fff',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              cursor: currentIndex === artifacts.length - 1 ? 'not-allowed' : 'pointer',
-              opacity: currentIndex === artifacts.length - 1 ? 0.5 : 1,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontSize: '14px',
-              color: '#374151'
-            }}
+            style={{ padding: '6px 12px', gap: '4px', fontSize: '14px' }}
           >
-            Next
+            {translations.next}
             <ChevronRightIcon style={{ width: '16px', height: '16px' }} />
           </button>
         </div>
       )}
 
       {/* Content Area */}
-      <div style={{ flex: 1, overflow: 'auto' }} ref={containerRef}>
+      <div id="canvas-content-area" className="canvas-content" style={{ 
+        flex: 1, 
+        overflow: ['TWIN_KNOWLEDGE', 'GRAPHV001'].includes(currentArtifact?.artifact_type || '') ? 'hidden' : 'auto',
+        padding: 0,
+        background: 'var(--component-bg-primary)'
+      }} ref={containerRef}>
         {/* Single Artifact View - Use UniversalCanvas for broader support */}
         {currentArtifact ? (
-          <div style={{ padding: '24px', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+          <div className="clickable" style={{ 
+            // Zero padding for full-bleed artifacts (Twin Knowledge, Dashboards, React components)
+            padding: ['TWIN_KNOWLEDGE', 'GRAPHV001', 'REACT'].includes(currentArtifact.artifact_type) ? '0' : '24px', 
+            height: '100%', 
+            boxSizing: 'border-box', 
+            display: 'flex', 
+            flexDirection: 'column' 
+          }}>
             <UniversalCanvas 
               content={currentArtifact.content} 
-              artifact={currentArtifact}
               title={currentArtifact.title}
-              type={currentArtifact.artifact_type?.toLowerCase()}
+              type={currentArtifact.artifact_type}
+              artifact={currentArtifact}
+              onNext={handleNext}
             />
           </div>
         ) : (
-          <div style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 0' }}>No artifact selected</div>
+          <div style={{ textAlign: 'center', color: 'var(--component-text-muted)', padding: '32px 0' }}>No artifact selected</div>
         )}
       </div>
-      
-      {/* Back button when viewing artifact */}
-      {currentArtifact && (
-        <div style={{
-          padding: '16px',
-          borderTop: '1px solid #e5e7eb',
-          backgroundColor: '#f9fafb'
-        }}>
+
+      {/* Back button when viewing artifact - hide for GRAPHV001 dashboard */}
+      {currentArtifact && currentArtifact.artifact_type !== 'GRAPHV001' && (
+        <div className="canvas-footer">
           <button 
             onClick={closeArtifact}
-            style={{
-              width: '100%',
-              padding: '10px 16px',
-              backgroundColor: '#fff',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 500,
-              color: '#374151'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
+            className="canvas-nav-button canvas-full"
+            style={{ width: '100%', padding: '10px 16px', fontSize: '14px', fontWeight: 500 }}
           >
             ← Back to List
           </button>

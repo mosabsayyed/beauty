@@ -1,0 +1,35 @@
+# Noor Cognitive Digital Twin - Nightly Memory ETL
+# ================================================
+# 
+# This systemd service runs the memory ETL job nightly.
+# It processes conversations from PostgreSQL into Memory nodes in Neo4j.
+#
+# Installation:
+#   sudo cp nightly-memory-etl.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable nightly-memory-etl.timer
+#   sudo systemctl start nightly-memory-etl.timer
+#
+# Per Bible Section 1.2: Noor NEVER writes to memory directly.
+# This batch job is the ONLY way memory gets written.
+
+[Unit]
+Description=Noor Cognitive Digital Twin - Nightly Memory ETL
+After=network.target postgresql.service
+
+[Service]
+Type=oneshot
+User=mosab
+WorkingDirectory=/home/mosab/projects/chatmodule/backend
+Environment="PATH=/home/mosab/projects/chatmodule/backend/.venv/bin:/usr/bin:/bin"
+ExecStart=/home/mosab/projects/chatmodule/backend/.venv/bin/python scripts/nightly_memory_etl.py
+
+# Logging
+StandardOutput=append:/var/log/noor/memory-etl.log
+StandardError=append:/var/log/noor/memory-etl.error.log
+
+# Timeouts
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

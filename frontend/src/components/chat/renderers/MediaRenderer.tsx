@@ -18,45 +18,29 @@ interface MediaRendererProps {
 export function MediaRenderer({ url, type, title }: MediaRendererProps) {
   if (type === 'image') {
     return (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: 24,
-        background: '#000',
-        height: '100%',
-      }}>
+      <div className="media-renderer renderer-panel media-image">
         {title && (
-          <h3 style={{ color: '#fff', marginBottom: 16 }}>{title}</h3>
+          <h3 style={{ color: 'var(--component-text-primary)', marginBottom: 16 }}>{title}</h3>
         )}
-        <img 
-          src={url} 
-          alt={title || 'Image'} 
-          style={{ 
-            maxWidth: '100%', 
+        <img
+          src={url}
+          alt={title || 'Image'}
+          style={{
+            maxWidth: '100%',
             maxHeight: '80vh',
             objectFit: 'contain',
-            borderRadius: 8,
-          }} 
+            }}
         />
       </div>
     );
   }
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 24,
-      background: '#000',
-      height: '100%',
-    }}>
+    <div className="media-renderer renderer-panel media-video">
       {title && (
-        <h3 style={{ color: '#fff', marginBottom: 16 }}>{title}</h3>
+        <h3 style={{ color: 'var(--component-text-primary)', marginBottom: 16 }}>{title}</h3>
       )}
-      <div className="relative pt-[56.25%] bg-black rounded-lg overflow-hidden w-full max-w-[1000px]">
+      <div className="relative pt-[56.25%] overflow-hidden w-full max-w-[1000px] media-player">
         {/* @ts-ignore */}
         <ReactPlayer
           url={url}

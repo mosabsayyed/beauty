@@ -1,0 +1,39 @@
+﻿"ONTOLOGY - These relationships represent the REAL and ONLY DIRECT world relations between nodes. Their absence in the graph (including ""Relationship type does not exist"" warnings) represents a gap that must always be raised to validate:",,,
+Domain,Node,Rel,Node
+Sector Operations,SectorObjective,-->REALIZED_VIA,SectorPolicyTool
+Sector Operations,SectorPolicyTool,-->GOVERNED_BY,SectorObjective
+Sector Operations,SectorObjective,-->CASCADED_VIA,SectorPerformance
+Sector Operations,SectorPolicyTool,-->REFERS_TO,SectorAdminRecord
+Sector Operations,SectorAdminRecord,-->APPLIED_ON,SectorBusiness
+Sector Operations,SectorAdminRecord,-->APPLIED_ON,SectorGovEntity
+Sector Operations,SectorAdminRecord,-->APPLIED_ON,SectorCitizen
+Sector Operations,SectorBusiness,-->TRIGGERS_EVENT,SectorDataTransaction
+Sector Operations,SectorGovEntity,-->TRIGGERS_EVENT,SectorDataTransaction
+Sector Operations,SectorCitizen,-->TRIGGERS_EVENT,SectorDataTransaction
+Sector Operations,SectorDataTransaction,-->MEASURED_BY,SectorPerformance
+Sector Operations,SectorPerformance,-->AGGREGATES_TO,SectorObjective
+Strategic Integrated Risk Management,EntityRisk,-->INFORMS,SectorPerformance
+Strategic Integrated Risk Management,EntityRisk,-->INFORMS,SectorPolicyTool
+Strategic Integrated Risk Management,EntityRisk,<--MONITORED_BY,EntityCapability
+Sector and Entity Relations,SectorPolicyTool,-->SETS_PRIORITIES,EntityCapability
+Sector and Entity Relations,SectorPerformance,-->SETS_TARGETS,EntityCapability
+Sector and Entity Relations,EntityCapability,-->EXECUTES,SectorPolicyTool
+Sector and Entity Relations,EntityCapability,-->REPORTS,SectorPerformance
+Entity Internal Operations,EntityCapability,-->ROLE_GAPS,EntityOrgUnit
+Entity Internal Operations,EntityCapability,-->KNOWLEDGE_GAPS,EntityProcess
+Entity Internal Operations,EntityCapability,-->AUTOMATION_GAPS,EntityITSystem
+Entity Internal Operations,EntityOrgUnit,-->OPERATES,EntityCapability
+Entity Internal Operations,EntityProcess,-->OPERATES,EntityCapability
+Entity Internal Operations,EntityITSystem,-->OPERATES,EntityCapability
+Entity Internal Operations,EntityCultureHealth,-->MONITORS_FOR,EntityOrgUnit
+Entity Internal Operations,EntityOrgUnit,-->APPLY,EntityProcess
+Entity Internal Operations,EntityProcess,-->AUTOMATION,EntityITSystem
+Entity Internal Operations,EntityITSystem,-->DEPENDS_ON,EntityVendor
+Transforming Entity Capabilities,EntityOrgUnit,-->GAPS_SCOPE,EntityProject
+Transforming Entity Capabilities,EntityProcess,-->GAPS_SCOPE,EntityProject
+Transforming Entity Capabilities,EntityITSystem,-->GAPS_SCOPE,EntityProject
+Transforming Entity Capabilities,EntityProject,-->CLOSE_GAPS,EntityOrgUnit
+Transforming Entity Capabilities,EntityProject,-->CLOSE_GAPS,EntityProcess
+Transforming Entity Capabilities,EntityProject,-->CLOSE_GAPS,EntityITSystem
+Project to Operation Transfer,EntityProject,-->ADOPTION_RISKS,EntityChangeAdoption
+Project to Operation Transfer,EntityChangeAdoption,-->INCREASE_ADOPTION,EntityProject

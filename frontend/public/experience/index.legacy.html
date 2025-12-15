@@ -22,7 +22,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--color-canvas-page, #F9FAFB);
             height: 100vh;
             display: flex;
             justify-content: center;
@@ -42,7 +42,7 @@
         }
         
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--canvas-header-bg, var(--interactive-secondary-bg, #FFFFFF));
             color: white;
             padding: 20px 30px;
             display: flex;

@@ -18,12 +18,12 @@ class EmbeddingService:
         if not api_key:
             raise ValueError("OPENAI_API_KEY is required for embeddings. Replit AI Integration does not support embeddings.")
         
-        # Always use standard OpenAI endpoint for embeddings
+        # Always use standard OpenAI endpoint for embeddings and use the text-embedding-3-small as we did the main embeddings using it
         self.client = OpenAI(
             api_key=api_key,
             base_url="https://api.openai.com/v1"
         )
-        self.model = "text-embedding-ada-002"
+        self.model = "text-embedding-3-small"
         self.dimensions = 1536
     
     def generate_embedding(self, text: str) -> Optional[List[float]]:

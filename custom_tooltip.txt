@@ -1,0 +1,22 @@
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="custom-tooltip panel" style={{ 
+        backgroundColor: 'var(--component-background)', 
+        padding: '10px', 
+        border: '1px solid var(--component-border)',
+        borderRadius: '4px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      }}>
+        <p className="label" style={{ margin: 0, fontWeight: 600, color: 'var(--component-text-primary)' }}>{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <p key={index} style={{ margin: 0, color: entry.color || entry.fill }}>
+            {`${entry.name}: ${entry.value}`}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};

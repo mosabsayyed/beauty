@@ -1,0 +1,115 @@
+<!-- Bundle Tag: temporal_vantage_logic -->
+<!-- Version: 1.0.0 -->
+<!-- Status: active -->
+<!-- Category: logic -->
+<INSTRUCTION_BUNDLE tag="temporal_vantage_logic" version="1.0.0">
+  <PURPOSE>Defines temporal vantage point logic for determining active vs planned project status based on current date. Used in Step 1 (REQUIREMENTS) and Step 4 (RECONCILE) for temporal validation.</PURPOSE>
+  
+  <SECTION title="Vantage Point Concept">
+**Temporal Database Context:**
+- All records are timestamped with quarters and years
+- Most queries want to know if there is a problem, which depends highly on <datetoday> as a vantage point
+- Projects have temporal states based on start_date relative to current date
+
+**Reference Date:**
+- <datetoday> is injected dynamically as current system date (format: YYYY-MM-DD)
+- All temporal logic calculations use this as reference point
+  </SECTION>
+  
+  <SECTION title="Project Status Classification">
+**Planned Projects (Future Start):**
+- Definition: Projects with `start_date` in the future (start_date > <datetoday>)
+- Status: NOT ACTIVE
+- Completion Treatment: Consider completion rate as 0% even if stored progress_percentage > 0%
+- Filtering Rule: Must be excluded from "active projects" counts
+- Cypher Filter: `AND (n.start_date IS NULL OR n.start_date <= date('<datetoday>'))`
+
+**Active Projects (Past/Current Start):**
+- Definition: Projects with `start_date` in the past or present (start_date <= <datetoday>)
+- Status: ACTIVE or CLOSED
+- Sub-Classification:
+  - In Progress: progress_percentage < 100%
+  - Closed: progress_percentage = 100%
+
+**Projects Without start_date:**
+- Treatment: Consider as active (include in queries)
+- Rationale: Missing start_date implies legacy or ongoing project
+- Cypher Filter: `(n.start_date IS NULL OR ...)`
+  </SECTION>
+  
+  <SECTION title="Progress Analysis Logic">
+**Delay Detection:**
+1. Compare project start_date with <datetoday>
+2. Calculate project duration (end_date - start_date OR planned duration)
+3. Divide duration equally by months or weeks
+4. Identify expected progress by <datetoday>:
+   - Expected Progress % = (Days Elapsed / Total Duration Days) × 100
+5. Compare actual progress_percentage with expected progress
+6. Determination:
+   - Delay: actual progress < expected progress
+   - On Track: actual progress >= expected progress
+   - Ahead: actual progress > expected progress + buffer (e.g., 10%)
+
+**Example Calculation:**
+- Project: "Digital Transformation Platform"
+- start_date: 2025-01-01
+- end_date: 2025-12-31 (365 days total)
+- <datetoday>: 2025-07-01 (180 days elapsed)
+- Expected Progress: (180/365) × 100 = 49.3%
+- Actual progress_percentage: 35%
+- Status: **Delayed by 14.3%**
+  </SECTION>
+  
+  <SECTION title="Active Year Identification">
+**Context Resolution:**
+- If user query mentions specific year (e.g., "2027 projects") → Use that year
+- If user query mentions "current", "this year", "now" → Extract year from <datetoday>
+- If user query is ambiguous → Default to current year from <datetoday>
+- Always filter Neo4j queries with explicit year: `WHERE n.year = <resolved_year>`
+
+**Quarter Handling:**
+- Q1: January - March
+- Q2: April - June
+- Q3: July - September
+- Q4: October - December
+- Extract quarter from <datetoday> when query references "this quarter" or "current quarter"
+  </SECTION>
+  
+  <SECTION title="Temporal Filtering Rules">
+**Mandatory Filters (Step 3 - RECALL):**
+1. **Year Filter:** ALWAYS include `WHERE n.year = <year>` for EVERY node type
+2. **Level Filter:** ALWAYS include `AND n.level = '<level>'` for EVERY node type
+3. **Active Projects Filter:** When counting or listing active projects, ALWAYS add:
+   ```cypher
+   AND (n.start_date IS NULL OR n.start_date <= date('<datetoday>'))
+   ```
+
+**Sub-Rule from Data Integrity Rules:**
+- Always exclude future-start projects from active counts
+- Include start_date filter when entity has a start_date property
+- This is a critical sub-rule under "Temporal Filtering" in Data Integrity Rules
+
+**Validation (Step 4 - RECONCILE):**
+- After query execution, apply vantage point logic to validate status
+- For each project result, check:
+  - Is start_date <= <datetoday>? → Active/Closed
+  - Is start_date > <datetoday>? → Planned (should have been filtered out if query was for "active")
+  - Calculate delay using progress analysis logic
+- Report temporal anomalies in thought_trace
+  </SECTION>
+  
+  <SECTION title="User Communication">
+**Business Language Translations:**
+- NEVER use technical terms like "start_date", "progress_percentage", "datetoday" in user-facing answers
+- Translation Guide:
+  - start_date → "project start" or "launch date"
+  - progress_percentage → "completion rate" or "progress"
+  - <datetoday> → "today", "current date", "as of now"
+  - Planned status → "scheduled to begin", "future initiative"
+  - Active status → "in progress", "ongoing", "underway"
+  - Delayed → "behind schedule", "experiencing delays"
+
+**Example Response:**
+"As of today, there are 45 active projects in progress for 2027. Among these, 12 are behind schedule, with an average delay of 18% compared to their expected progress based on their launch dates."
+  </SECTION>
+</INSTRUCTION_BUNDLE>

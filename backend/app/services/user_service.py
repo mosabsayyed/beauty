@@ -20,6 +20,7 @@ class User(BaseModel):
     updated_at: Optional[str] = None
     supabase_id: Optional[str] = None
     full_name: Optional[str] = None
+    role: Optional[str] = "user"  # 'user', 'staff', 'exec'
 
 
 class UserService:
@@ -96,7 +97,7 @@ class UserService:
             return User(**users[0])
         return None
 
-    async def create_user(self, email: str, password: Optional[str] = None, supabase_id: Optional[str] = None, full_name: Optional[str] = None) -> Optional[User]:
+    async def create_user(self, email: str, password: Optional[str] = None, supabase_id: Optional[str] = None, full_name: Optional[str] = None, role: Optional[str] = "user") -> Optional[User]:
         """
         Create a user record in the users table. If supabase_id is provided, store it in the record to link
         local users to Supabase auth users. Password may be None for OAuth-created users.
@@ -104,6 +105,7 @@ class UserService:
         await self.client.connect()
         user_data: dict = {
             "email": email,
+            "role": role,
         }
         if password is not None:
             user_data["password"] = password

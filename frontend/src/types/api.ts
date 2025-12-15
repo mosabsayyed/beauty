@@ -14,7 +14,7 @@
 // ARTIFACT TYPES
 // ============================================================================
 
-export type ArtifactType = 'CHART' | 'TABLE' | 'REPORT' | 'DOCUMENT';
+export type ArtifactType = 'CHART' | 'TABLE' | 'REPORT' | 'DOCUMENT' | 'GRAPHV001' | 'TWIN_KNOWLEDGE';
 
 /**
  * Base Artifact Interface
@@ -95,19 +95,37 @@ export interface ReportArtifact extends BaseArtifact {
 
 /**
  * Document Artifact
+ * Supports both inline content (body) and remote content (url)
  */
 export interface DocumentArtifact extends BaseArtifact {
   artifact_type: 'DOCUMENT';
   content: {
     format: 'html' | 'markdown';
-    body: string;
+    body?: string;          // Inline content (markdown or html string)
+    url?: string;           // Relative or absolute URL to fetch content from
   };
+}
+
+/**
+ * Graphv001 Artifact
+ */
+export interface GraphArtifact extends BaseArtifact {
+  artifact_type: 'GRAPHV001';
+  content: Record<string, any>;
+}
+
+/**
+ * Twin Knowledge Artifact
+ */
+export interface TwinKnowledgeArtifact extends BaseArtifact {
+  artifact_type: 'TWIN_KNOWLEDGE';
+  content: Record<string, any>;
 }
 
 /**
  * Union type for all artifacts
  */
-export type Artifact = ChartArtifact | TableArtifact | ReportArtifact | DocumentArtifact;
+export type Artifact = ChartArtifact | TableArtifact | ReportArtifact | DocumentArtifact | GraphArtifact | TwinKnowledgeArtifact;
 
 // ============================================================================
 // CHAT API

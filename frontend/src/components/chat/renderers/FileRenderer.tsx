@@ -44,8 +44,8 @@ export function FileRenderer({ url, filename, size, type, content }: FileRendere
   return (
     <div className="w-full space-y-4">
       {/* File Card */}
-      <div className="flex items-center p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-        <div className="p-3 bg-amber-50 rounded-lg text-amber-600 mr-4 rtl:mr-0 rtl:ml-4">
+      <div className="panel flex items-center p-4 shadow-sm hover:shadow-md transition-shadow">
+        <div className="p-3 bg-amber-50 text-amber-600 mr-4 rtl:mr-0 rtl:ml-4">
           {getIcon()}
         </div>
         <div className="flex-1 min-w-0">
@@ -59,7 +59,7 @@ export function FileRenderer({ url, filename, size, type, content }: FileRendere
         <div className="flex items-center gap-2 ml-4 rtl:ml-0 rtl:mr-4">
           <button
             onClick={handleDownload}
-            className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-colors"
+            className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
             title={translations.download}
           >
             <ArrowDownTrayIcon className="w-5 h-5" />
@@ -69,7 +69,7 @@ export function FileRenderer({ url, filename, size, type, content }: FileRendere
 
       {/* Media Player */}
       {isMedia && fileUrl && (
-        <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden bg-black flex items-center justify-center">
+        <div className="mt-4 border overflow-hidden bg-black flex items-center justify-center">
           {/* @ts-ignore - ReactPlayer types can be finicky */}
           <ReactPlayer
             url={fileUrl}

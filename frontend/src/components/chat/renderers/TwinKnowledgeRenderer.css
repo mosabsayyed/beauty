@@ -1,0 +1,318 @@
+/* Twin Knowledge Renderer Styles */
+
+.twin-knowledge-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: var(--component-bg-primary);
+  color: var(--component-text-primary);
+  overflow: hidden;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Navigation */
+.twin-knowledge-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--component-panel-bg);
+  border-bottom: 1px solid #D4AF37;
+  border-top: 1px solid #D4AF37;
+}
+
+.twin-knowledge-wiki-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.twin-knowledge-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 8px 32px 8px 12px;
+  border-radius: 6px;
+  /* Default (Dark Mode) - Lighter gray for visibility against #1F2937 */
+  border: 2px solid #6B7280 !important; 
+  background-color: var(--component-panel-bg) !important;
+  color: var(--component-text-primary) !important;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--component-font-family);
+  min-width: 120px;
+  width: auto;
+  /* Gold arrow for dark mode */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  color-scheme: dark;
+}
+
+/* Light Mode Overrides */
+:root[data-theme="light"] .twin-knowledge-select {
+  background-color: #FFFFFF !important;
+  color: #1F2937 !important;
+  border: 2px solid #9CA3AF !important; /* Darker gray for visibility */
+  /* Dark arrow for light mode */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231F2937' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  color-scheme: light;
+}
+
+.twin-knowledge-select:hover {
+  opacity: 1;
+  border-color: var(--component-text-accent) !important;
+  border-width: 2px !important;
+}
+
+.twin-knowledge-select option {
+  background-color: var(--component-panel-bg) !important;
+  color: var(--component-text-primary) !important;
+  padding: 8px;
+}
+
+.twin-knowledge-select:focus {
+  outline: none;
+  background-color: var(--component-panel-bg) !important;
+  border-color: var(--component-text-accent) !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+.twin-knowledge-media-icon-btn {
+  background: transparent;
+  border: 1px solid var(--component-panel-border);
+  cursor: pointer;
+  padding: 3px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+  color: var(--component-text-primary);
+  font-family: var(--font-family);
+}
+
+.twin-knowledge-media-icon-btn:hover {
+  background: var(--component-panel-bg);
+  border-color: var(--component-text-accent);
+}
+
+/* Main Layout */
+.twin-knowledge-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Article Section - 75% */
+.twin-knowledge-article {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--component-panel-border);
+}
+
+/* Article Header with Media Controls */
+.twin-knowledge-article-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--component-panel-bg);
+  border-bottom: 1px solid var(--component-panel-border);
+  font-family: var(--font-family);
+}
+
+.twin-knowledge-media-btn-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--component-bg-primary);
+  border: 1px solid var(--component-panel-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--component-text-primary);
+  font-family: var(--font-family);
+}
+
+.twin-knowledge-media-btn-header:hover {
+  background: var(--component-panel-bg);
+  border-color: var(--component-text-accent);
+}
+
+.twin-knowledge-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: white;
+}
+
+/* Sidebar - 25% */
+.twin-knowledge-sidebar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--component-bg-secondary);
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.twin-knowledge-video-modal {
+  position: relative;
+  width: 90%;
+  max-width: 1200px;
+  height: 80%;
+  background: #000;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.twin-knowledge-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.twin-knowledge-audio-modal {
+  position: relative;
+  width: 90%;
+  max-width: 700px;
+  background: #1a1a1a;
+  border-radius: 4px;
+  padding: 20px;
+}
+
+.twin-knowledge-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 4px;
+  padding: 8px;
+  cursor: pointer;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.twin-knowledge-modal-close:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+/* Audio Player */
+.twin-knowledge-audio-player {
+  padding: 16px;
+  background: var(--component-panel-bg);
+  border-bottom: 1px solid var(--component-panel-border);
+}
+
+/* Comments */
+.twin-knowledge-comments {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* RTL Support for Comments Input */
+:root[dir="rtl"] .twin-knowledge-comment-input {
+  text-align: right;
+  direction: rtl;
+}
+
+:root[dir="rtl"] .twin-knowledge-comment-submit {
+  right: auto;
+  left: 18px;
+}
+
+/* Remove glass effect padding */
+.canvas-content.glass .twin-knowledge-container {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Mobile Responsive Design */
+@media (max-width: 768px) {
+  /* Stack layout vertically on mobile */
+  .twin-knowledge-main {
+    flex-direction: column;
+  }
+  
+  .twin-knowledge-article {
+    flex: 1;
+    width: 100%;
+    border-right: none;
+    min-height: 60vh;
+  }
+  
+  .twin-knowledge-sidebar {
+    flex: 1;
+    width: 100%;
+    border-top: 1px solid var(--component-panel-border);
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+  
+  /* Wrap navigation controls */
+  .twin-knowledge-nav {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 15px;
+  }
+  
+  .twin-knowledge-select {
+    min-width: 120px;
+    flex: 1;
+    font-size: 15px;
+  }
+  
+ /* Larger touch targets */
+  .twin-knowledge-media-icon-btn {
+    padding: 10px 14px;
+    font-size: 15px;
+  }
+  
+  /* Stack media buttons */
+  .twin-knowledge-nav > div:last-child {
+    flex-basis: 100%;
+    display: flex;
+    gap: 10px;
+  }
+  
+  /* Full-width video modal on mobile */
+  .twin-knowledge-video-modal {
+    width: 95%;
+    height: auto;
+    max-height: 70vh;
+  }
+}

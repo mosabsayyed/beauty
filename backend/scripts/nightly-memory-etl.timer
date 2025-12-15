@@ -1,0 +1,22 @@
+# Noor Cognitive Digital Twin - Nightly Memory ETL Timer
+# ======================================================
+#
+# This timer triggers the memory ETL job at 2 AM daily.
+# 
+# Check status:
+#   systemctl status nightly-memory-etl.timer
+#   systemctl list-timers | grep memory
+#
+# Manual trigger:
+#   sudo systemctl start nightly-memory-etl.service
+
+[Unit]
+Description=Run Noor Memory ETL nightly at 2 AM
+
+[Timer]
+OnCalendar=*-*-* 02:00:00
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

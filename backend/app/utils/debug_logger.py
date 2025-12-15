@@ -72,17 +72,19 @@ class DebugLogger:
             "data": event_data
         })
         self._write_to_file()
-        print(f"\n{'='*80}")
-        print(f"🔍 DEBUG [EVENT] - {event_type}")
-        print(f"{'='*80}")
-        if isinstance(data, str):
-            if len(data) > 2000:
-                print(data[:2000] + f"\n... [TRUNCATED - Full data in log file] ...")
-            else:
-                print(data)
-        else:
-            print(json.dumps(data, indent=2)[:2000])
-        print(f"{'='*80}\n")
+        self._write_to_file()
+        # Console output disabled to reduce clutter
+        # print(f"\n{'='*80}")
+        # print(f"🔍 DEBUG [EVENT] - {event_type}")
+        # print(f"{'='*80}")
+        # if isinstance(data, str):
+        #     if len(data) > 2000:
+        #         print(data[:2000] + f"\n... [TRUNCATED - Full data in log file] ...")
+        #     else:
+        #         print(data)
+        # else:
+        #     print(json.dumps(data, indent=2)[:2000])
+        # print(f"{'='*80}\n")
     
     def log_layer(self, layer_num: int, event_type: str, data: Any):
         """
@@ -133,18 +135,19 @@ class DebugLogger:
         human_layer = layer_names.get(layer_num, layer_key)
 
         # Print to console
-        print(f"\n{'='*80}")
-        print(f"🔍 DEBUG [{human_layer}] - {event_type}")
-        print(f"{'='*80}")
-        if isinstance(data, str):
-            # Truncate very long strings for console (but save full to file)
-            if len(data) > 2000:
-                print(data[:2000] + f"\n... [TRUNCATED - Full data in log file] ...")
-            else:
-                print(data)
-        else:
-            print(json.dumps(data, indent=2)[:2000])
-        print(f"{'='*80}\n")
+        # Print to console - DISABLED
+        # print(f"\n{'='*80}")
+        # print(f"🔍 DEBUG [{human_layer}] - {event_type}")
+        # print(f"{'='*80}")
+        # if isinstance(data, str):
+        #     # Truncate very long strings for console (but save full to file)
+        #     if len(data) > 2000:
+        #         print(data[:2000] + f"\n... [TRUNCATED - Full data in log file] ...")
+        #     else:
+        #         print(data)
+        # else:
+        #     print(json.dumps(data, indent=2)[:2000])
+        # print(f"{'='*80}\n")
     
     def _write_to_file(self):
         """Write current log data to file immediately"""

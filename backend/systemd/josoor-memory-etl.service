@@ -1,0 +1,25 @@
+[Unit]
+Description=JOSOOR Nightly Memory ETL
+Documentation=file:///home/mosab/projects/chatmodule/backend/scripts/nightly_memory_etl.py
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/mosab/projects/chatmodule/backend
+
+# Load environment from backend .env
+EnvironmentFile=/home/mosab/projects/chatmodule/backend/.env
+
+# Run with venv python
+ExecStart=/home/mosab/projects/chatmodule/backend/.venv/bin/python /home/mosab/projects/chatmodule/backend/scripts/nightly_memory_etl.py
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=josoor-etl-nightly
+
+# User context
+User=mosab
+Group=mosab
+
+# Timeout for long runs
+TimeoutStartSec=600

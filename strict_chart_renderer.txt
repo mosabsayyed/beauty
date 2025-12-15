@@ -1,0 +1,151 @@
+            if (chartType === 'bar' || chartType === 'column') {
+              // STRICT: xAxis, yAxis, color
+              const xAxisLabel = content.xAxis;
+              const yAxisLabel = content.yAxis;
+              const barColor = content.color || CHART_COLORS.primary;
+              
+              // Resolve data keys using fuzzy logic on the LABELS
+              const actualXAxisKey = resolveDataKey(xAxisLabel, data?.[0]) || 'name';
+              const dataKeys = getNumericDataKeys(data?.[0], actualXAxisKey);
+
+              return (
+                <BarChart data={data} {...commonProps}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.gray4} vertical={false} />
+                  <XAxis dataKey={actualXAxisKey} stroke={CHART_COLORS.gray2} fontSize={12} tickLine={false} axisLine={{ stroke: CHART_COLORS.gray4 }} />
+                  <YAxis stroke={CHART_COLORS.gray2} fontSize={12} tickLine={false} axisLine={{ stroke: CHART_COLORS.gray4 }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: '12px', color: CHART_COLORS.gray2 }} />
+                  {dataKeys.map((key, index) => (
+                    <Bar key={key} dataKey={key} fill={barColor} radius={[4, 4, 0, 0]} />
+                  ))}
+                </BarChart>
+              );
+            } else if (chartType === 'line') {
+              // STRICT: xAxis, yAxis, strokeWidth
+              const xAxisLabel = content.xAxis;
+              const yAxisLabel = content.yAxis;
+              const strokeWidth = content.strokeWidth || 2;
+
+              const actualXAxisKey = resolveDataKey(xAxisLabel, data?.[0]) || 'name';
+              const dataKeys = getNumericDataKeys(data?.[0], actualXAxisKey);
+              
+              return (
+                <LineChart data={data} {...commonProps}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.gray4} vertical={false} />
+                  <XAxis dataKey={actualXAxisKey} stroke={CHART_COLORS.gray2} fontSize={12} tickLine={false} axisLine={{ stroke: CHART_COLORS.gray4 }} />
+                  <YAxis stroke={CHART_COLORS.gray2} fontSize={12} tickLine={false} axisLine={{ stroke: CHART_COLORS.gray4 }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: '12px', color: CHART_COLORS.gray2 }} />
+                  {dataKeys.map((key, index) => (
+                    <Line key={key} type="monotone" dataKey={key} stroke={CHART_COLORS.primary} strokeWidth={strokeWidth} />
+                  ))}
+                </LineChart>
+              );
+            } else if (chartType === 'area') {
+               // Area not explicitly in JSON sample but likely follows Line/Bar pattern. 
+               // User didn't strictly forbid Area, but didn't provide sample. I'll keep it simple or map to Line logic if needed.
+               // Assuming standard behavior for Area if it occurs.
+               const xAxisLabel = content.xAxis;
+               const actualXAxisKey = resolveDataKey(xAxisLabel, data?.[0]) || 'name';
+               const dataKeys = getNumericDataKeys(data?.[0], actualXAxisKey);
+
+               return (
+                 <AreaChart data={data} {...commonProps}>
+                   <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.gray4} vertical={false} />
+                   <XAxis dataKey={actualXAxisKey} stroke={CHART_COLORS.gray2} fontSize={12} tickLine={false} axisLine={{ stroke: CHART_COLORS.gray4 }} />
+                   <YAxis stroke={CHART_COLORS.gray2} fontSize={12} tickLine={false} axisLine={{ stroke: CHART_COLORS.gray4 }} />
+                   <Tooltip content={<CustomTooltip />} />
+                   <Legend wrapperStyle={{ fontSize: '12px', color: CHART_COLORS.gray2 }} />
+                   {dataKeys.map((key, index) => (
+                     <Area key={key} type="monotone" dataKey={key} fill={CHART_COLORS.primary} stroke={CHART_COLORS.primary} />
+                   ))}
+                 </AreaChart>
+               );
+            } else if (chartType === 'bubble') {
+              // STRICT: xAxis, yAxis, sizeMetric
+              const xLabel = content.xAxis;
+              const yLabel = content.yAxis;
+              const zLabel = content.sizeMetric;
+
+              const xKey = resolveDataKey(xLabel, data?.[0]) || 'x';
+              const yKey = resolveDataKey(yLabel, data?.[0]) || 'y';
+              const zKey = resolveDataKey(zLabel, data?.[0]) || 'z';
+              const nameKey = 'name'; // Default
+
+              return (
+                <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.gray4} />
+                  <XAxis type="number" dataKey={xKey} name={xLabel} stroke={CHART_COLORS.gray2} fontSize={12} />
+                  <YAxis type="number" dataKey={yKey} name={yLabel} stroke={CHART_COLORS.gray2} fontSize={12} />
+                  <ZAxis type="number" dataKey={zKey} range={[60, 400]} name={zLabel} />
+                  <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+                  <Legend />
+                  <Scatter name={content.title || 'Items'} data={data} fill={CHART_COLORS.primary} />
+                </ScatterChart>
+              );
+            } else if (chartType === 'radar') {
+              // STRICT: axes, maxValue
+              // Data keys: axis, value
+              const angleKey = 'axis';
+              const valueKey = 'value';
+              
+              return (
+                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
+                  <PolarGrid stroke={CHART_COLORS.gray4} />
+                  <PolarAngleAxis dataKey={angleKey} stroke={CHART_COLORS.gray2} fontSize={12} />
+                  <PolarRadiusAxis angle={30} domain={[0, content.maxValue || 'auto']} stroke={CHART_COLORS.gray4} />
+                  <Radar name={content.title || 'Value'} dataKey={valueKey} stroke={CHART_COLORS.primary} fill={CHART_COLORS.primary} fillOpacity={0.3} />
+                  <Legend />
+                  <Tooltip />
+                </RadarChart>
+              );
+            } else if (chartType === 'bullet') {
+              // STRICT: measure, target, range
+              // Data keys: actual, target (mapped from measure/target labels if possible, or fixed)
+              // Sample: measure="Actual KPI", target="Planned KPI". Data: { actual: 68, target: 75 }
+              // So we need to map "Actual KPI" -> "actual", "Planned KPI" -> "target"
+              
+              const measureLabel = content.measure;
+              const targetLabel = content.target;
+              
+              const measureKey = resolveDataKey(measureLabel, data?.[0]) || 'actual';
+              const targetKey = resolveDataKey(targetLabel, data?.[0]) || 'target';
+              const nameKey = 'kpi'; // From sample
+
+              return (
+                <ComposedChart layout="vertical" data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.gray4} horizontal={false} />
+                  <XAxis type="number" stroke={CHART_COLORS.gray2} fontSize={12} />
+                  <YAxis type="category" dataKey={nameKey} stroke={CHART_COLORS.gray2} fontSize={12} width={150} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey={targetKey} name={targetLabel} fill="var(--component-text-primary)" barSize={4} />
+                  <Bar dataKey={measureKey} name={measureLabel} fill={CHART_COLORS.primary} barSize={20} />
+                </ComposedChart>
+              );
+            } else if (chartType === 'combo') {
+              // STRICT: primary, secondary
+              // primary: { type, metric }, secondary: { type, metric }
+              // Sample: primary.metric="Budget", secondary.metric="Completion"
+              // Data: { budget: 85, completion: 62 }
+              
+              const primaryMetric = content.primary?.metric;
+              const secondaryMetric = content.secondary?.metric;
+              
+              const barKey = resolveDataKey(primaryMetric, data?.[0]);
+              const lineKey = resolveDataKey(secondaryMetric, data?.[0]);
+              const xAxisKey = resolveDataKey('project', data?.[0]) || 'name'; // Inferred from sample
+
+              return (
+                <ComposedChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.gray4} />
+                  <XAxis dataKey={xAxisKey} stroke={CHART_COLORS.gray2} fontSize={12} />
+                  <YAxis yAxisId="left" stroke={CHART_COLORS.gray2} fontSize={12} />
+                  <YAxis yAxisId="right" orientation="right" stroke={CHART_COLORS.gray2} fontSize={12} />
+                  <Tooltip />
+                  <Legend />
+                  {barKey && <Bar yAxisId="left" dataKey={barKey} name={primaryMetric} fill={CHART_COLORS.primary} />}
+                  {lineKey && <Line yAxisId="right" type="monotone" dataKey={lineKey} name={secondaryMetric} stroke={CHART_COLORS.secondary} strokeWidth={2} />}
+                </ComposedChart>
+              );
+            }

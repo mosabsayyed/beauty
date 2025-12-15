@@ -7,8 +7,20 @@ ROOT_DIR=$(cd "$(dirname "$0")" && pwd)
 cd "$ROOT_DIR"
 
 FRONTEND_DIR="$ROOT_DIR/frontend"
-LOG_DIR="$FRONTEND_DIR/logs"
+GRAPH_SERVER_DIR="$ROOT_DIR/graph-server" # Added/changed this line based on instruction
+LOG_DIR="$FRONTEND_DIR/logs" # This line remains as it was, assuming LOG_DIR refers to frontend logs
 mkdir -p "$LOG_DIR"
+
+# Start Graph Server Sidecar
+GRAPH_SERVER_DIR="$ROOT_DIR/graph-server"
+GRAPH_LOG_DIR="$ROOT_DIR/logs"
+echo "Starting Graph Server Sidecar (Port 3001) in $GRAPH_SERVER_DIR..."
+if [ ! -d "$GRAPH_SERVER_DIR/node_modules" ]; then
+  echo "Installing graph server dependencies..."
+  (cd "$GRAPH_SERVER_DIR" && npm install >> "$GRAPH_LOG_DIR/graph_server_install.log" 2>&1)
+fi
+(cd "$GRAPH_SERVER_DIR" && PORT=3001 nohup npm run dev >> "$GRAPH_LOG_DIR/graph_server.log" 2>&1 &)
+echo "Graph Server started in background."
 
 echo "Starting frontend (in $FRONTEND_DIR)"
 cd "$FRONTEND_DIR"

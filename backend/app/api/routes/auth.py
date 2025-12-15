@@ -26,6 +26,7 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
     name: str
+    role: Optional[str] = "user"  # 'user', 'staff', 'exec'
 
 class RegisterResponse(BaseModel):
     user: dict # Simplified for now, will refine with User model
@@ -51,12 +52,13 @@ async def login_for_access_token(request: LoginRequest, user_service: UserServic
     
     access_token_expires = timedelta(minutes=auth_utils.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = auth_utils.create_access_token(
-        data={"sub": str(user.id)}, expires_delta=access_token_expires
+        data={"sub": str(user.id), "role": user.role}, expires_delta=access_token_expires
     )
 
     user_response_data = {
         "id": user.id,
         "email": user.email,
+        "role": user.role,
     }
 
     return LoginResponse(access_token=access_token, token_type="bearer", user=user_response_data)
@@ -83,7 +85,8 @@ async def register_user(request: RegisterRequest, user_service: UserService = De
     new_user = await user_service.create_user(
         email=request.email,
         password=hashed,
-        full_name=request.name
+        full_name=request.name,
+        role=request.role
     )
 
     if not new_user:
@@ -96,6 +99,7 @@ async def register_user(request: RegisterRequest, user_service: UserService = De
     user_response_data = {
         "id": new_user.id,
         "email": new_user.email,
+        "role": new_user.role,
     }
 
     return RegisterResponse(user=user_response_data, message="User registered successfully")
@@ -105,7 +109,7 @@ async def read_users_me(current_user: User = Depends(auth_utils.get_current_user
     """
     Get current authenticated user.
     """
-    return {"email": current_user.email, "id": current_user.id}
+    return {"email": current_user.email, "id": current_user.id, "role": current_user.role}
 
 @router.post("/sync", response_model=dict)
 async def sync_supabase_user(payload: dict):

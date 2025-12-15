@@ -1,0 +1,36 @@
+/* Main app container */
+.container {
+
+  height: 80vh;
+  background: var(--card, #11161b);
+  border-radius: 4px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Main content area below header */
+.main-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Chat section in the center */
+.chat-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 2px solid #e0e0e0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Chat container */
+.chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}

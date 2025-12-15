@@ -1,0 +1,28 @@
+/* Fix for Twin Knowledge article display */
+* {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Fix bullet points - override Wingdings */
+ul {
+  list-style-type: disc !important;
+}
+
+ul li::marker {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Fix colors - remove dark gold */
+body, p, li, div, span {
+  color: #1f2937 !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #111827 !important;
+}
+
+/* Ensure readable text */
+body {
+  background: #fff !important;
+  line-height: 1.6 !important;
+}

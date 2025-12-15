@@ -27,38 +27,33 @@ export function ExcelRenderer({ data, csvContent, title }: ExcelRendererProps) {
   }, [data, csvContent]);
 
   if (tableData.length === 0) {
-    return <div style={{ padding: 24 }}>No data to display</div>;
+    return <div className="excel-renderer renderer-panel" style={{ padding: 24 }}>No data to display</div>;
   }
 
   const headers = tableData[0];
   const rows = tableData.slice(1);
 
   return (
-    <div style={{ 
-      padding: 16,
-      background: '#fff',
-      height: '100%',
-      overflow: 'auto',
-    }}>
+    <div className="excel-renderer renderer-panel" style={{ padding: 16 }}>
       {title && (
         <h3 style={{ marginBottom: 16, fontSize: 16, fontWeight: 600 }}>
           {title}
         </h3>
       )}
       <div style={{ overflowX: 'auto' }}>
-        <table style={{
+        <table className="excel-table" style={{
           width: '100%',
           borderCollapse: 'collapse',
           fontSize: 13,
         }}>
           <thead>
-            <tr style={{ background: '#f3f4f6' }}>
+            <tr>
               {headers.map((header, i) => (
                 <th key={i} style={{
                   padding: '10px 12px',
                   textAlign: 'left',
                   fontWeight: 600,
-                  borderBottom: '2px solid #e5e7eb',
+                  borderBottom: '2px solid var(--component-panel-border)',
                   whiteSpace: 'nowrap',
                 }}>
                   {header}
@@ -68,13 +63,11 @@ export function ExcelRenderer({ data, csvContent, title }: ExcelRendererProps) {
           </thead>
           <tbody>
             {rows.map((row, i) => (
-              <tr key={i} style={{
-                background: i % 2 === 0 ? '#fff' : '#f9fafb',
-              }}>
+              <tr key={i}>
                 {row.map((cell, j) => (
                   <td key={j} style={{
                     padding: '8px 12px',
-                    borderBottom: '1px solid #e5e7eb',
+                    borderBottom: '1px solid var(--component-panel-border)',
                   }}>
                     {cell}
                   </td>

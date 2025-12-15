@@ -39,4 +39,38 @@
   "restore": "Restore",
   "close_canvas": "Close Canvas",
   "no_artifacts_yet": "No artifacts yet."
+  ,
+  "copy": "Copy",
+  "copied": "Copied!"
+  ,
+  "logout": "Logout"
+  ,
+  "toggle_color_theme": "Toggle color theme",
+  "switch_to_light_mode": "Switch to light mode",
+  "switch_to_dark_mode": "Switch to dark mode",
+  "dark": "Dark",
+  "light": "Light"
+  ,
+  "account_menu": "Account menu",
+  "profile": "Profile"
+  ,
+  "guest_leave_warning": "You are using the app as guest and have local history. If you leave you will lose history and artifacts. Proceed to login?"
+  ,
+  "pagination": "pagination",
+  "go_to_previous_page": "Go to previous page",
+  "go_to_next_page": "Go to next page",
+  "previous": "Previous",
+  "next": "Next",
+  "more_pages": "More pages"
+  ,
+  "breadcrumb": "Breadcrumb"
+  ,
+  "select_item_to_view": "Select an item to view details",
+  "no_content_to_display": "No content to display"
+  ,
+  "loading_highcharts": "Loading Highcharts...",
+  "export_svg": "Export SVG",
+  "export_png": "Export PNG",
+  "chart_type": "Chart Type:",
+  "created": "Created:"
 }

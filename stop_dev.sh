@@ -71,6 +71,7 @@ pkill -f mcp-neo4j-cypher 2>/dev/null || true
 pkill -f "uvicorn app.main:app" 2>/dev/null || true
 pkill -f ngrok 2>/dev/null || true
 pkill -f "npm --prefix" 2>/dev/null || true
+pkill -f "npm run dev -- --port 3001" 2>/dev/null || true
 pkill -f "node .*react-scripts" 2>/dev/null || true
 
 echo "Cleanup complete. You can inspect logs in $ROOT_DIR/logs and $ROOT_DIR/backend/logs"

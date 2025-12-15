@@ -1,0 +1,38 @@
+  const normalizedData = useMemo(() => {
+    const data = content.data || content;
+    const columns = Array.isArray(content.columns) ? content.columns :
+                   Array.isArray(data.columns) ? data.columns : 
+                   data.config?.columns ? data.config.columns : [];
+    let rows: any[] = [];
+    if (Array.isArray(data)) {
+       if (data.length > 0) {
+         if (columns.length === 0 && typeof data[0] === 'object') columns.push(...Object.keys(data[0]));
+         rows = data.map((row: any) => {
+            if (Array.isArray(row)) return row;
+            if (columns.length > 0) {
+                return columns.map((col: string) => {
+                    const key = resolveDataKey(col, row);
+                    return key ? row[key] : "";
+                });
+            }
+            return Object.values(row);
+         });
+       }
+    } else if (Array.isArray(data.rows)) {
+      if (data.rows.length > 0 && Array.isArray(data.rows[0])) {
+        rows = data.rows;
+      } else if (data.rows.length > 0 && typeof data.rows[0] === "object") {
+        const firstRow = data.rows[0];
+        const keys = Object.keys(firstRow);
+        rows = data.rows.map((row: any) => keys.map(key => row[key]));
+      }
+    } else if (Array.isArray(data.query_results)) {
+      const results = data.query_results;
+      if (results.length > 0) {
+        const keys = Object.keys(results[0]);
+        if (columns.length === 0) columns.push(...keys);
+        rows = results.map((row: any) => keys.map(key => row[key]));
+      }
+    }
+    return { columns, rows };
+  }, [content]);

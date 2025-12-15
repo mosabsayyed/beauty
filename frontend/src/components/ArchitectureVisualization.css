@@ -1,0 +1,149 @@
+.arch-wrapper {
+  width: 100%;
+  background: #111827;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.arch-table {
+  background: #111827;
+  border-collapse: collapse;
+  border: 1px solid white;
+  width: 100%;
+  max-width: 684px;
+}
+
+@media (max-width: 991px) {
+  .arch-table {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.arch-table td {
+  border: 1px solid white;
+  padding: 0;
+  margin: 0;
+  vertical-align: top;
+}
+
+.arch-table img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.arch-col-left-border {
+  width: 58px;
+  background: #111827;
+}
+
+.arch-row-header {
+  height: auto;
+}
+
+.arch-col-header-main {
+  background: #111827;
+  padding: 0;
+}
+
+.arch-col-right-spacer {
+  width: 54px;
+  background: #111827;
+}
+
+.arch-row-divider {
+  height: 1px;
+}
+
+.arch-col-divider-main {
+  background: #111827;
+  padding: 0;
+  height: 1px;
+}
+
+.arch-row-large {
+  height: auto;
+}
+
+.arch-col-main-content {
+  background: #111827;
+  padding: 0;
+}
+
+.arch-col-right-sidebar {
+  width: 90px;
+  background: #111827;
+  padding: 0;
+}
+
+.arch-col-right-sidebar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.arch-row-two-col {
+  height: auto;
+}
+
+.arch-col-small-left {
+  width: 155px;
+  background: #111827;
+  padding: 0;
+}
+
+.arch-col-large-right {
+  background: #111827;
+  padding: 0;
+}
+
+.arch-row-bottom {
+  height: auto;
+}
+
+.arch-col-bottom-left {
+  background: #111827;
+  padding: 0;
+}
+
+.arch-col-bottom-center {
+  background: #111827;
+  padding: 0;
+}
+
+.arch-col-bottom-right {
+  background: #111827;
+  padding: 0;
+}
+
+.arch-row-additional-content {
+  height: auto;
+}
+
+.arch-col-additional-image {
+  background: #111827;
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .arch-wrapper {
+    padding: 10px;
+  }
+
+  .arch-table {
+    max-width: 100%;
+  }
+
+  .arch-col-right-sidebar {
+    display: none;
+  }
+
+  .arch-col-right-spacer {
+    display: none;
+  }
+}

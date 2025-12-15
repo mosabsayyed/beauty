@@ -1,0 +1,16 @@
+[Unit]
+Description=JOSOOR Nightly Memory ETL Timer (runs every 24h)
+Documentation=file:///home/mosab/projects/chatmodule/backend/scripts/nightly_memory_etl.py
+
+[Timer]
+# Run daily at 2 AM
+OnCalendar=*-*-* 02:00:00
+Persistent=true
+
+# Run immediately on boot if missed
+OnBootSec=5min
+
+Unit=josoor-memory-etl.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # Jaeger all-in-one for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: josoor-jaeger
+    ports:
+      # Jaeger UI
+      - "16686:16686"
+      # Jaeger agent (UDP thrift)
+      - "6831:6831/udp"
+      # Jaeger collector (HTTP)
+      - "14268:14268"
+      # Jaeger collector (gRPC)
+      - "14250:14250"
+      # Health check
+      - "14269:14269"
+      # OTLP gRPC
+      - "4317:4317"
+      # OTLP HTTP
+      - "4318:4318"
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - josoor-network
+
+networks:
+  josoor-network:
+    driver: bridge

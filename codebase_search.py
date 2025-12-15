@@ -5,10 +5,10 @@ from qdrant_client import QdrantClient
 from openai import OpenAI
 
 # Configure environment variables for keys and settings
-os.environ['OPENAI_API_KEY'] = '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'
+os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY', 'your-openai-key')
 os.environ['OPENAI_MODEL'] = 'text-embedding-3-small'
-os.environ['QDRANT_URL'] = 'https://a8a5ba79-fabf-4f7d-a5d6-0d857afd34c5.europe-west3-0.gcp.cloud.qdrant.io'
-os.environ['QDRANT_API_KEY'] = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIiwiZXhwIjoxNzcxMTIzNjY0fQ.jlUzDVPQcnzndG2QK0X8FQjH6Koh2XlH_L8qvOiDoxg'
+os.environ['QDRANT_URL'] = os.getenv('QDRANT_URL', 'your-qdrant-url')
+os.environ['QDRANT_API_KEY'] = os.getenv('QDRANT_API_KEY', 'your-qdrant-key')
 
 # Initialize OpenAI client
 openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))

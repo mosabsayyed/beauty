@@ -30,27 +30,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     async function init() {
       try {
-        // Try to get session from Supabase SDK first
-        const sdkSession = await supabase.auth.getSession();
-        if (sdkSession?.data?.session) {
-          const s = sdkSession.data.session;
-          authService.persistSession?.(s);
+        // Check localStorage first (no network call needed)
+        const localUser = authService.getUser();
+        const localToken = authService.getToken();
+        
+        if (localToken) {
+          // Have token - set from localStorage immediately
           if (mounted) {
-            setUser(s.user || null);
-            setToken(s.access_token || null);
+            setUser(localUser);
+            setToken(localToken);
           }
+          
+          // Validate via backend (instead of direct Supabase call)
+          try {
+            const appUser = await authService.fetchAppUser();
+            if (appUser && mounted) {
+              setUser(appUser);
+            } else if (!appUser && mounted) {
+              // Token invalid - clear and will redirect to login
+              setUser(null);
+              setToken(null);
+            }
+          } catch {}
         } else {
-          // Fallback to localStorage values
-          syncFromLocal();
-        }
-
-        // Try to fetch canonical app profile from backend
-        try {
-          const appUser = await authService.fetchAppUser();
-          if (appUser && mounted) {
-            setUser(appUser);
+          // No token in localStorage - fallback to Supabase for OAuth flows
+          const sdkSession = await supabase.auth.getSession();
+          if (sdkSession?.data?.session) {
+            const s = sdkSession.data.session;
+            authService.persistSession?.(s);
+            if (mounted) {
+              setUser(s.user || null);
+              setToken(s.access_token || null);
+            }
           }
-        } catch {}
+        }
       } catch (err) {
         syncFromLocal();
       } finally {

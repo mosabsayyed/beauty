@@ -1,0 +1,14 @@
+{
+  "name": "read_file",
+  "description": "Retrieve and process the contents of an uploaded file. Supports PDF, DOCX, XLSX, CSV, TXT, and MD files. Returns extracted text or structured data.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "file_id": {
+        "type": "string",
+        "description": "The unique identifier of the uploaded file to read"
+      }
+    },
+    "required": ["file_id"]
+  }
+}

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Chains Label Editor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            overflow: hidden;
+        }
+        #container {
+            display: flex;
+            height: 100vh;
+        }
+        #canvas-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #1e293b;
+        }
+        #sidebar {
+            width: 350px;
+            background: #0f172a;
+            border-left: 1px solid #334155;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        h1 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #60a5fa;
+        }
+        .label-item {
+            background: #1e293b;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .label-item:hover {
+            border-color: #60a5fa;
+            background: #334155;
+        }
+        .label-item.selected {
+            border-color: #60a5fa;
+            background: #1e40af;
+        }
+        .label-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #60a5fa;
+        }
+        .coords {
+            font-size: 12px;
+            color: #94a3b8;
+            font-family: 'Courier New', monospace;
+        }
+        #svg-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        .zoom-controls {
+            position: fixed;
+            bottom: 80px;
+            right: 370px;
+            display: flex;
+            gap: 10px;
+        }
+        .zoom-btn {
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #60a5fa;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .zoom-btn:hover {
+            background: #334155;
+            border-color: #3b82f6;
+        }
+        .edge-label {
+            cursor: move;
+            user-select: none;
+        }
+        .edge-label rect {
+            fill: #1e293b;
+            stroke: #60a5fa;
+            stroke-width: 1;
+        }
+        .edge-label text {
+            fill: #e2e8f0;
+            font-size: 14px;
+            font-weight: 600;
+            pointer-events: none;
+        }
+        .edge-label.dragging rect {
+            fill: #1e40af;
+            stroke: #3b82f6;
+            stroke-width: 2;
+        }
+        .node circle {
+            fill: #1e293b;
+            stroke: #60a5fa;
+            stroke-width: 2;
+        }
+        .node text {
+            fill: #e2e8f0;
+            font-size: 12px;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+        .edge line {
+            stroke: #475569;
+            stroke-width: 2;
+        }
+        .center-marker {
+            fill: #ef4444;
+            opacity: 0.5;
+        }
+        #export-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 370px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+        #export-btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+        }
+        #output {
+            margin-top: 20px;
+            padding: 15px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+        #output.show {
+            display: block;
+        }
+        .instruction {
+            padding: 15px;
+            background: #1e40af;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="canvas-area">
+            <svg id="svg-canvas" viewBox="0 0 1200 1100"></svg>
+        </div>
+        <div id="sidebar">
+            <h1>📍 Label Position Editor</h1>
+            <div class="instruction">
+                <strong>How to use:</strong><br>
+                • Click and drag labels to reposition<br>
+                • Use +/- buttons or scroll to zoom<br>
+                • Drag canvas to pan<br>
+                • Red dot = diagram center (0,0)<br>
+                • Click "Export Coordinates" when done
+            </div>
+            <div id="label-list"></div>
+            <div id="output"></div>
+        </div>
+    </div>
+    <div class="zoom-controls">
+        <button class="zoom-btn" id="zoom-in">+</button>
+        <button class="zoom-btn" id="zoom-out">−</button>
+        <button class="zoom-btn" id="zoom-reset">⟲</button>
+    </div>
+    <button id="export-btn">📋 Export Coordinates</button>
+
+    <script>
+        const svg = document.getElementById('svg-canvas');
+        const labelList = document.getElementById('label-list');
+        const output = document.getElementById('output');
+        const exportBtn = document.getElementById('export-btn');
+
+        const WIDTH = 1200;
+        const HEIGHT = 1100;
+        const CENTER_X = WIDTH / 2;
+        const CENTER_Y = HEIGHT / 2;
+
+        // Actual nodes from BusinessChains.tsx
+        const nodes = [
+            { id: 'obj', x: 510, y: 30, r: 70, label: 'Objectives' },
+            { id: 'perf', x: 60, y: 200, r: 70, label: 'Performance' },
+            { id: 'data', x: 280, y: 205, r: 65, label: 'Data Transaction' },
+            { id: 'ent_cit', x: 520, y: 140, r: 50, label: 'Citizen' },
+            { id: 'ent_bus', x: 520, y: 205, r: 50, label: 'Business' },
+            { id: 'ent_gov', x: 520, y: 270, r: 50, label: 'Gov. Entities' },
+            { id: 'admin', x: 730, y: 205, r: 65, label: 'Admin Records' },
+            { id: 'pol', x: 960, y: 200, r: 70, label: 'Policy Tools' },
+            { id: 'risks', x: 530, y: 380, r: 55, label: 'Risks' },
+            { id: 'cap', x: 510, y: 530, r: 75, label: 'Capability' },
+            { id: 'vend', x: 80, y: 700, r: 55, label: 'Vendor SLA' },
+            { id: 'it', x: 290, y: 700, r: 60, label: 'IT Systems' },
+            { id: 'proc', x: 510, y: 700, r: 60, label: 'Processes' },
+            { id: 'org', x: 730, y: 700, r: 60, label: 'Organization' },
+            { id: 'cult', x: 960, y: 700, r: 55, label: 'Culture' },
+            { id: 'proj', x: 510, y: 840, r: 70, label: 'Projects Outputs' },
+            { id: 'chg', x: 510, y: 990, r: 65, label: 'Change Arch.' }
+        ];
+
+        // Actual edges from BusinessChains.tsx (only those with labels)
+        const edges = [
+            { id: 'e1', from: 'obj', to: 'pol', label: 'Realized Via', offset: { x: -80, y: -50 } },
+            { id: 'e2', from: 'pol', to: 'admin', label: 'Refers To', offset: { x: 0, y: -25 } },
+            { id: 'e5', from: 'admin', to: 'ent_cit', label: 'Applied On', offset: { x: 0, y: -30 } },
+            { id: 'e8', from: 'ent_cit', to: 'data', label: 'Triggers', offset: { x: 0, y: -25 } },
+            { id: 'e9', from: 'data', to: 'perf', label: 'Measured By', offset: { x: 0, y: -14 } },
+            { id: 'e10', from: 'perf', to: 'risks', label: 'Informs', offset: { x: 0, y: -14 } },
+            { id: 'e11', from: 'pol', to: 'risks', label: 'Monitors', offset: { x: 0, y: -14 } },
+            { id: 'e12', from: 'risks', to: 'cap', label: 'Informs', offset: { x: 0, y: -14 } },
+            { id: 'e13', from: 'perf', to: 'cap', label: 'Targets', offset: { x: -30, y: -14 } },
+            { id: 'e14', from: 'pol', to: 'cap', label: 'Executes', offset: { x: 30, y: -14 } },
+            { id: 'e15', from: 'cap', to: 'org', label: 'Close Gaps', offset: { x: 40, y: -30 } },
+            { id: 'e16', from: 'cap', to: 'it', label: 'Operates', offset: { x: -40, y: -30 } },
+            { id: 'e17', from: 'cap', to: 'proc', label: 'Close Gaps', offset: { x: 0, y: -30 } },
+            { id: 'e18', from: 'cult', to: 'org', label: 'Monitors For', offset: { x: 0, y: -30 } },
+            { id: 'e19', from: 'org', to: 'proc', label: 'Operates', offset: { x: 0, y: -30 } },
+            { id: 'e20', from: 'proc', to: 'it', label: 'Operates', offset: { x: 0, y: -30 } },
+            { id: 'e21', from: 'it', to: 'vend', label: 'Depends On', offset: { x: 0, y: -30 } },
+            { id: 'e25', from: 'proj', to: 'chg', label: 'Increase Adoption', offset: { x: 60, y: -14 } },
+            { id: 'e26', from: 'perf', to: 'obj', label: 'Cascaded Via', offset: { x: 80, y: 50 } }
+        ];
+
+        let selectedLabel = null;
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0 };
+
+        // Draw center marker
+        const centerGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        const centerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        centerCircle.setAttribute('cx', CENTER_X);
+        centerCircle.setAttribute('cy', CENTER_Y);
+        centerCircle.setAttribute('r', 8);
+        centerCircle.setAttribute('class', 'center-marker');
+        centerGroup.appendChild(centerCircle);
+        
+        const centerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        centerText.setAttribute('x', CENTER_X);
+        centerText.setAttribute('y', CENTER_Y + 25);
+        centerText.setAttribute('text-anchor', 'middle');
+        centerText.setAttribute('fill', '#ef4444');
+        centerText.setAttribute('font-size', '12');
+        centerText.textContent = '(0, 0)';
+        centerGroup.appendChild(centerText);
+        svg.appendChild(centerGroup);
+
+        // Draw nodes
+        nodes.forEach(node => {
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('class', 'node');
+            
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', node.x);
+            circle.setAttribute('cy', node.y);
+            circle.setAttribute('r', 40);
+            g.appendChild(circle);
+            
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', node.x);
+            text.setAttribute('y', node.y + 5);
+            text.textContent = node.label;
+            g.appendChild(text);
+            
+            svg.appendChild(g);
+        });
+
+        // Draw edges and labels
+        edges.forEach(edge => {
+            const fromNode = nodes.find(n => n.id === edge.from);
+            const toNode = nodes.find(n => n.id === edge.to);
+            
+            if (!fromNode || !toNode) return;
+            
+            // Draw edge line
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('class', 'edge');
+            line.setAttribute('x1', fromNode.x);
+            line.setAttribute('y1', fromNode.y);
+            line.setAttribute('x2', toNode.x);
+            line.setAttribute('y2', toNode.y);
+            svg.appendChild(line);
+            
+            // Calculate label position (midpoint + offset)
+            const midX = (fromNode.x + toNode.x) / 2;
+            const midY = (fromNode.y + toNode.y) / 2;
+            const labelX = CENTER_X + edge.offset.x;
+            const labelY = CENTER_Y + edge.offset.y;
+            
+            // Create label group
+            const labelGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            labelGroup.setAttribute('class', 'edge-label');
+            labelGroup.setAttribute('data-id', edge.id);
+            labelGroup.setAttribute('transform', `translate(${labelX}, ${labelY})`);
+            
+            const labelWidth = edge.label.length * 9 + 24;
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', -labelWidth / 2);
+            rect.setAttribute('y', -14);
+            rect.setAttribute('width', labelWidth);
+            rect.setAttribute('height', 28);
+            rect.setAttribute('rx', 4);
+            labelGroup.appendChild(rect);
+            
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('y', 5);
+            text.setAttribute('text-anchor', 'middle');
+            text.textContent = edge.label;
+            labelGroup.appendChild(text);
+            
+            // Add drag handlers
+            labelGroup.addEventListener('mousedown', startDrag);
+            labelGroup.addEventListener('click', () => selectLabel(edge.id));
+            
+            svg.appendChild(labelGroup);
+            
+            // Add to sidebar
+            const item = document.createElement('div');
+            item.className = 'label-item';
+            item.setAttribute('data-id', edge.id);
+            item.innerHTML = `
+                <div class="label-name">${edge.label}</div>
+                <div class="coords">x: ${edge.offset.x}, y: ${edge.offset.y}</div>
+            `;
+            item.addEventListener('click', () => selectLabel(edge.id));
+            labelList.appendChild(item);
+        });
+
+        function selectLabel(id) {
+            selectedLabel = id;
+            document.querySelectorAll('.label-item').forEach(item => {
+                item.classList.toggle('selected', item.getAttribute('data-id') === id);
+            });
+        }
+
+        function startDrag(e) {
+            isDragging = true;
+            const labelGroup = e.currentTarget;
+            selectedLabel = labelGroup.getAttribute('data-id');
+            selectLabel(selectedLabel);
+            
+            labelGroup.classList.add('dragging');
+            
+            const transform = labelGroup.getAttribute('transform');
+            const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+            const currentX = parseFloat(match[1]);
+            const currentY = parseFloat(match[2]);
+            
+            dragStart = {
+                x: e.clientX - currentX,
+                y: e.clientY - currentY
+            };
+            
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+
+        function drag(e) {
+            if (!isDragging || !selectedLabel) return;
+            
+            const labelGroup = svg.querySelector(`[data-id="${selectedLabel}"]`);
+            const newX = e.clientX - dragStart.x;
+            const newY = e.clientY - dragStart.y;
+            
+            labelGroup.setAttribute('transform', `translate(${newX}, ${newY})`);
+            
+            // Update offset (relative to center)
+            const offsetX = Math.round(newX - CENTER_X);
+            const offsetY = Math.round(newY - CENTER_Y);
+            
+            const edge = edges.find(e => e.id === selectedLabel);
+            if (edge) {
+                edge.offset.x = offsetX;
+                edge.offset.y = offsetY;
+                
+                // Update sidebar
+                const item = labelList.querySelector(`[data-id="${selectedLabel}"]`);
+                if (item) {
+                    item.querySelector('.coords').textContent = `x: ${offsetX}, y: ${offsetY}`;
+                }
+            }
+        }
+
+        function stopDrag() {
+            isDragging = false;
+            document.querySelectorAll('.edge-label').forEach(label => {
+                label.classList.remove('dragging');
+            });
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+
+        exportBtn.addEventListener('click', () => {
+            let result = '// Updated label coordinates:\n\n';
+            edges.forEach(edge => {
+                result += `${edge.label}: { x: ${edge.offset.x}, y: ${edge.offset.y} }\n`;
+            });
+            output.textContent = result;
+            output.classList.add('show');
+            
+            // Auto-select for easy copying
+            const range = document.createRange();
+            range.selectNode(output);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+        });
+
+        // Zoom and Pan functionality
+        let currentZoom = 1;
+        let viewBox = { x: 0, y: 0, width: WIDTH, height: HEIGHT };
+        let isPanning = false;
+        let panStart = { x: 0, y: 0 };
+
+        function updateViewBox() {
+            svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`);
+        }
+
+        function zoom(factor) {
+            const oldWidth = viewBox.width;
+            const oldHeight = viewBox.height;
+            
+            viewBox.width = WIDTH / factor;
+            viewBox.height = HEIGHT / factor;
+            
+            // Keep center point stable
+            viewBox.x += (oldWidth - viewBox.width) / 2;
+            viewBox.y += (oldHeight - viewBox.height) / 2;
+            
+            currentZoom = factor;
+            updateViewBox();
+        }
+
+        document.getElementById('zoom-in').addEventListener('click', () => {
+            zoom(currentZoom * 1.2);
+        });
+
+        document.getElementById('zoom-out').addEventListener('click', () => {
+            zoom(currentZoom / 1.2);
+        });
+
+        document.getElementById('zoom-reset').addEventListener('click', () => {
+            viewBox = { x: 0, y: 0, width: WIDTH, height: HEIGHT };
+            currentZoom = 1;
+            updateViewBox();
+        });
+
+        // Mouse wheel zoom
+        svg.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const factor = e.deltaY < 0 ? 1.1 : 0.9;
+            zoom(currentZoom * factor);
+        });
+
+        // Pan with middle mouse or ctrl+drag
+        const canvasArea = document.getElementById('canvas-area');
+        canvasArea.addEventListener('mousedown', (e) => {
+            if (e.button === 1 || (e.button === 0 && e.ctrlKey)) {
+                isPanning = true;
+                panStart = { x: e.clientX, y: e.clientY };
+                canvasArea.style.cursor = 'grabbing';
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isPanning) {
+                const dx = (e.clientX - panStart.x) * (viewBox.width / svg.clientWidth);
+                const dy = (e.clientY - panStart.y) * (viewBox.height / svg.clientHeight);
+                
+                viewBox.x -= dx;
+                viewBox.y -= dy;
+                
+                panStart = { x: e.clientX, y: e.clientY };
+                updateViewBox();
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isPanning = false;
+            canvasArea.style.cursor = '';
+        });
+    </script>
+</body>
+</html>

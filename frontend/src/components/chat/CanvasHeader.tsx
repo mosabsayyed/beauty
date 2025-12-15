@@ -19,6 +19,7 @@ interface CanvasHeaderProps {
   hideClose?: boolean;
   onToggleComments?: () => void;
   showComments?: boolean;
+  showLanguageToggle?: boolean;
 }
 
 export function CanvasHeader({ 
@@ -29,9 +30,10 @@ export function CanvasHeader({
   onAction,
   hideClose = false,
   onToggleComments,
-  showComments = false
+  showComments = false,
+  showLanguageToggle = false
 }: CanvasHeaderProps) {
-  const { language } = useLanguage();
+  const { language, setLanguage } = useLanguage();
 
   const translations = {
     share: language === 'ar' ? 'مشاركة' : 'Share',
@@ -45,85 +47,83 @@ export function CanvasHeader({
   };
 
   return (
-    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white sticky top-0 z-10">
-      <div className="flex items-center gap-3 overflow-hidden">
-        <div className="h-8 w-1 bg-gradient-to-b from-amber-400 to-amber-600 rounded-full shrink-0" />
-        <h2 className="text-lg font-semibold text-gray-900 truncate" title={title}>
+    <div className="canvas-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem', position: 'sticky', top: 0, zIndex: 10, borderBottom: '1px solid #FFD700' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden' }}>
+        <div style={{ height: '2rem', width: '0.25rem', background: 'linear-gradient(to bottom, #FBBF24, #D97706)', flexShrink: 0 }} />
+        <h2 style={{ fontSize: '1.125rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={title}>
           {title}
         </h2>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        {/* Language Toggle */}
+        {showLanguageToggle && (
+          <button
+            onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+            className="header-button" style={{ padding: '0.375rem 0.75rem', transition: 'color 0.2s', fontSize: '0.875rem', fontWeight: 500 }}
+            title={language === 'en' ? 'العربية' : 'English'}
+          >
+            {/* Show TARGET language (what you'd switch TO) */}
+            {language === 'en' ? 'AR' : 'EN'}
+          </button>
+        )}
+
+        {/* Comments Toggle */}
+        {onToggleComments && (
+          <button
+            onClick={onToggleComments}
+            className="header-button clickable" style={{ padding: '0.5rem', transition: 'color 0.2s, background-color 0.2s', backgroundColor: showComments ? '#FEF3C7' : 'transparent', color: showComments ? '#B45309' : 'inherit' }}
+            title={translations.comments}
+          >
+            <ChatBubbleLeftRightIcon style={{ width: '1.25rem', height: '1.25rem' }} />
+          </button>
+        )}
+
         {onAction && (
           <>
             <button 
               onClick={() => onAction('share')}
-              className="p-2 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+              className="clickable header-button" style={{ padding: '0.5rem', transition: 'color 0.2s' }}
               title={translations.share}
             >
-              <ShareIcon className="w-5 h-5" />
+              <ShareIcon style={{ width: '1.25rem', height: '1.25rem' }} />
             </button>
             <button 
               onClick={() => onAction('print')}
-              className="p-2 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+              className="clickable header-button" style={{ padding: '0.5rem', transition: 'color 0.2s' }}
               title={translations.print}
             >
-              <PrinterIcon className="w-5 h-5" />
+              <PrinterIcon style={{ width: '1.25rem', height: '1.25rem' }} />
             </button>
-            <button 
-              onClick={() => onAction('save')}
-              className="p-2 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-              title={translations.save}
-            >
-              <BookmarkIcon className="w-5 h-5" />
-            </button>
-            <button 
-              onClick={() => onAction('download')}
-              className="p-2 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-              title={translations.download}
-            >
-              <ArrowDownTrayIcon className="w-5 h-5" />
-            </button>
-            <div className="w-px h-6 bg-gray-200 mx-1" />
+            <div style={{ width: 1, height: 24, backgroundColor: 'var(--component-panel-border)', margin: '0 4px' }} />
           </>
 
         )}
 
-        {onToggleComments && (
-          <button
-            onClick={onToggleComments}
-            className={`p-2 rounded-lg transition-colors ${
-              showComments 
-                ? 'text-amber-600 bg-amber-50' 
-                : 'text-gray-500 hover:text-amber-600 hover:bg-amber-50'
-            }`}
-            title={translations.comments}
-          >
-            <ChatBubbleLeftRightIcon className="w-5 h-5" />
-          </button>
-        )}
-
+        {/* Zen Mode Toggle */}
         {onZenToggle && (
-          <button 
+          <button
             onClick={onZenToggle}
-            className="p-2 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+            className="clickable header-button" style={{ padding: '0.5rem', transition: 'color 0.2s' }}
             title={isZenMode ? translations.exitZenMode : translations.enterZenMode}
           >
             {isZenMode ? (
-              <ArrowsPointingInIcon className="w-5 h-5" />
+              <ArrowsPointingInIcon style={{ width: '1.25rem', height: '1.25rem' }} />
             ) : (
-              <ArrowsPointingOutIcon className="w-5 h-5" />
+              <ArrowsPointingOutIcon style={{ width: '1.25rem', height: '1.25rem' }} />
             )}
           </button>
         )}
 
+        {/* Close Button */}
         {!hideClose && onClose && (
-          <button 
+          <button
             onClick={onClose}
-            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="clickable header-button"
+            style={{ padding: '0.5rem', transition: 'color 0.2s, background-color 0.2s' }}
             title={translations.close}
           >
-            <XMarkIcon className="w-5 h-5" />
+            <XMarkIcon style={{ width: '1.25rem', height: '1.25rem' }} />
           </button>
         )}
       </div>

@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Noor Cognitive Twin - KSA Public Sector Intelligence</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --component-bg-primary: #111827;
+      --component-panel-bg: #1F2937;
+      --component-panel-border: #374151;
+      --component-bg-secondary: #374151;
+      --component-text-primary: #F9FAFB;
+      --component-text-secondary: #D1D5DB;
+      --component-text-muted: #9CA3AF;
+      --component-text-accent: #FFD700;
+      --component-text-on-accent: #111827;
+    }
+
+    :root[data-theme="light"] {
+      --component-bg-primary: #F3F4F6;
+      --component-panel-bg: #FFFFFF;
+      --component-panel-border: #E5E7EB;
+      --component-bg-secondary: #F9FAFB;
+      --component-text-primary: #1F2937;
+      --component-text-secondary: #4B5563;
+      --component-text-muted: #6B7280;
+      --component-text-accent: #D4AF37;
+      --component-text-on-accent: #FFFFFF;
+    }
+
+    html, body {
+      background: var(--component-bg-primary);
+      color: var(--component-text-primary);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+      overflow-x: clip;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    #background-image {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1278px;
+      pointer-events: none;
+      z-index: 0;
+      display: block;
+    }
+
+    #main-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    section {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ===== BETA STRIP (Section 0) ===== */
+    .beta-strip {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--component-bg-primary);
+      border-bottom: 1px solid var(--component-panel-border);
+      padding: 16px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
+      font-size: 14px;
+      color: var(--component-text-secondary);
+      will-change: transform;
+    }
+
+    .beta-strip-text {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .beta-strip-btn {
+      padding: 10px 24px;
+      background: var(--component-text-accent);
+      color: var(--component-text-on-accent);
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .beta-strip-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(255, 215, 0, 0.3);
+    }
+
+    /* ===== GENERIC SECTION STYLES ===== */
+    section {
+      padding: 80px 40px;
+      position: relative;
+      background: transparent;
+    }
+
+    section.dark {
+      background: transparent;
+    }
+
+    section.light {
+      background: transparent;
+    }
+
+    section.content-centered {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Content wrapper with background color - only wraps text, excludes screenshots */
+    .section-content-box {
+      background-color: var(--component-bg-primary);
+      padding: 40px;
+      border-radius: 8px;
+      opacity: 0.97;
+      display: inline-block;
+    }
+
+    section.light .section-content-box {
+      background-color: var(--component-panel-bg);
+      opacity: 0.95;
+    }
+
+    section.dark .section-content-box {
+      background-color: var(--component-bg-primary);
+      opacity: 0.97;
+    }
+
+    /* Grid sections with text + screenshot */
+    .section-meet-noor,
+    .section-strategic,
+    .section-dashboards,
+    .section-accounts {
+      display: grid;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .section-meet-noor {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .section-strategic {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .section-dashboards {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .section-accounts {
+      grid-template-columns: 1fr 1fr;
+      align-items: flex-start;
+    }
+
+    h1 {
+      font: 400 72px/84px "Inter", sans-serif;
+      color: var(--component-text-primary);
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      font: 400 40px/48px "Inter", sans-serif;
+      color: var(--component-text-primary);
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font: 400 18px/28px "Inter", sans-serif;
+      color: var(--component-text-secondary);
+      margin-bottom: 24px;
+      max-width: 700px;
+    }
+
+    .button-primary {
+      display: inline-block;
+      padding: 12px 32px;
+      background: var(--component-text-accent);
+      color: var(--component-text-on-accent);
+      border: none;
+      border-radius: 6px;
+      font: 600 14px/20px "Inter", sans-serif;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .button-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 215, 0, 0.3);
+    }
+
+    /* ===== SECTION 1: MEET NOOR ===== */
+    .section-meet-noor-content {
+      max-width: 500px;
+    }
+
+    .section-meet-noor-screenshot {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(37, 128, 250, 0.2);
+    }
+
+    .section-meet-noor-screenshot img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .microcopy-bullets {
+      list-style: none;
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .microcopy-bullets li {
+      font: 400 14px/22px "Inter", sans-serif;
+      color: var(--component-text-secondary);
+      padding-left: 24px;
+      position: relative;
+    }
+
+    .microcopy-bullets li:before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--component-text-accent);
+      font-weight: 600;
+    }
+
+    /* ===== SECTION 2: STRATEGIC ANSWER ===== */
+    .section-strategic-content {
+      max-width: 500px;
+      order: 2;
+    }
+
+    .section-strategic-screenshot {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      order: 1;
+    }
+
+    .section-strategic-screenshot img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .value-bullets {
+      list-style: none;
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .value-bullets li {
+      font: 400 15px/24px "Inter", sans-serif;
+      color: var(--component-text-secondary);
+      padding-left: 28px;
+      position: relative;
+    }
+
+    .value-bullets li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--component-text-accent);
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    /* ===== SECTION 3: SEE THE TWIN ===== */
+    .three-panel-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 40px;
+    }
+
+    .panel {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .panel img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .panel-caption {
+      font: 600 14px/20px "Inter", sans-serif;
+      color: var(--component-text-accent);
+      padding: 12px 0;
+      margin-top: 8px;
+    }
+
+    .panel-description {
+      font: 400 13px/20px "Inter", sans-serif;
+      color: var(--component-text-secondary);
+      margin-top: 6px;
+      line-height: 1.6;
+    }
+
+    /* ===== SECTION 4: TWIN KNOWLEDGE ===== */
+    .section-knowledge {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: flex-start;
+    }
+
+    .section-knowledge-content {
+      max-width: 500px;
+    }
+
+    .section-knowledge-screenshots {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .knowledge-screenshot {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .knowledge-screenshot img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* ===== SECTION 5: UNDER THE HOOD ===== */
+    .section-architecture {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .architecture-screenshot {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      margin-top: 40px;
+      margin-bottom: 40px;
+    }
+
+    .architecture-screenshot img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .architecture-callouts {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      margin-top: 40px;
+    }
+
+    .callout {
+      padding: 24px;
+      background: var(--component-panel-bg);
+      border-left: 3px solid var(--component-text-accent);
+      border-radius: 6px;
+    }
+
+    .callout-label {
+      font: 600 14px/20px "Inter", sans-serif;
+      color: var(--component-text-accent);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .callout-text {
+      font: 400 13px/20px "Inter", sans-serif;
+      color: var(--component-text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ===== SECTION 6: DASHBOARDS IN PRACTICE ===== */
+    .section-dashboards-content {
+      max-width: 500px;
+    }
+
+    .section-dashboards-screenshot {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .section-dashboards-screenshot img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* ===== SECTION 7: ACCOUNTS & WORKSPACE ===== */
+    .section-accounts-content {
+      max-width: 500px;
+    }
+
+    .section-accounts-screenshot {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .section-accounts-screenshot img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* ===== SECTION 8: REQUEST INVITE ===== */
+    .section-request-invite {
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .invite-expectations {
+      list-style: none;
+      margin: 40px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .invite-expectations li {
+      font: 400 15px/24px "Inter", sans-serif;
+      color: var(--component-text-secondary);
+      padding-left: 28px;
+      position: relative;
+      text-align: left;
+    }
+
+    .invite-expectations li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--component-text-accent);
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .invite-form {
+      background: var(--component-panel-bg);
+      border: 1px solid var(--component-panel-border);
+      border-radius: 12px;
+      padding: 40px;
+      margin-top: 40px;
+      display: grid;
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+    }
+
+    .form-group label {
+      font: 600 13px/18px "Inter", sans-serif;
+      color: var(--component-text-primary);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      padding: 12px 16px;
+      background: var(--component-bg-primary);
+      border: 1px solid var(--component-panel-border);
+      border-radius: 6px;
+      color: var(--component-text-primary);
+      font: 400 14px/20px "Inter", sans-serif;
+      transition: all 0.2s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--component-text-accent);
+      background: var(--component-panel-bg);
+      box-shadow: 0 0 12px rgba(255, 215, 0, 0.2);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+      font-family: "Inter", sans-serif;
+    }
+
+    .form-submit {
+      margin-top: 20px;
+    }
+
+    .form-submit .button-primary {
+      width: 100%;
+      padding: 14px 32px;
+      font-size: 16px;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+      section {
+        padding: 60px 32px;
+      }
+
+      .section-meet-noor,
+      .section-strategic,
+      .section-dashboards,
+      .section-accounts {
+        grid-template-columns: 1fr;
+      }
+
+      .section-strategic-screenshot {
+        order: 0;
+      }
+
+      .section-strategic-content {
+        order: 0;
+      }
+
+      .three-panel-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .architecture-callouts {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font: 400 40px/48px "Allerta Stencil", sans-serif;
+      }
+
+      h2 {
+        font: 400 32px/40px "Allerta Stencil", sans-serif;
+      }
+    }
+
+    @media (max-width: 640px) {
+      section {
+        padding: 40px 20px;
+      }
+
+      h1 {
+        font: 400 32px/40px "Allerta Stencil", sans-serif;
+      }
+
+      h2 {
+        font: 400 24px/32px "Allerta Stencil", sans-serif;
+      }
+
+      .subtitle {
+        font: 400 16px/26px "Inter", sans-serif;
+      }
+
+      .beta-strip {
+        flex-direction: column;
+        text-align: center;
+        padding: 12px 16px;
+      }
+
+      .beta-strip-text {
+        width: 100%;
+      }
+
+      .invite-form {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <img id="background-image" src="/att/landing-screenshots/Vector.svg" alt="">
+  <div id="main-content">
+  <div class="beta-strip">
+    <div class="beta-strip-text">
+      Invite-only beta for KSA public sector entities. Limited founding partners.
+    </div>
+    <a href="#section-invite" class="beta-strip-btn">Request Invite</a>
+  </div>
+
+  <!-- SECTION 1: MEET NOOR -->
+  <section class="dark content-centered">
+    <div class="section-meet-noor">
+      <div class="section-content-box">
+        <div class="section-meet-noor-content">
+          <h2>Meet Noor, your Cognitive Twin guide.</h2>
+          <p class="subtitle">Ask in plain language. Noor answers in your operating model.</p>
+          <ul class="microcopy-bullets">
+            <li>Start with simple prompts like "Show me digital transformation progress" or "Generate Q4 2024 report."</li>
+            <li>No technical jargon, no Cypher—just your business language.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="section-meet-noor-screenshot">
+        <img src="/att/landing-screenshots/noor-welcome.png" alt="Noor welcome screen">
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: FROM QUESTION TO STRATEGIC ANSWER -->
+  <section class="light content-centered">
+    <div class="section-strategic">
+      <div class="section-strategic-screenshot">
+        <img src="/att/landing-screenshots/strategic-planning.png" alt="Strategic Planning text answer">
+      </div>
+      <div class="section-content-box">
+        <div class="section-strategic-content">
+          <h2>Turn a question into a strategic brief.</h2>
+          <p class="subtitle">From 'What is happening?' to 'What should we do?' in one conversation.</p>
+          <ul class="value-bullets">
+            <li>Reads your Digital Twin, not just a static report.</li>
+            <li>Explains why a deviation matters and which levers to pull.</li>
+            <li>Everything is traceable back to objectives, KPIs, policies, and risks.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: SEE THE TWIN -->
+  <section class="dark content-centered">
+    <div class="section-content-box">
+      <h2>One reality, three lenses.</h2>
+      <p class="subtitle">The Cognitive Twin is visual and analytical, not just chat.</p>
+      <div class="three-panel-strip">
+        <div>
+          <div class="panel">
+            <img src="/att/landing-screenshots/indicators-dashboard.png" alt="Indicators dashboard">
+          </div>
+          <div class="panel-caption">Dashboards (Indicators)</div>
+          <div class="panel-description">Executive health view across engagement, efficiency, risk, and delivery—driven by the same Twin Noor reads.</div>
+        </div>
+        <div>
+          <div class="panel">
+            <img src="/att/landing-screenshots/ontology-graph.png" alt="Chain / ontology graph">
+          </div>
+          <div class="panel-caption">Chains (Ontology)</div>
+          <div class="panel-description">See how objectives, citizens, policy tools, risks, and reports actually connect across your sector.</div>
+        </div>
+        <div>
+          <div class="panel">
+            <img src="/att/landing-screenshots/3d-graph.png" alt="3D graph / clusters">
+          </div>
+          <div class="panel-caption">3D Graph</div>
+          <div class="panel-description">Explore thousands of nodes and relationships—clusters of culture, performance, or risk—inside a single view.</div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: LEARN THE MECHANICS -->
+  <section class="light content-centered">
+    <div class="section-content-box">
+    <div class="section-knowledge">
+      <div class="section-knowledge-content">
+        <h2>Twin Knowledge: the playbook inside the system.</h2>
+        <p class="subtitle">Chapters, episodes, and podcasts that explain the mechanics of transformation.</p>
+        <ul class="value-bullets">
+          <li>Structured episodes that map your public sector ontology and transformation logic.</li>
+          <li>Illustrative videos and podcasts embedded next to the content.</li>
+          <li>Comment and discuss inside the same workspace.</li>
+        </ul>
+      </div>
+      <div class="section-knowledge-screenshots">
+        <div class="knowledge-screenshot">
+          <img src="/att/landing-screenshots/episode-1-1.png" alt="Episode 1.1">
+        </div>
+        <div class="knowledge-screenshot">
+          <img src="/att/landing-screenshots/episode-4-2-podcast.png" alt="Episode 4.2 + podcast">
+        </div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: UNDER THE HOOD -->
+  <section class="dark content-centered">
+    <div class="section-content-box">
+    <div class="section-architecture">
+      <h2>Under the hood: Saudi-built cognitive architecture.</h2>
+      <p class="subtitle">Multi-agent LLM ecosystem, knowledge graph, and governance in one view.</p>
+      <div class="architecture-screenshot">
+        <img src="/att/landing-screenshots/architecture-roadmap.png" alt="Product Roadmap / architecture map">
+      </div>
+      <div class="architecture-callouts">
+        <div class="callout">
+          <div class="callout-label">LLM Ecosystem (Maestro + agents)</div>
+          <div class="callout-text">Reasoning, agentic workflows, and feeders tuned for your use cases.</div>
+        </div>
+        <div class="callout">
+          <div class="callout-label">Cognitive Core</div>
+          <div class="callout-text">Knowledge Graph + embeddings + relational data forming the Digital Twin.</div>
+        </div>
+        <div class="callout">
+          <div class="callout-label">Operations & AI Governance</div>
+          <div class="callout-text">Public policy performance, compliance, risk analysis, classification, and AI ethics anchored in the same model.</div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- SECTION 6: DASHBOARDS IN PRACTICE -->
+  <section class="light content-centered">
+    <div class="section-content-box">
+    <div class="section-dashboards">
+      <div class="section-dashboards-content">
+        <h2>Know the health of your transformation at a glance.</h2>
+        <p class="subtitle">No more hunting through decks and systems. One Twin, one view.</p>
+        <ul class="value-bullets">
+          <li>Health scores vs plan for all key indicators.</li>
+          <li>Executive summary generated by Noor on demand.</li>
+          <li>Filter by year/quarter with a single click.</li>
+        </ul>
+      </div>
+      <div class="section-dashboards-screenshot">
+        <img src="/att/landing-screenshots/indicators-dashboard.png" alt="Dashboards in practice">
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7: ACCOUNTS & WORKSPACE -->
+  <section class="dark content-centered">
+    <div class="section-content-box">
+    <div class="section-accounts">
+      <div class="section-accounts-content">
+        <h2>A workspace, not just a demo.</h2>
+        <p class="subtitle">Save sessions with Noor, track learning, and keep your artifacts.</p>
+        <ul class="value-bullets">
+          <li>Registration is free and by invite during beta.</li>
+          <li>Preserve analyses, dashboards, and Twin Knowledge you generate.</li>
+          <li>Or continue as guest for a guided walkthrough.</li>
+        </ul>
+      </div>
+      <div class="section-accounts-screenshot">
+        <img src="/att/landing-screenshots/welcome-login.png" alt="Welcome to JOSOOR / login">
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- SECTION 8: REQUEST INVITE -->
+  <section class="light content-centered" id="section-invite">
+    <div class="section-content-box">
+    <div class="section-request-invite">
+      <h1>Request access to the Noor Cognitive Twin beta.</h1>
+      <ul class="invite-expectations">
+        <li>Designed for KSA public sector entities and national institutions.</li>
+        <li>We onboard a limited number of agencies to ensure deep integration.</li>
+        <li>We'll review your use case and contact you with next steps.</li>
+      </ul>
+      
+      <form class="invite-form">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+
+        <div class="form-group">
+          <label for="entity">Entity / Role</label>
+          <input type="text" id="entity" name="entity" placeholder="e.g., Ministry of Digital Technology, Digital Transformation Officer" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Work Email</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="challenge">What transformation challenge are you trying to solve?</label>
+          <textarea id="challenge" name="challenge" required></textarea>
+        </div>
+
+        <div class="form-submit">
+          <button type="submit" class="button-primary">Request Invite</button>
+        </div>
+      </form>
+    </div>
+    </div>
+  </section>
+
+  </div>
+
+  <script>
+    // Form submission handler
+    const form = document.querySelector('.invite-form');
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = {
+          name: document.getElementById('name').value,
+          entity: document.getElementById('entity').value,
+          email: document.getElementById('email').value,
+          challenge: document.getElementById('challenge').value,
+          timestamp: new Date().toISOString(),
+        };
+
+        console.log('Form submission:', formData);
+        // TODO: Send to backend API endpoint
+        alert('Thank you for your interest! We will review your request and contact you soon.');
+        form.reset();
+      });
+    }
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

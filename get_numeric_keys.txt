@@ -1,0 +1,8 @@
+
+function getNumericDataKeys(dataPoint: any, xAxisKey: string): string[] {
+  if (!dataPoint) return [];
+  return Object.keys(dataPoint).filter(key => 
+    key !== xAxisKey && 
+    typeof dataPoint[key] === 'number'
+  );
+}

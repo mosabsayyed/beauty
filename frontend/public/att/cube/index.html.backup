@@ -1,0 +1,2820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RubiksCubeExperience – CDN</title>
+  <style>
+    /* Top controls: visible toggle + skip styling */
+    #rubiks-top-controls { gap: 10px; }
+  #rubiks-top-controls .lang-toggle { display:flex; align-items:center; gap:8px; background: rgba(10,15,28,0.6); padding:6px 8px; border-radius:999px; color:#fff; border: 1px solid rgba(255,255,255,0.12); }
+  .simple-toggle { width:44px; height:24px; border-radius:999px; background:#22303a; border: 1px solid rgba(255,255,255,0.12); position:relative; padding:3px; cursor:pointer; display:inline-block; }
+  .simple-toggle .knob { position:absolute; top:3px; left:3px; width:18px; height:18px; background:#fff; border-radius:50%; transition: left .18s cubic-bezier(.2,.9,.3,1); box-shadow:0 1px 2px rgba(0,0,0,0.4); }
+  .simple-toggle.pressed { background: linear-gradient(135deg,#D4AF37 0%,#B8960F 100%); }
+  .simple-toggle.pressed .knob { left: calc(100% - 21px); }
+  #rubiks-top-controls .lang-label { font-size:13px; color:#fff; font-weight:600; }
+  #rubiks-top-controls .top-skip { color: #fff; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.12); padding:8px 12px; border-radius:8px; font-weight:700; }
+    @media (max-width:640px) { #rubiks-top-controls { right:8px; left:auto; } }
+    /* :root { --panel:#0a0f1c; --text:#e5e7eb; --accent:#7c3aed; }*/
+  /* Changed background color on this line to light grey (#e0e0e0) */
+  html, body { height: 100%; margin: 0; background: #797979; color: var(--text); font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif; scrollbar-width: none; -ms-overflow-style: none; }
+    html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
+    .wrap { position: relative; height: 100%; }
+
+    /* Scroll hint overlay */
+    #scroll-hint { position: fixed; left: 50%; transform: translateX(-50%) translateY(12px); bottom: 28px; background: rgba(0,0,0,0.56); color: #fff; padding: 8px 14px; border-radius: 999px; display:flex; gap:10px; align-items:center; z-index:10000; font-weight:700; pointer-events:auto; border: 1px solid rgba(255,255,255,0.12); opacity: 0; transition: opacity .32s ease, transform .32s ease; }
+    #scroll-hint.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #scroll-hint .hint-text { font-size: 13px; letter-spacing: .02em; }
+    #scroll-hint .hint-arrow { width:14px; height:14px; display:inline-block; border-left:2px solid #fff; border-bottom:2px solid #fff; transform: rotate(45deg); margin-top:2px; animation: hint-bounce 1.2s infinite; }
+    @keyframes hint-bounce { 0%{ transform: translateY(0) rotate(45deg) } 50%{ transform: translateY(6px) rotate(45deg) } 100%{ transform: translateY(0) rotate(45deg) } }
+
+  /*.bg-tint { position: fixed; inset: 0; background: rgb(255, 255, 255); z-index: 0; }*/
+.hero-row { display: none; }
+  .text-col { width: 500px; max-width: 640px; padding: 0 19px 0 60px; color: #ffffff; font-family: Inter, sans-serif; position: sticky; top: 60px; }
+.text-section { min-height: 590.4px; display: flex; align-items: flex-start; justify-content: flex-start; padding-top: 60px; }
+.text-col h1 { margin: 20px 0 12px; font: 400 58px/66px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 2px rgba(255,255,255,0.544), 0 0 12px rgba(76,201,255,0.531), 0 0 28px rgba(76,201,255,0.498), 0 0 56px rgba(30,144,255,0.476), 0 0 110px rgba(14,110,253,0.434); }
+.hero-row section:nth-of-type(2) .text-col h1 { font: 400 58px/66px "Allerta Stencil", sans-serif; }
+.hero-row section:nth-of-type(3) .text-col h1 { font: 400 58px/66px "Allerta Stencil", sans-serif; }
+.hero-row section:nth-of-type(1) .text-col { width: 640px; }
+.hero-row section:nth-of-type(1) .text-col h1 { font: 400 58px/66px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
+.hero-row section:nth-of-type(1) .text-col h2 { font-size: 32px; }
+.text-col h2 { font-weight: 700; margin: 0 0 20px; text-transform: uppercase; letter-spacing: 1.30458px; font-size: 32px; color: rgba(37, 128, 250, 1); }
+.text-col p  { font-weight: 300; margin: 0; font-size: clamp(1.2rem, 1.5vw, 1.5rem); line-height: 1.6; }
+.hero-row section:nth-of-type(1) .text-col p { font-size: 23px; line-height: 30px; }
+  .sticky-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; background: transparent; z-index: 2; }
+  #stage { background: none; }
+    #stage { width: 100%; height: 100%; display:block; }
+    .spacer { height: 20000px; } /* Scroll length to span all phases */
+    .phase-pad { height: 0px; }
+    .phase-overlay { position: fixed; inset: 0; z-index: 3; pointer-events: none; background: transparent !important; }
+  .phase-overlay .overlay-inner { position: absolute; top: 60px; left: 0; font-family: Inter,  sans-serif; color: #ffffff; }
+  .phase-text-block { position: absolute; top: 0; left: 0; width: 625px !important; max-width: none !important; padding: 0 19px 0 56px; box-sizing: content-box; opacity: 1; pointer-events: none; font-family: Inter,  sans-serif; color: #ffffff; transform: translateY(0); transition: none; z-index: 1; visibility: hidden; will-change: transform; background: transparent !important; }
+    .phase-text-block.finale-blocks { pointer-events: auto; }
+    /* Match backup typography inside overlay */
+    .phase-overlay .phase-text-block h1 { margin: 20px 0 12px; font: 400 58px/66px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 2px rgba(255,255,255,0.544), 0 0 12px rgba(76,201,255,0.531), 0 0 28px rgba(76,201,255,0.498), 0 0 56px rgba(30,144,255,0.476), 0 0 110px rgba(14,110,253,0.434); }
+    .phase-overlay .phase-text-block[data-key="intro-1"] h1 { font: 400 58px/66px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
+    .phase-overlay .phase-text-block[data-key="p89-future"] h1 { font: 400 58px/66px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
+    .phase-overlay .phase-text-block h2 { font-weight: 700; margin: 0 0 20px; text-transform: uppercase; letter-spacing: 1.30458px; font-size: 32px; color: rgba(37, 128, 250, 1); }
+        .phase-overlay .phase-text-block:not([data-key="intro-1"]) h2 { font-size: 32px; font-weight: 700; color: rgba(37, 128, 250, 1); }
+    .phase-overlay .phase-text-block[data-key="intro-1"] h2 { font-size: 32px; font-weight: 700; color: rgba(37, 128, 250, 1); }
+    .phase-overlay .phase-text-block[data-key="p89-future"] h2 { font-size: 32px; font-weight: 700; color: rgba(37, 128, 250, 1); }
+    .phase-overlay .phase-text-block p  { font-weight: 300; margin: 0; font-size: 22px; line-height: 30px; }
+    .phase-overlay .phase-text-block[data-key="intro-1"] p { font-size: 22px; line-height: 30px; }
+    .phase-overlay .phase-text-block[data-key="p89-future"] p { font-size: 22px; line-height: 30px; }
+    .phase-text-block.active { z-index: 2; visibility: visible; }
+    .phase-viewport { position: relative; overflow: visible; height: 600px; }
+  @media (prefers-reduced-motion: reduce) { .phase-text-block { transition: none !important; } .phase-text-block.leaving { transition: none !important; } }
+    .phase-text-block.leaving { visibility: visible; }
+
+    /* Overlay-specific typography and sizing */
+    .phase-overlay .phase-text-block[data-key="intro-1"] { width: 650px !important; max-width: none !important; }
+    .phase-overlay .phase-text-block[data-key="p89-future"] { width: 600px !important; max-width: none !important; }
+    .phase-overlay .phase-text-block[data-key="intro-2"],
+    .phase-overlay .phase-text-block[data-key="intro-3"],
+    .phase-overlay .phase-text-block[data-key="p23-your-org"],
+    .phase-overlay .phase-text-block[data-key="p4-hidden"],
+    .phase-overlay .phase-text-block[data-key="p56-where"],
+    .phase-overlay .phase-text-block[data-key="p7-two-years"] { width: 600px !important; max-width: none !important; } 
+        /* Ensure children use container width */
+    .phase-text-block > h1, .phase-text-block > h2, .phase-text-block > p { display: block; max-width: 100%; }
+    /* Ensure consistent top alignment between blocks */
+    #phaseOverlay .phase-text-block h1:first-child { margin-top: 20px; }
+        .phase-overlay .phase-text-block[data-key="intro-1"] h1 { font: 400 58px/66px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
+    .phase-overlay .phase-text-block[data-key="intro-1"] h2 { font-size: 32px; font-weight: 700; color: rgba(37, 128, 250, 1); }
+    .phase-overlay .phase-text-block[data-key="intro-1"] p  { font-size: 23px; line-height: 30px; }
+    
+    /* Finale columns styling */
+    .finale-columns {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 80px;
+      font-family: Inter,  sans-serif;
+      color: #ffffff;
+      z-index: 10;
+      pointer-events: auto; /* Enable pointer events for finale columns */
+      will-change: transform;
+    }
+    
+    .finale-left-column,
+    .finale-right-column {
+      width: 460px;
+      padding: 30px 30px 60px 30px; /* Added padding-bottom */
+      background: rgba(10, 15, 28, 0.8);
+      border: 1px solid rgba(37, 128, 250, 0.3);
+      border-radius: 12px;
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      text-align: center;
+    }
+    
+    .finale-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .finale-logo {
+      width: 68px;
+      height: 68px;
+      object-fit: contain;
+    }
+    
+    .finale-columns h1 {
+      font: 400 48px/53px "Allerta Stencil", sans-serif;
+      color: #ffffff;
+      text-shadow: 0 0 2px rgba(255,255,255,0.544), 0 0 12px rgba(76,201,255,0.531), 0 0 28px rgba(76,201,255,0.498);
+      margin: 0;
+    }
+    
+    .finale-columns h2 {
+      font-weight: 700;
+      font-size: 32px;
+      color: rgba(37, 128, 250, 1);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin: 0 0 20px 0;
+    }
+    
+    .finale-columns p {
+      font-weight: 300;
+      font-size: 21px;
+      line-height: 28px;
+      margin: 0 0 24px 0;
+    }
+    
+    .finale-columns ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 32px 0;
+    }
+    
+    .finale-columns li {
+      font-size: 18px;
+      line-height: 26px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(37, 128, 250, 0.2);
+      color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .finale-columns li:last-child {
+      border-bottom: none;
+    }
+    
+    .finale-enter-btn {
+      background: linear-gradient(135deg, rgba(37, 128, 250, 1) 0%, rgba(76, 201, 255, 1) 100%);
+      border: none;
+      border-radius: 8px;
+      color: #ffffff;
+  font-family: Inter, sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      padding: 15px 42px;
+      cursor: pointer;
+      pointer-events: auto; /* Explicitly enable pointer events */
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(37, 128, 250, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-decoration: none; /* Add this line */
+      position: relative; /* Ensure proper stacking */
+      z-index: 11; /* Higher than parent container */
+      margin-top: 50px; /* Added to move the button down */
+    }
+    
+    .finale-enter-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(37, 128, 250, 0.4);
+      background: linear-gradient(135deg, rgba(76, 201, 255, 1) 0%, rgba(37, 128, 250, 1) 100%);
+    }
+    
+    .finale-enter-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(37, 128, 250, 0.3);
+    }
+    
+    header, footer { position: fixed; left: 0; right: 0; display:flex; align-items:center; justify-content:space-between; padding: 10px 14px; background: rgba(10,15,28,0.6); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); z-index: 5; border-bottom: 1px solid #111827; }
+    header { top: 0; }
+    footer { bottom: 0; border-top: 1px solid #111827; border-bottom: none; }
+    .badge { font-size: 12px; padding: 6px 10px; border:1px solid #374151; background:#0f172a; border-radius: 999px; font-weight: 700; letter-spacing:0.02em; }
+    .toolbar { display:flex; gap:8px; align-items:center; }
+    .btn { appearance:none; border:1px solid #374151; background:#0f172a; color:var(--text); padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:600; }
+    .btn:hover { background:#111827; }
+    .phase-indicator { position: fixed; right: 12px; top: 12px; z-index: 10; display:flex; gap:8px; align-items:center; }
+    .phase-label { font-size: 12px; padding: 6px 10px; border:1px solid #374151; background:#0f172a; border-radius: 999px; font-weight: 700; }
+    .mouse-label { display:none; font-size: 12px; padding: 6px 10px; border:1px solid #374151; background:#0f172a; border-radius: 999px; font-weight: 700; }
+    .metrics { position: fixed; left: 12px; bottom: 12px; opacity: .8; font-size: 12px; }
+    .coords-panel { position: fixed; right: 12px; top: 80px; width: 300px; max-height: calc(100vh - 160px); overflow: auto; background: rgba(0,0,0,0.5); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border: 1px solid #374151; border-radius: 8px; padding: 8px 10px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 11px; line-height: 1.45; color: #e5e7eb; z-index: 9; }
+    /* Hide UI overlays for clean animation */
+    header, footer, .coords-panel, .phase-indicator, .metrics { display: none !important; }
+  </style>
+  <!-- Import required fonts -->
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href=
+     "https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&family=Allerta+Stencil:wght@400;600;700&display=swap" rel=
+     "stylesheet">
+    
+   <!-- Load GSAP for animations -->
+  <script src="/att/cube/vendor/gsap.min.js"></script>
+
+  <!-- map the baare specifier 'three' to the CDN module -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Top controls: language toggle, Skip and "Skip next time" checkbox -->
+    <div id="rubiks-top-controls" style="position:fixed; top:12px; right:12px; z-index:9999; display:flex; gap:8px; align-items:center; pointer-events:auto;">
+      <div class="lang-toggle" style="display:flex; align-items:center; gap:8px;">
+        <span id="lang-en" class="lang-label">EN</span>
+        <button id="lang-toggle" class="simple-toggle" aria-label="Toggle language"><span class="knob"></span></button>
+        <span id="lang-ar" class="lang-label" style="opacity:0.6">ع</span>
+      </div>
+      <button id="top-skip-btn" class="top-skip" style="padding:8px 12px;">Skip</button>
+      <label style="display:flex; align-items:center; gap:6px; color:#fff; font-size:13px; background: rgba(10,15,28,0.6); padding:6px 8px; border-radius:8px;">
+        <input id="topSkipCheckbox" type="checkbox" style="width:16px; height:16px;" />
+        <span style="font-size:13px;">Skip next time</span>
+      </label>
+    </div>
+    <!-- Scroll hint overlay (LTR) -->
+    <div id="scroll-hint" role="status" aria-hidden="true">
+      <span class="hint-text">Scroll to explore</span>
+      <span class="hint-arrow" aria-hidden="true"></span>
+    </div>
+  <!-- <img class="bg-image" src="/att/cube/images/HomeBackground.png" alt="Background" style="position:fixed; inset:0; width:100vw; height:100vh; object-fit:cover; z-index:0;" /> -->
+    <div class="bg-tint"></div>
+
+    <!-- Phase-driven overlay text -->
+    <div id="phaseOverlay" class="phase-overlay">
+      <div class="overlay-inner">
+        <div class="phase-text-block" data-key="intro-1">
+          <h1>Complex Transformation? Good.</h1>
+          <h2>JOSOOR: KSA’s Vision 2030 Operating System</h2>
+          <p>Welcome to the Age of Coherence. <br><br>
+          Where complexity is embraced by unleashing the full potential of AI in your government agency. <br><br> 
+          <b>Transform Strategy-Execution with a totally reimagined experience.</b>
+
+</p>
+        </div>
+        <div class="phase-text-block" data-key="intro-2">
+          <h1>Are you ready for Saudi 2026?</h1>
+          <h2>Gear up for Phase 3 - Vision Acceleration</h2>
+          <p>2026 will witness Sectors and GIGAs accelerating their plans, pressure-testing the Vision ecosystem, and creating a highly entangled competition on resources (funds, talent and CoG support).<br><br>
+          Government Entities all across must work in harmony, operating at efficiency levels beyond what today's tools can provide.<br><br>
+          <b>Are you ready?</b></p>
+        </div>
+        <div class="phase-text-block" data-key="intro-3">
+          <h1>Move at the Speed of Ambition</h1>
+          <h2>Through a Quantum Leap in Efficiency</h2>
+          <p>Saudi's Ambition knows no limits, and accepts no compromise. An ambition that challenges everyone to improve, not in marginal increments but in leaps. <br><br>
+          Using AI to its full potential is the only path. <br><br>
+          A path demanding a different way of thinking. Bold. Creative. An AI-first transformation, to redesign the very rules of the game. 
+           
+</p>
+        </div>
+        <div class="phase-text-block" data-key="p23-your-org">
+          <h1>The Cognitive Twin of an Organization</h1>
+          <h2>Meet Your Organizational Intelligence </h2>
+          <p>A simple recipe...<br><br>
+            <b>TWIN it -</b> Utilize a Database Triage (vectors, graphs, and relational models), with a DTDL 2.0 compliant proprietary Ontology, and Agentic Feeders for an authentic Digital Twin.<br><br>
+          <b>LIVE it-</b> Fuse the Twin as a Memory for a GenAI, power it with MCPs and Advanced Prompt Engineering to bring the Twin to life.
+</p>
+        </div>
+        <div class="phase-text-block" data-key="p4-hidden">
+          <h1>How To Spot the Right Partners?</h1>
+          <h2>Noise Filters for a Noisy Market</h2>
+          <p><b>1) DEEP FUNCTIONAL KNOWLEDGE</b><br>
+          Ask for end to end mastery of organizational management invested in solving the problem of organizational complexity and increasing your efficiency.
+          <br><br>
+          <b>2) AI FIRST THINKING</b><br>
+          Listen for conversations that start with "what would this experience look like with an automated, adaptive and learning intelligence?" VS "how to improve what exists"
+</p>
+        </div>
+        <div class="phase-text-block" data-key="p56-where">
+          <h1>2 years Dissecting Complexity</h1>
+          <h2>Our Most Valuable Asset</h2>
+          <p>A journey to unlock every aspect of organizational complexity led to one conclusion.<br>
+          Complexity is miss-understood. It is not the enemy. It is a Teacher. If embraced, it offers lessons and wisdom. <br> <br> 
+          The journey paused with a clear model, a mapped solution, but technology lagging. <br><br>Until now.
+</p>
+        </div>
+        <div class="phase-text-block" data-key="p7-two-years">
+          <h1>The Agency of the Future Reimagined</h1>
+          <h2>Fresh Experiences, New Powers</h2>
+          <p>The Power to...<br>
+            - Describe what is happening right now<br>
+            -	Predict what could happen next<br>
+            -	Prescribe what to do about it<br> 
+            …. In minutes and hours instead of days and weeks.<br><br>
+            A Coherent organization in its direction, priorities and speed.
+</p>
+        </div>
+        <div class="phase-text-block" data-key="p89-future">
+          <h1>The Future Cognitive Government </h1>
+          <h2>Saudi - Ready to Scale</h2>
+          <p>Past Investments come together to provision all Success Factors from Regulatory frameworks, Architectural foundations, Technical infrastructure, Global partners and A National Champion.
+          <br>Setting up the building blocks of the journey to evolve from Compliance to Coherence to Cognitive Intelligence. 
+<br><br> Shall we begin?</p>
+          <div style="margin-top: 40px; display: flex; flex-direction: column; align-items: left; gap: 18px;">
+            <button id="enterPortalBtn" class="finale-enter-btn" style="margin-top:0;">Take the First Step</button>
+          </div>
+        </div>
+
+          <!-- Finale columns removed, replaced by single portal entry above -->
+        </div>
+        
+        <!-- Finale columns removed, replaced by single portal entry above -->
+      </div>
+    </div>
+
+    <div class="hero-row">
+      <section class="text-section"><div class="text-col">
+        <h1>Transforming Strategy Execution</h1>
+        <h2>COMPLEXITY AS AN ASSET</h2>
+        <p>Most transformations fail because complexity overwhelms. We turned that complexity into an advantage—redefining planning, risks, and dashboards inside one integrated model.</p>
+      </div></section>
+      <section class="text-section"><div class="text-col">
+        <h1>Imagine a Parallel Universe</h1>
+        <h2>WHERE TRANSFORMATIONS<br>
+FLOW</h2>
+        <p>Let us show you a week in that universe — A Week in the Life of a Transformation Team &lt;video link&gt;. Farfetched? It’s here. We built the MVP: a Net.js web app with a Supabase database and a Gemini Assistant, built on a five-year scenario dataset inspired by real transformation events.</p>
+      </div></section>
+      <section class="text-section"><div class="text-col">
+        <h1>So How Did We Do It?</h1>
+        <h2>THE RIGHT QUESTIONS FIRST</h2>
+        <p>Before answers, you need the right questions. This journey begins by uncovering the questions that matter most—the ones that unlock how complexity really works.</p>
+      </div></section>
+      <section class="text-section"><div class="text-col">
+        <h1>The Anatomy of an Organization</h1>
+        <h2>WHAT MAKES AN ORGANIZATION?</h2>
+        <p>Many things, like a living system of systems—Strategy, Policies, Processes, Digital  shaped by external forces such as markets and global events. Real transformation means understanding how these components interact, not treating them in isolation.</p>
+      </div></section>
+      <section class="text-section"><div class="text-col">
+        <h1>The Hidden Relations</h1>
+        <h2>HOW DEEP DOES IT GO?</h2>
+        <p>Each component has its own inputs, outputs, and hidden ties to others. When those ties are mapped, patterns emerge—a structure that shows why small changes ripple across the whole system.</p>
+      </div></section>
+      <section class="text-section"><div class="text-col">
+        <h1>The Moment of Truth</h1>
+        <h2>SHOULD YOU WALK THIS JOURNEY?</h2>
+        <p>We already did—and the answer is yes. But do it with eyes open. Complexity runs deeper than expected, and guidance is scarce. That’s why we built a model that captures the whole picture and makes the path navigable.</p>
+      </div></section>
+      <section class="text-section"><div class="text-col">
+        <h1>Locks, Locks Everywhere</h1>
+        <h2>WHAT DID 2 YEARS REVEAL?</h2>
+        <p>Unlock after unlock, the journey was long and often tedious. Every piece had to be dissected, connected, and validated until a full digital twin of dependencies emerged. Just as we reached this milestone, AI leapt forward—suddenly powerful, affordable, and accessible—turning what seemed impossible into reality.</p>
+      </div></section>
+      <section class="text-section"><div class="text-col">
+        <h1>The Future, Ready Today</h1>
+        <h2>WHAT PATH WILL YOU CHOOSE?</h2>
+        <p>With the AI core in place, the Digital Twin comes alive. We’ve hit a milestone, but the journey is still unfolding. Two paths now await: a Knowledge Path, where you contribute ideas and shape the future of transformations; and a Builder Path, where you begin your own strategy execution journey and put the twin to work.</p>
+      </div></section>
+    </div>
+
+    <div class="sticky-canvas">
+      <canvas id="stage"></canvas>
+    </div>
+
+
+    <div class="spacer"></div>
+
+
+  </div>
+
+  <script type="module">
+  // Color constants
+  const SITE_GOLD = 0xD4AF37; // transient popcorn color
+  const FINAL_GOLD = 0x987D0C; // final sculpture fill color (restored to first darker grade)
+
+  // --- Top controls and Portal Button logic ---
+    window.addEventListener('DOMContentLoaded', function() {
+      // Scroll hint behavior: show until user scrolls or taps; persist seen state
+      (function setupScrollHint(){
+        try{
+          const HKEY = 'rubiks_scroll_hint_seen';
+          const hint = document.getElementById('scroll-hint');
+          if (!hint) return;
+          const wasSeen = (()=>{ try{ return localStorage.getItem(HKEY) === '1'; }catch(e){return false;} })();
+          if (wasSeen) return; // don't show
+          // show after small delay
+          setTimeout(()=>hint.classList.add('show'), 400);
+          function dismiss(){
+            hint.classList.remove('show');
+            try{ localStorage.setItem(HKEY,'1'); }catch(e){}
+            window.removeEventListener('scroll', onScroll);
+            hint.removeEventListener('click', onClick);
+          }
+          function onScroll(){ if (window.scrollY>8) dismiss(); }
+          function onClick(){ // allow tapping the hint to jump and dismiss
+            window.scrollBy({ top: 120, left:0, behavior: 'smooth' });
+            setTimeout(dismiss, 500);
+          }
+          window.addEventListener('scroll', onScroll, { passive:true });
+          hint.addEventListener('click', onClick);
+          // auto-dismiss after 6s
+          setTimeout(()=>{ if (hint.classList.contains('show')) dismiss(); }, 6000);
+        }catch(e){/* defensive */}
+      })();
+      var enterBtn = document.getElementById('enterPortalBtn');
+      var topSkipCheckbox = document.getElementById('topSkipCheckbox');
+      var topSkipBtn = document.getElementById('top-skip-btn');
+      var langToggle = document.getElementById('lang-toggle');
+
+      // language toggle: update UI and navigate to the corresponding standalone page
+      function getCurrentLang() {
+        try { const saved = localStorage.getItem('josoor_language'); if (saved) return saved; } catch(_){}
+        return document.documentElement.lang === 'ar' || window.location.href.indexOf('index-ar') !== -1 ? 'ar' : 'en';
+      }
+
+      function updateLangUI(lang) {
+        var en = document.getElementById('lang-en');
+        var ar = document.getElementById('lang-ar');
+        var btn = document.getElementById('lang-toggle');
+        if (!btn || !en || !ar) return;
+        if (lang === 'ar') {
+          btn.classList.add('pressed');
+          // apply inline pressed styles for robustness
+          btn.style.background = 'linear-gradient(135deg,#D4AF37 0%,#B8960F 100%)';
+          var k = btn.querySelector('.knob'); if (k) k.style.left = 'calc(100% - 21px)';
+          en.style.opacity = '0.6';
+          ar.style.opacity = '1';
+        } else {
+          btn.classList.remove('pressed');
+          // reset inline styles for unpressed
+          btn.style.background = '#22303a';
+          var k2 = btn.querySelector('.knob'); if (k2) k2.style.left = '3px';
+          en.style.opacity = '1';
+          ar.style.opacity = '0.6';
+        }
+      }
+
+      if (langToggle) {
+        updateLangUI(getCurrentLang());
+        langToggle.addEventListener('click', function() {
+          var cur = getCurrentLang();
+          var next = cur === 'ar' ? 'en' : 'ar';
+          try { localStorage.setItem('josoor_language', next); } catch (_){ }
+          if (next === 'ar') window.location.href = './index-ar.html';
+          else window.location.href = './index.html';
+        });
+      }
+
+      if (topSkipBtn) {
+        topSkipBtn.addEventListener('click', function() {
+          try {
+            // Only persist the "skip next time" flag when the checkbox is checked.
+            if (topSkipCheckbox && topSkipCheckbox.checked) {
+              try { localStorage.setItem('josoor_seen_cube', 'true'); } catch (_){ }
+              // inform parent that the user requested a persistent skip
+              try { window.parent && window.parent.postMessage({ type: 'RUBIKS_SKIP_NEXT' }, '*'); } catch (_){ }
+            } else {
+              // Non-persistent immediate skip: inform parent if embedded
+              try { window.parent && window.parent.postMessage({ type: 'RUBIKS_SKIP' }, '*'); } catch (_){ }
+            }
+          } catch (_){ /* defensive */ }
+          // navigate to chat (SPA) directly
+          window.top.location.href = '/chat';
+        });
+      }
+
+      if (enterBtn) {
+        enterBtn.addEventListener('click', function() {
+          if (topSkipCheckbox && topSkipCheckbox.checked) {
+            try { window.parent && window.parent.postMessage({ type: 'RUBIKS_SKIP_NEXT' }, '*'); } catch (_){ }
+            try { localStorage.setItem('josoor_seen_cube', 'true'); } catch (_){ }
+          }
+          // Enter portal: perform full-page navigation to the experience (top-level)
+          try {
+            // navigate to chat (SPA)
+            window.top.location.href = '/chat';
+          } catch (_){
+            // fallback: use parent postMessage as a last resort
+            try { window.parent && window.parent.postMessage({ type: 'navigate', route: 'twinlife' }, '*'); } catch (_){ }
+          }
+        });
+      }
+    });
+    /**
+     * RUBIKS CUBE ANIMATION SYSTEM
+     *
+     * This script implements a complex 3D Rubik's cube animation with 9 distinct phases:
+     * Phase 1: Idle/Gentle Float - Large cube with gentle rotation and hover
+     * Phase 2: First Dismantle - Large pieces explode into cloud formation
+     * Phase 3: Settle with Perspective - Pieces hover with random rotations
+     * Phase 4: Rubik Transform - Large pieces shrink, mini-cubes (729 total) grow from within
+     * Phase 5: Expand to 43.3% - Mini-cubes expand outward in cloud formation
+     * Phase 6: Popcorn Recolor - Mini-cubes recolor from cyan to purple one-by-one
+     * Phase 7: Dance - Mini-cubes swirl and orbit in complex patterns
+     * Phase 8: Morph to Sculpture - Transform into final spherical sculpture
+     * Phase 9: Final Formation - Interactive phase with mouse controls
+     *
+     * KEY COMPONENTS:
+     * - 27 Large cubes (3x3x3) with metallic patterns and randomized face arrangements
+     * - 729 Mini-cubes (27x27x27) with solid blue colors that recolor to purple
+     * - Procedural texture generation for realistic sticker patterns
+     * - Physically-based lighting and post-processing effects
+     * - Scroll-driven animation with external control support
+     * - Interactive mouse controls in phases 1 and 9
+     */
+
+    import * as THREE from './vendor/three.module.js';
+   // import { OrbitControls } from './vendor/examples/jsm/controls/OrbitControls.js';
+    import { EffectComposer } from './vendor/examples/jsm/postprocessing/EffectComposer.js';
+    import { RenderPass } from './vendor/examples/jsm/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from './vendor/examples/jsm/postprocessing/UnrealBloomPass.js';
+    import { RoomEnvironment } from './vendor/examples/jsm/environments/RoomEnvironment.js';
+
+    // Background video speed control
+    const bgVideo = document.querySelector('.bg-video');
+    const VIDEO_PLAYBACK_RATE = 0.4;
+    function applyVideoSpeed() { 
+      try { if (bgVideo) bgVideo.playbackRate = VIDEO_PLAYBACK_RATE; } catch(_){}
+    }
+    if (bgVideo) { bgVideo.addEventListener('loadeddata', applyVideoSpeed); bgVideo.addEventListener('play', applyVideoSpeed); }
+    applyVideoSpeed();
+
+    // ===== ENHANCED NAVIGATION FOR FINALE BUTTONS =====
+    function handleNavigation(e) {
+      e.preventDefault();
+      const navPath = e.currentTarget.getAttribute('href');
+      if (navPath && window.top) {
+        window.top.location.hash = navPath;
+      }
+    }
+
+    function initializeNavigation() {
+      const btns = document.querySelectorAll('.finale-enter-btn');
+      btns.forEach(btn => {
+        btn.addEventListener('click', handleNavigation);
+      });
+    }
+    
+    setTimeout(initializeNavigation, 200); // Increased timeout for safety
+
+    // ===== UTILITY FUNCTIONS =====
+    /**
+     * Mathematical utility functions for animation calculations
+     */
+
+    /**
+     * Clamps a value between min and max bounds
+     * @param {number} x - Value to clamp
+     * @param {number} a - Minimum bound
+     * @param {number} b - Maximum bound
+     * @returns {number} Clamped value
+     */
+    const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+
+    /**
+     * Linear interpolation between two values
+     * @param {number} a - Start value
+     * @param {number} b - End value
+     * @param {number} t - Interpolation factor (0-1)
+     * @returns {number} Interpolated value
+     */
+    const lerp = (a, b, t) => a + (b - a) * t;
+
+    /**
+     * Inverse linear interpolation - finds t value for a point between a and b
+     * @param {number} a - Start value
+     * @param {number} b - End value
+     * @param {number} v - Value to find t for
+     * @returns {number} Interpolation factor (0-1)
+     */
+    const invLerp = (a, b, v) => clamp((v - a) / (b - a), 0, 1);
+
+    /**
+     * Smooth easing function for natural animation curves
+     * Uses cubic easing for smooth acceleration/deceleration
+     * @param {number} t - Input value (0-1)
+     * @returns {number} Eased value (0-1)
+     */
+    const easeInOut = (t) => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2;
+
+    // ===== EXTERNAL CONTROL SYSTEM =====
+    /**
+     * External progress control allows parent components to drive animation
+     * Used by RubiksIframe component for programmatic control
+     */
+
+    /**
+     * External progress override - when set, replaces scroll-based progress
+     * @type {number|null} Value between 0-1, or null to use scroll
+     */
+    let externalProgress = null;
+
+    /**
+     * Message handler for external control from parent iframe
+     * Supports two message types:
+     * - RUBIKS_SET_PROGRESS: Set animation progress (0-1)
+     * - RUBIKS_CLEAR_EXTERNAL: Return to scroll-based control
+     */
+    window.addEventListener('message', (e) => {
+      const data = e && e.data;
+      if (!data || typeof data !== 'object') return;
+      if (data.type === 'RUBIKS_SET_PROGRESS') {
+        const v = Number(data.value);
+        if (!Number.isNaN(v)) externalProgress = clamp(v, 0, 1);
+      } else if (data.type === 'RUBIKS_CLEAR_EXTERNAL') {
+        externalProgress = null;
+      }
+    });
+
+    /**
+     * Calculate progress within a specific phase range
+     * @param {number} global - Global progress (0-1)
+     * @param {number} a - Phase start point
+     * @param {number} b - Phase end point
+     * @returns {number} Local phase progress (0-1)
+     */
+    function phaseProgress(global, a, b) { return invLerp(a, b, global); }
+
+    // ===== VIEWPORT AND CAMERA UTILITIES =====
+    /**
+     * Functions for calculating camera frustum and ensuring objects fit in view
+     */
+
+    /**
+     * Calculate world-space half-extents of camera viewport at distance
+     * @param {THREE.Camera} cam - Camera to calculate for
+     * @returns {Object} Object with halfW and halfH properties
+     */
+    function viewportWorldHalfExtents(cam) {
+      const d = cam.position.distanceTo(new THREE.Vector3());
+      const halfH = Math.tan(THREE.MathUtils.degToRad(cam.fov * 0.5)) * d;
+      const halfW = halfH * cam.aspect;
+      return { halfW, halfH };
+    }
+
+    /**
+     * Normalized device coordinate padding - allows full viewport usage
+     * Value of 1.0 means no safety margin, objects can touch viewport edges
+     */
+    const PAD_NDC = 1.0; // allow full viewport usage (no extra safety margin)
+
+    /**
+     * Generate all 8 corners of a cube
+     * @param {THREE.Vector3} center - Cube center position
+     * @param {number} half - Half-size of cube
+     * @returns {THREE.Vector3[]} Array of 8 corner positions
+     */
+    function cubeCorners(center, half) {
+      const offs = [-1, 1];
+      const res = [];
+      for (const dx of offs) for (const dy of offs) for (const dz of offs) {
+        res.push(new THREE.Vector3(center.x + dx*half, center.y + dy*half, center.z + dz*half));
+      }
+      return res;
+    }
+
+    /**
+     * Check if a cube fits entirely within the camera viewport
+     * @param {THREE.Vector3} center - Cube center position
+     * @param {number} half - Half-size of cube
+     * @returns {boolean} True if cube fits in view
+     */
+    function cornersFitInView(center, half) {
+      const corners = cubeCorners(center, half);
+      for (const c of corners) {
+        const p = c.clone().project(camera);
+        if (Math.abs(p.x) > PAD_NDC || Math.abs(p.y) > PAD_NDC || p.z < -1 || p.z > 1) return false;
+      }
+      return true;
+    }
+
+    /**
+     * Find maximum scale along a direction that keeps cube in viewport
+     * Uses binary search to find optimal position
+     * @param {THREE.Vector3} dir - Direction vector
+     * @param {number} R - Maximum radius to search
+     * @param {number} half - Half-size of cube
+     * @returns {number} Maximum scale factor that keeps cube in view
+     */
+    function clampAlongDirToFit(dir, R, half) {
+      // binary search max s in [0, R] such that corners fit
+      let lo = 0, hi = R;
+      for (let it = 0; it < 20; it++) {
+        const mid = (lo + hi) * 0.5;
+        const pos = dir.clone().multiplyScalar(mid);
+        if (cornersFitInView(pos, half)) lo = mid; else hi = mid;
+      }
+      return lo;
+    }
+
+    // ===== PROCEDURAL TEXTURE GENERATION SYSTEM =====
+    /**
+     * Dynamic texture creation for cube faces with various patterns and colors
+     *
+     * PATTERN SYSTEM:
+     * - 6 distinct pattern types: grid, stripes, ring, chevron, hex, wave
+     * - Each pattern is procedurally generated on 512x512 canvas
+     * - Navy blue color palette with gradient backgrounds
+     * - Optional gloss effects for metallic appearance
+     *
+     * RANDOMIZATION:
+     * - Large cubes: Each gets 6 shuffled patterns, one per face
+     * - Mini cubes: Each gets 6 shuffled patterns, one per face
+     * - Colors: 6 different blue shades for visual variety
+     *
+     * CACHING:
+     * - Textures are cached to avoid recreation on each frame
+     * - Large and mini textures cached separately
+     * - Canvas-based generation for crisp, scalable results
+     */
+    const STICKER_CACHE = { largeTexs: null, miniTexs: null };
+    const FACE_PATTERNS = ['grid','stripes','ring','chevron','hex','wave'];
+    const BLUES = ['#000033','#000066','#000099','#0000CC','#000033','#000066'];
+
+    let fixedFaceAssignments = [];
+
+    fetch('faces.json')
+      .then(response => response.json())
+      .then(data => {
+        fixedFaceAssignments = data.faces.map(face => face.pattern);
+      })
+      .catch(error => console.error('Error loading face patterns:', error));
+
+    /**
+     * Create a procedural sticker texture with pattern and optional gloss
+     * @param {string} pattern - Pattern type: 'grid', 'stripes', 'ring', 'chevron', 'hex', 'wave'
+     * @param {string} baseHex - Base color in hex format (e.g., '#000066')
+     * @param {boolean} drawPatterns - Whether to draw the pattern overlay
+     * @param {boolean} drawGloss - Whether to add gloss/highlight effect
+     * @returns {THREE.CanvasTexture} Generated texture for Three.js
+     */
+    function createStickerTexture(pattern, baseHex, drawPatterns = true, drawGloss = true){
+      const size = 512; // High resolution for crisp textures
+      const c = document.createElement('canvas');
+      c.width = c.height = size;
+      const ctx = c.getContext('2d');
+
+      // Create gradient background for depth
+      const grad = ctx.createLinearGradient(0,0,size,size);
+      grad.addColorStop(0, baseHex); // Primary color
+      grad.addColorStop(1, shadeHex(baseHex, -20)); // Darker shade for depth
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,size,size);
+
+      // Inner rounded rectangle for sticker inset effect
+      const inset = Math.floor(size * 0.08); // 8% inset from edges
+      roundedRect(ctx, inset, inset, size-2*inset, size-2*inset, Math.floor(size*0.06));
+      ctx.fillStyle = shadeHex(baseHex, -35); // Even darker for inset shadow
+      ctx.globalAlpha = 0.22; // Semi-transparent inset
+      ctx.fill();
+      ctx.globalAlpha = 1; // Reset alpha
+      // ===== PATTERN DRAWING SYSTEM =====
+      /**
+       * Draw specific pattern on the texture
+       * Each pattern is centered and uses white strokes with drop shadows
+       * for raised 3D appearance
+       */
+      const drawPattern = (name) => {
+        ctx.save();
+        ctx.translate(size/2, size/2); // Center coordinate system
+        ctx.strokeStyle = 'rgba(255,255,255,1.0)'; // Pure white for maximum contrast
+        ctx.fillStyle = 'rgba(255,255,255,0.3)'; // Semi-transparent white for fills
+        ctx.lineWidth = Math.max(8, size*0.015); // Responsive line width
+
+        // Drop shadow for raised 3D effect
+        ctx.shadowColor = 'rgba(0,0,0,1.0)';
+        ctx.shadowBlur = Math.max(12, size*0.03);
+        ctx.shadowOffsetX = Math.max(5, size*0.01);
+        ctx.shadowOffsetY = Math.max(5, size*0.01);
+        // ===== INDIVIDUAL PATTERN IMPLEMENTATIONS =====
+
+        if (name === 'grid') {
+          // Grid pattern: Regular intersecting lines
+          ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+          const step = Math.floor(size/10); // 10 divisions
+          // Vertical lines
+          for(let x=inset; x<=size-inset; x+=step){
+            ctx.beginPath();
+            ctx.moveTo(x,inset);
+            ctx.lineTo(x,size-inset);
+            ctx.stroke();
+          }
+          // Horizontal lines
+          for(let y=inset; y<=size-inset; y+=step){
+            ctx.beginPath();
+            ctx.moveTo(inset,y);
+            ctx.lineTo(size-inset,y);
+            ctx.stroke();
+          }
+        } else if (name === 'stripes') {
+          // Diagonal stripe pattern
+          ctx.rotate(-Math.PI/6); // 30-degree angle
+          for(let i=-6;i<=6;i++){
+            ctx.beginPath();
+            ctx.moveTo(-size, i*32);
+            ctx.lineTo(size, i*32);
+            ctx.stroke();
+          }
+        } else if (name === 'ring') {
+          // Concentric ring pattern
+          ctx.beginPath();
+          ctx.arc(0,0,size*0.28,0,Math.PI*2); // Outer ring
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(0,0,size*0.14,0,Math.PI*2); // Inner ring
+          ctx.stroke();
+        } else if (name === 'chevron') {
+          // Chevron/V pattern
+          for(let i=0;i<4;i++){
+            const off = -size*0.15 + i*size*0.1;
+            ctx.beginPath();
+            ctx.moveTo(-size*0.25, off);
+            ctx.lineTo(0, off+size*0.08);
+            ctx.lineTo(size*0.25, off);
+            ctx.stroke();
+          }
+        } else if (name === 'hex') {
+          // Hexagon pattern
+          const r = size*0.22;
+          ctx.beginPath();
+          for(let i=0;i<6;i++){
+            const a = Math.PI/3*i; // 60-degree increments
+            const x = r*Math.cos(a), y=r*Math.sin(a);
+            if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+          }
+          ctx.closePath();
+          ctx.stroke();
+        } else if (name === 'wave') {
+          // Sine wave pattern
+          ctx.translate(-size*0.3, 0);
+          for(let i=-3;i<=3;i++){
+            ctx.beginPath();
+            for(let x=-size*0.2; x<=size*0.2; x+=8){
+              const y = Math.sin((x/50)+i)*size*0.04;
+              if (x===-size*0.2) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+            }
+            ctx.stroke();
+          }
+        }
+        ctx.restore();
+      };
+      // Apply pattern and gloss effects
+      if (drawPatterns) drawPattern(pattern);
+
+      if (drawGloss) {
+        // ===== GLOSS/HIGHLIGHT EFFECT =====
+        // Creates metallic shine effect on upper portion of texture
+        const gloss = ctx.createLinearGradient(0,0,0,size);
+        gloss.addColorStop(0, 'rgba(255,255,255,0.22)'); // Bright highlight at top
+        gloss.addColorStop(0.5, 'rgba(255,255,255,0.08)'); // Fade to middle
+        gloss.addColorStop(1, 'rgba(255,255,255,0.0)'); // Transparent at bottom
+        ctx.fillStyle = gloss;
+        roundedRect(ctx, inset, inset, size-2*inset, Math.floor((size-2*inset)*0.55), Math.floor(size*0.06));
+        ctx.fill();
+      }
+
+      // ===== TEXTURE CREATION AND OPTIMIZATION =====
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace; // Standard RGB color space
+      tex.anisotropy = 8; // Anisotropic filtering for better quality at angles
+      tex.needsUpdate = true; // Mark for GPU upload
+      return tex;
+    }
+    // ===== UTILITY FUNCTIONS =====
+
+    /**
+     * Shuffle array in-place using Fisher-Yates algorithm
+     * Used to randomize pattern order for visual variety
+     * @param {Array} array - Array to shuffle
+     * @returns {Array} Same array, shuffled in place
+     */
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    /**
+     * Draw rounded rectangle path on canvas
+     * @param {CanvasRenderingContext2D} ctx - Canvas context
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     * @param {number} w - Width
+     * @param {number} h - Height
+     * @param {number} r - Corner radius
+     */
+    function roundedRect(ctx,x,y,w,h,r){
+      ctx.beginPath();
+      ctx.moveTo(x+r,y);
+      ctx.arcTo(x+w,y,x+w,y+h,r);
+      ctx.arcTo(x+w,y+h,x,y+h,r);
+      ctx.arcTo(x,y+h,x,y,r);
+      ctx.arcTo(x,y,x+w,y,r);
+      ctx.closePath();
+    }
+
+    /**
+     * Shade hex color by adding/subtracting brightness
+     * @param {string} hex - Hex color string (with or without #)
+     * @param {number} amt - Amount to add/subtract (-255 to 255)
+     * @returns {string} New hex color string
+     */
+    function shadeHex(hex, amt){
+      const c = hex.startsWith('#') ? hex.substring(1) : hex;
+      const num = parseInt(c,16);
+      const r = Math.min(255, Math.max(0, ((num>>16)&0xff) + amt));
+      const g = Math.min(255, Math.max(0, ((num>>8)&0xff) + amt));
+      const b = Math.min(255, Math.max(0, (num&0xff) + amt));
+      return `#${(r<<16|g<<8|b).toString(16).padStart(6,'0')}`;
+    }
+    /**
+     * Get cached textures for large cubes with full patterns and gloss
+     * @returns {THREE.CanvasTexture[]} Array of 6 textures, one per pattern
+     */
+    function getLargeStickerTextures(){
+      if (STICKER_CACHE.largeTexs) return STICKER_CACHE.largeTexs;
+      const texs = FACE_PATTERNS.map((pat, i) => createStickerTexture(pat, BLUES[i%BLUES.length], true, true));
+      STICKER_CACHE.largeTexs = texs;
+      return texs;
+    }
+
+    /**
+     * Get cached textures for mini cubes with solid colors (no patterns, no gloss)
+     * @returns {THREE.CanvasTexture[]} Array of 6 solid color textures
+     */
+    function getMiniStickerTextures(){
+      if (STICKER_CACHE.miniTexs) return STICKER_CACHE.miniTexs;
+      const texs = FACE_PATTERNS.map((pat, i) => createStickerTexture(pat, BLUES[i%BLUES.length], false, false));
+      STICKER_CACHE.miniTexs = texs;
+      return texs;
+    }
+    function addStickers(mesh, size){
+      const s = size * 0.94; // slight inset
+      const offset = size/2 + 0.02;
+      const mats = getLargeStickerMaterials();
+      const planes = [];
+      const geo = new THREE.PlaneGeometry(s, s);
+      const dirs = [
+        { n: new THREE.Vector3( 1, 0, 0), rot: [0, -Math.PI/2, 0] }, // +X
+        { n: new THREE.Vector3(-1, 0, 0), rot: [0,  Math.PI/2, 0] }, // -X
+        { n: new THREE.Vector3( 0, 1, 0), rot: [ Math.PI/2, 0, 0] }, // +Y
+        { n: new THREE.Vector3( 0,-1, 0), rot: [-Math.PI/2, 0, 0] }, // -Y
+        { n: new THREE.Vector3( 0, 0, 1), rot: [0, 0, 0] },           // +Z
+        { n: new THREE.Vector3( 0, 0,-1), rot: [0,  Math.PI, 0] },    // -Z
+      ];
+      dirs.forEach((d, i) => {
+        const m = new THREE.Mesh(geo, mats[i]);
+        m.position.copy(d.n.clone().multiplyScalar(offset));
+        m.rotation.set(d.rot[0], d.rot[1], d.rot[2]);
+        m.renderOrder = 5;
+        m.userData.sticker = true;
+        m.name = `sticker-${i}`;
+        mesh.add(m);
+        planes.push(m);
+      });
+      return planes;
+    }
+
+    // ===== CUBE CREATION SYSTEM =====
+    /**
+     * Create a cube with size-appropriate materials and geometry
+     *
+     * SIZE-BASED MATERIAL SYSTEM:
+     * - Large cubes (>0.99): MeshStandardMaterial with metallic properties and shuffled patterns
+     * - Mini cubes (0.1-0.99): MeshBasicMaterial with solid blue colors for recoloring
+     * - Tiny cubes (<0.1): MeshPhysicalMaterial with metallic properties
+     *
+     * MATERIAL PROPERTIES:
+     * - Large: metalness=0.2, roughness=0.6, polygon offset for depth sorting
+     * - Mini: Basic material for efficient recoloring during Phase 6
+     * - Tiny: High metalness/roughness for metallic appearance
+     *
+     * EDGE SYSTEM:
+     * - All cubes get LineSegments edges with dark navy color (#000033)
+     * - Edges render on top (renderOrder=10) for crisp outlines
+     * - Edges are added as children of the mesh for proper transformation
+     *
+     * @param {number} size - Cube size (determines material type)
+     * @param {number} fillColor - Fill color for tiny cubes
+     * @param {number} edgeColor - Edge color (typically dark navy)
+     * @returns {THREE.Mesh} Configured cube mesh with edges
+     */
+    function makeCube(size, fillColor, edgeColor, cubeIndex = 0) {
+      const geom = new THREE.BoxGeometry(size, size, size);
+      let mesh;
+
+      if (size > 0.1) {
+        if (size >= 0.99) {
+          // ===== LARGE CUBE CREATION =====
+          // 27 large cubes forming the initial Rubik's cube structure
+          const pats = fixedFaceAssignments.length > 0 ? fixedFaceAssignments.slice() : shuffle(FACE_PATTERNS.slice()); // Randomize pattern order per cube
+          // Load all 6 bump map textures
+          const bumpTextures = [1,2,3,4,5,6].map(n => {
+            const tex = new THREE.TextureLoader().load(`./textures/cubeface${n}.png`);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(1, 1);
+            return tex;
+          });
+          // Randomly assign bump map to each face
+          const mats = pats.map((pat, i) => new THREE.MeshStandardMaterial({
+            // map: createStickerTexture(pat, BLUES[i%BLUES.length], true, true), // Pattern overlay commented out
+            color: new THREE.Color(fillColor), // Use the fillColor parameter instead of hardcoded value
+            bumpMap: bumpTextures[Math.floor(Math.random()*6)],
+            bumpScale: 1.0, // Maximum bump effect
+            transparent: false, // Opaque for performance
+            depthWrite: false, // Disable depth writing to prevent z-fighting
+            depthTest: true, // Still test depth for proper ordering
+            side: THREE.DoubleSide, // Render both sides (important for cube faces)
+            metalness: 1.0, // Fully metallic
+            roughness: 0.1, // Very shiny
+            polygonOffset: true, // Offset depth to prevent z-fighting with edges
+            polygonOffsetFactor: -4,
+            polygonOffsetUnits: -4
+          }));
+          mesh = new THREE.Mesh(geom, mats); // Array of 6 materials, one per face
+        } else {
+          // ===== MINI CUBE CREATION =====
+          // 729 mini cubes that emerge from within large cubes
+         // const miniMaterial = new THREE.MeshStandardMaterial({
+          // --- ORIGINAL MINI CUBE MATERIAL CREATION (commented out) ---
+          // const miniMaterial = new THREE.MeshStandardMaterial({
+          //   color: new THREE.Color(0x0066CC), // Blue color for mini-cubes
+          //   transparent: false, // Opaque
+          //   opacity: 1.0, // Fully opaque
+          //   depthWrite: true, // Enable depth writing to prevent see-through
+          //   depthTest: true, // Test depth
+          //   side: THREE.DoubleSide, // Render both sides
+          //   metalness: 0.25, // Balanced metallic feel
+          //   roughness: 0.5 // Balanced surface roughness
+          // });
+          // mesh = new THREE.Mesh(geom, miniMaterial); // Single metallic material for all faces
+
+          // --- MINI CUBE MATERIAL WITH NO GLOW/EMISSIVE ---
+          const miniMaterial = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(0x0066CC),
+            transparent: false,
+            opacity: 1.0,
+            depthWrite: true,
+            depthTest: true,
+            side: THREE.DoubleSide,
+            metalness: 0.25,
+            roughness: 0.5,
+            emissive: new THREE.Color(0x000000), // No glow
+            emissiveIntensity: 0.0 // No glow
+          });
+          mesh = new THREE.Mesh(geom, miniMaterial); // Single metallic material for all faces
+        }
+      } else {
+        // ===== TINY CUBE CREATION =====
+        // Smallest cubes in final sculpture formation
+        const mat = new THREE.MeshPhysicalMaterial({
+          color: fillColor,
+          metalness: 1.0, // Highly metallic
+          roughness: 0.25, // Smooth surface
+          clearcoat: 1.0, // Clear coat layer for extra shine
+          clearcoatRoughness: 0.15, // Smooth clear coat
+//          envMapIntensity: 1.2 // Environment reflection intensity
+        });
+        mesh = new THREE.Mesh(geom, mat); // Single material for all faces
+      }
+      // ===== MESH CONFIGURATION =====
+      mesh.castShadow = true; // Cast shadows for depth
+      mesh.receiveShadow = true; // Receive shadows from other objects
+
+      // ===== EDGE CREATION =====
+      // Add edges for all cubes, but make mini-cube edges very thin
+      const edges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(geom), // Extract edges from box geometry
+        new THREE.LineBasicMaterial({
+          color: edgeColor, // Use provided edge color
+          linewidth: size >= 0.99 ? 1 : 0.5 // Thin lines for mini-cubes
+        })
+      );
+      edges.renderOrder = 10; // Render edges on top of faces
+      mesh.add(edges); // Add as child so edges follow mesh transformations
+
+      return mesh;
+    }
+
+    /**
+     * Set fill color for all meshes in a 3D object hierarchy
+     * Used for global color changes during different animation phases
+     * @param {THREE.Object3D} obj3D - Root object to traverse
+     * @param {number} color - Color value (hex number)
+     */
+    function setCubeFillColor(obj3D, color) {
+      obj3D.traverse(o => {
+        if (o.isMesh && o.material) {
+          if (Array.isArray(o.material)) {
+            // Handle multi-material meshes (cubes with different face materials)
+            o.material.forEach(m => { if (m && m.color) m.color.set(color); });
+          } else {
+            // Handle single-material meshes
+            if (o.material.color) o.material.color.set(color);
+          }
+        }
+      });
+    }
+
+    // ===== SCENE SETUP AND RENDERING =====
+
+    // Canvas and renderer configuration
+    const canvas = document.getElementById('stage');
+    const containerEl = document.querySelector('.sticky-canvas');
+    
+    // Guard against multiple initialization
+  if (window.__rubiksInit) {} // This line seems to be a no-op, likely for debugging or state management.
+    window.__rubiksInit = true;
+    
+    // Create WebGL context explicitly with fallbacks
+    const contextOptions = { 
+      alpha: true, 
+      antialias: false, 
+      depth: true, 
+      stencil: false, 
+      powerPreference: 'high-performance', 
+      failIfMajorPerformanceCaveat: false 
+    };
+    
+    const gl = canvas.getContext('webgl2', contextOptions) || 
+               canvas.getContext('webgl', contextOptions) || 
+               canvas.getContext('experimental-webgl', contextOptions);
+    
+    if (!gl) {
+      console.error('WebGL unavailable in this iframe');
+      canvas.style.background = 'linear-gradient(45deg, #1a1a2e, #16213e)';
+      const fallbackMsg = document.createElement('div');
+      fallbackMsg.innerHTML = `
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                    color: white; text-align: center; font-family: Inter, Arial;">
+          <h3>3D Graphics Unavailable</h3>
+          <p>WebGL is not supported in this environment.</p>
+        </div>`;
+  canvas.parentElement.appendChild(fallbackMsg);
+  // No top-level return; fallback message shown, rest of script will not execute WebGL logic
+    }
+    
+    console.log('WebGL context created:', gl.getParameter(gl.VERSION));
+    
+    const renderer = new THREE.WebGLRenderer({
+      canvas, 
+      context: gl,
+      alpha: true
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2.0)); // Conservative pixel ratio
+    
+    // Handle context loss
+    canvas.addEventListener('webglcontextlost', e => { 
+      e.preventDefault(); 
+      console.warn('WebGL context lost'); 
+    });
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => { 
+      if (renderer.forceContextLoss) renderer.forceContextLoss();
+      if (renderer.dispose) renderer.dispose();
+    });
+    renderer.outputColorSpace = THREE.SRGBColorSpace; // Standard color space
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; // Film-like color grading
+    renderer.toneMappingExposure = 1.0; // Normal exposure
+    renderer.setClearColor(0x000000, 0); // Transparent clear color
+    renderer.setClearAlpha && renderer.setClearAlpha(0); // Full transparency
+    renderer.autoClear = true;
+    renderer.domElement.style.background = 'transparent';
+
+    const scene = new THREE.Scene();
+
+    // ===== PHYSICALLY-BASED LIGHTING SYSTEM =====
+    // Environment and lighting setup for realistic metallic materials
+    renderer.physicallyCorrectLights = true; // Enable PBR lighting
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    scene.environment = envTex; // Environment map for reflections
+
+    // ===== CAMERA CONFIGURATION =====
+    // Set aspect ratio to right 2/3 of the viewport
+
+    function getRightTwoThirdsAspect() {
+      return (window.innerWidth * 2 / 3) / window.innerHeight;
+    }
+    function getFrustumWidth(cam) {
+      // Calculate frustum width at the camera's z position
+      const frustumHeight = 2 * Math.tan((cam.fov * Math.PI) / 360) * Math.abs(cam.position.z);
+      return frustumHeight * cam.aspect;
+    }
+    const camera = new THREE.PerspectiveCamera(60, getRightTwoThirdsAspect(), 0.1, 500);
+    const CAMERA_TARGET_Y = -0.6; // Offset look target for better composition
+    function updateCameraOffset() {
+      // Offset the camera's x so the center of the right 2/3 is at 5/6 of the canvas width (center of right 2/3)
+      const frustumWidth = getFrustumWidth(camera);
+      // Center of right 2/3 is at 5/6 of the width (0 is left, 1 is right)
+  const offsetX = -10; // further leftward shift by summation
+  camera.position.set(offsetX, 4, 12);
+  camera.lookAt(offsetX, CAMERA_TARGET_Y, 0);
+    }
+    updateCameraOffset();
+
+    // Update camera aspect and offset on resize
+    window.addEventListener('resize', function() {
+      camera.aspect = getRightTwoThirdsAspect();
+      camera.updateProjectionMatrix();
+      updateCameraOffset();
+    });
+
+    // ===== LIGHTING SETUP =====
+    // Hemisphere light for ambient illumination
+    const hemi = new THREE.HemisphereLight(0x8aa4ff, 0x0e0f15, 0.7);
+    scene.add(hemi);
+
+  // Directional light for key lighting and shadows
+  const dir = new THREE.DirectionalLight(0xffffff, 1.0); // Adjusted intensity to 1.0
+  dir.position.set(6, 10, 8); // Position above and to the side
+  dir.castShadow = true; // Enable shadow casting
+  scene.add(dir);
+
+  // Add a second directional light from the opposite angle for better face illumination
+  const dir2 = new THREE.DirectionalLight(0xffffff, 1.0); // Adjusted intensity to 1.0
+  dir2.position.set(6, 4, 12); // Match camera position
+  dir2.target = new THREE.Object3D();
+  dir2.target.position.set(0, -0.6, 0); // Match camera lookAt
+  scene.add(dir2.target);
+  dir2.castShadow = false;
+  scene.add(dir2);
+
+    // PostFX
+    const composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    renderPass.clear = true;
+    renderPass.clearAlpha = 0.0;
+    composer.addPass(renderPass);
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.7, 0.7, 0.2);
+    bloomPass.enabled = false;
+    composer.addPass(bloomPass);
+    let bloomEnabled = false;
+
+    // Root group
+    const root = new THREE.Group();
+    scene.add(root);
+
+    // ===== LARGE CUBE SYSTEM (27 PIECES) =====
+    /**
+     * Create the initial 3x3x3 Rubik's cube structure
+     * These 27 large cubes form the foundation of the animation
+     */
+
+
+    const LARGE_SIZE = 1.0; // Base size for large cubes
+    const GAP = 0.08; // Gap between cubes for visual separation
+    const STEP = LARGE_SIZE + GAP; // Total spacing including gap
+    const largePieces = []; // Array to store all large cube meshes
+
+    const largeGroup = new THREE.Group(); // Group for collective transformations
+    root.add(largeGroup);
+
+    // Generate 3x3x3 grid of large cubes
+    let cubeIndex = 0;
+    for (let x = -1; x <= 1; x++) {
+      for (let y = -1; y <= 1; y++) {
+        for (let z = -1; z <= 1; z++) {
+          const cube = makeCube(LARGE_SIZE, 0x1A2435, 0xffffff, cubeIndex++);
+          cube.position.set(x * STEP, y * STEP, z * STEP); // Position in grid
+          largeGroup.add(cube);
+          largePieces.push(cube);
+        }
+      }
+    }
+
+    // Store initial positions for Phase 1 reversible animation
+    const initialLargePositions = largePieces.map(p => p.position.clone());
+
+    // Scale 1.5x initially (Phase 1 requirement)
+    largeGroup.scale.setScalar(1.5);
+    const PHASE1_INITIAL_SCALE = largeGroup.scale.x;
+    const PHASE1_SPAN = (2 * STEP + LARGE_SIZE) * PHASE1_INITIAL_SCALE; // full Rubik cube width (centers span + one cube size)
+
+    // ===== Outer Frame (12 thick beams) and Core Sphere/Light =====
+    const frameGroup = new THREE.Group();
+    root.add(frameGroup);
+    const frameSize = PHASE1_SPAN; // exactly Phase 1 Rubik cube span
+    const frameThickness = frameSize * (0.06 / 2.2); // keep beam thickness ratio from reference
+    const half = frameSize * 0.5;
+  // const beamMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 1.0, roughness: 0.2, envMapIntensity: 1.0 }); // original: white
+  const beamMat = new THREE.MeshPhysicalMaterial({ color: 0xFFD700, metalness: 1.0, roughness: 0.2, envMapIntensity: 1.0 }); // gold
+    function beam(w,h,d,x,y,z){ const g=new THREE.BoxGeometry(w,h,d); const m=new THREE.Mesh(g, beamMat); m.position.set(x,y,z); frameGroup.add(m); }
+    // 4 vertical
+    beam(frameThickness, frameSize, frameThickness, -half, 0, -half);
+    beam(frameThickness, frameSize, frameThickness, -half, 0,  half);
+    beam(frameThickness, frameSize, frameThickness,  half, 0, -half);
+    beam(frameThickness, frameSize, frameThickness,  half, 0,  half);
+    // top
+    beam(frameSize, frameThickness, frameThickness, 0,  half, -half);
+    beam(frameSize, frameThickness, frameThickness, 0,  half,  half);
+    beam(frameThickness, frameThickness, frameSize, -half, half, 0);
+    beam(frameThickness, frameThickness, frameSize,  half, half, 0);
+    // bottom
+    beam(frameSize, frameThickness, frameThickness, 0, -half, -half);
+    beam(frameSize, frameThickness, frameThickness, 0, -half,  half);
+    beam(frameThickness, frameThickness, frameSize, -half,-half, 0);
+    beam(frameThickness, frameThickness, frameSize,  half,-half, 0);
+    frameGroup.visible = false;
+
+    const coreSphere = new THREE.Mesh(
+      new THREE.SphereGeometry(PHASE1_SPAN * 0.14, 48, 48),
+      new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 1.0, roughness: 0.15, envMapIntensity: 1.0, emissive: 0xC084FC, emissiveIntensity: 0.35 })
+    );
+    coreSphere.castShadow = false; coreSphere.receiveShadow = false; coreSphere.visible = false; root.add(coreSphere);
+    const coreLight = new THREE.PointLight(0x9f7bff, 2.0, PHASE1_SPAN * 3.0); root.add(coreLight); coreLight.visible = false;
+
+    // ===== MINI CUBE SYSTEM (729 PIECES) =====
+    /**
+     * Create the inner 729 mini-cubes that emerge from within the large cubes
+     * Each large cube contains a 3x3x3 grid of mini-cubes (27 total per large cube)
+     * Mini-cubes are initially hidden and grow during Phase 4 transformation
+     */
+
+    const MINI_SIZE = 0.28; // Size of mini-cubes (smaller than large)
+    const MINI_GAP = 0.06; // Gap between mini-cubes
+    const MINI_STEP = MINI_SIZE + MINI_GAP; // Total spacing for mini-cubes
+    const miniGroup = new THREE.Group(); // Group for collective mini-cube operations
+    root.add(miniGroup);
+    miniGroup.visible = false; // Hidden until Phase 4 reveals them
+    const miniCubes = []; // Array to store all 729 mini-cube meshes
+
+    // Generate mini-cubes within each large cube
+    for (let ownerIndex = 0; ownerIndex < largePieces.length; ownerIndex++) {
+      const lp = largePieces[ownerIndex];
+      const base = lp.position.clone(); // Position relative to owning large cube
+
+      // Create 3x3x3 grid within each large cube
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+          for (let k = -1; k <= 1; k++) {
+            const m = makeCube(MINI_SIZE, 0x1f2937, 0xffffff);
+            m.position.set(base.x + i * MINI_STEP, base.y + j * MINI_STEP, base.z + k * MINI_STEP);
+
+            // Store relationship data for animation logic
+            m.userData.ownerIndex = ownerIndex; // Which large cube owns this mini
+            m.userData.local = new THREE.Vector3(i, j, k); // Local position within 3x3x3 grid
+            m.userData.isCenter = (i === 0 && j === 0 && k === 0); // Center mini-cube flag
+            m.userData.base = new THREE.Vector3(i, j, k); // Base position for animations
+            m.userData.initialScale = 0.0001; // Start tiny for growth animation
+            m.scale.setScalar(m.userData.initialScale);
+
+            miniGroup.add(m);
+            miniCubes.push(m);
+          }
+        }
+      }
+    }
+
+    // ===== UI/Interaction =====
+    const progressEl = document.getElementById('progress');
+    const phaseLabelEl = document.getElementById('phaseLabel');
+    const mouseLabelEl = document.getElementById('mouseLabel');
+    const metricsEl = document.getElementById('metrics');
+    const coordsEl = document.getElementById('coordsPanel');
+    const bgTintEl = document.querySelector('.bg-tint');
+
+    const SAMPLE_LARGE = [0, 1, 13, 26];
+    const SAMPLE_MINI = [13, 40, 364, 715];
+    function fmt(v) { return `${v.x.toFixed(2)}, ${v.y.toFixed(2)}, ${v.z.toFixed(2)}`; }
+    let lastCoordsUpdate = 0;
+    function updateCoords(phaseId) {
+      if (!coordsEl) return;
+      if (perf.now - lastCoordsUpdate < 100) return; // ~10 fps update cap
+      lastCoordsUpdate = perf.now;
+      let out = `Phase: ${phaseLabelEl.textContent}\n\n`;
+      out += `Large cubes (sample indices ${SAMPLE_LARGE.join(', ')}):\n`;
+      SAMPLE_LARGE.forEach(i => {
+        const lp = largePieces[i];
+        if (lp) {
+          const wp = lp.getWorldPosition(new THREE.Vector3());
+          out += `L[${i}]: (${fmt(wp)})\n`;
+        }
+      });
+      if (miniGroup.visible) {
+        out += `\nMini cubes (sample indices ${SAMPLE_MINI.join(', ')}):\n`;
+        SAMPLE_MINI.forEach(i => {
+          const m = miniCubes[i];
+          if (m) {
+            const wp = m.getWorldPosition(new THREE.Vector3());
+            out += `m[${i}]: (${fmt(wp)})\n`;
+          }
+        });
+      }
+      coordsEl.textContent = out;
+    }
+
+    // Phase 1 anchor snapshot (strict handover)
+    let phase1AnchorSet = false;
+    const phase1Anchor = { largePositions: [], largeScale: 1.5, rootRotation: new THREE.Vector2() };
+
+    // Phase 2 preparation (from Phase 1 end-state)
+    let phase2Prepared = false;
+    let phase2FromPositions = [];
+    let phase2EndPositions = []; // exact end-state of Phase 2 for strict handover
+
+    // Phase 3 preparation (from Phase 2 end-state)
+    let phase3Prepared = false;
+    let phase3FromPositions = [];
+    let phase3FromScale = 1.5;
+    let phase3BaseRotations = [];
+    let phase3Axes = [];
+    let phase3Speeds = []; // radians per second
+    let phase3StartTime = 0; // zero hover/rotation on entry so Phase 2 is exact start
+    const PHASE3_HOVER_AMP = 0.06;
+    const PHASE3_HOVER_FREQ = 0.6;
+
+    // Phase 4 preparation (from Phase 3 end-state)
+    let phase4Prepared = false;
+    let phase4FromLargePositions = [];
+    let phase4FromLargeQuats = [];
+    let phase4EndPositions = [];
+
+    // Phase 5 preparation (from Phase 4 end-state)
+    let phase5Prepared = false;
+    let phase5StartPositions = [];
+    let phase5EndPositions = [];
+    let phase5Dirs = [];
+
+    // Phase 6 preparation (from Phase 5 end-state)
+    let phase6Prepared = false;
+    let phase6AnchorPositions = [];
+    let phase6EndPositions = [];
+    let phase6ColorOrder = [];
+    let phase6Activation = [];
+
+    // Phase 7 preparation (from Phase 6 end-state)
+    let phase7Prepared = false;
+    let phase7StartPositions = [];
+    let phase7Dirs = [];
+    let phase7Swirl = [];
+
+    // Phase 8 preparation (from Phase 7 end-state)
+    let phase8Prepared = false;
+    let phase8StartPositions = [];
+
+    // Phases 5  8 preparation (anchored from end of Phase 4)
+    let phase58Prepared = false;
+    let phase58StartPositions = [];
+    let phase58Dirs = [];
+    let phase58Swirl = [];
+    let phase58ClusterIds = [];
+
+    // Fixed camera: derive once from initial position
+    // Compute the direction to the right 2/3 center
+  const frustumWidth = getFrustumWidth(camera);
+  // No offset, center camera
+  const offsetX = -10;
+  const INITIAL_DIR = new THREE.Vector3(offsetX, camera.position.y, camera.position.z).normalize();
+  const FIXED_DISTANCE = camera.position.length() * 1.8;
+  camera.position.copy(INITIAL_DIR.clone().multiplyScalar(FIXED_DISTANCE));
+  camera.lookAt(offsetX, CAMERA_TARGET_Y, 0);
+
+    const resetBtn = document.getElementById('reset');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        camera.position.copy(INITIAL_DIR.clone().multiplyScalar(FIXED_DISTANCE));
+        camera.lookAt(0, CAMERA_TARGET_Y, 0);
+        targetRot.set(0, 0);
+      });
+    }
+    const toggleBloomBtn = document.getElementById('toggleBloom');
+    if (toggleBloomBtn) {
+      toggleBloomBtn.addEventListener('click', () => {
+        bloomEnabled = !bloomEnabled; bloomPass.enabled = bloomEnabled;
+      });
+    }
+
+    // Mouse rotation mapping for Phase 1 and 9
+    const pointer = new THREE.Vector2();
+    const targetRot = new THREE.Vector2();
+    window.addEventListener('mousemove', (e) => {
+      const r = canvas.getBoundingClientRect();
+      pointer.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+      pointer.y = ((e.clientY - r.top) / r.height) * 2 - 1;
+      targetRot.set(pointer.y * 0.4, pointer.x * 0.6);
+    });
+
+    // click-and-drag full rotation controls (phases 1 and 9)
+    let isDragging = false;
+    let dragLast = { x: 0, y: 0 };
+    const SPIN_SENS = 0.01; // radians per pixel
+    let inInteractivePhase = false;
+    if (canvas) canvas.style.touchAction = 'none';
+
+    function onPointerDown(e){
+      isDragging = true;
+      dragLast.x = e.clientX; dragLast.y = e.clientY;
+      try { canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId); } catch(_){}
+      e.preventDefault();
+    }
+    function onPointerMove(e){
+      if (!isDragging) return;
+      const dx = e.clientX - dragLast.x;
+      const dy = e.clientY - dragLast.y;
+      dragLast.x = e.clientX; dragLast.y = e.clientY;
+      if (inInteractivePhase) {
+        root.rotation.y += dx * SPIN_SENS;
+        root.rotation.x += dy * SPIN_SENS;
+      }
+      e.preventDefault();
+    }
+    function onPointerUp(e){
+      isDragging = false;
+      try { canvas.releasePointerCapture && canvas.releasePointerCapture(e.pointerId); } catch(_){}
+      e.preventDefault();
+    }
+    canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
+    window.addEventListener('pointermove', onPointerMove, { passive: false });
+    window.addEventListener('pointerup', onPointerUp, { passive: false });
+    window.addEventListener('pointerleave', onPointerUp, { passive: false });
+
+    // Scroll progress [0..1]
+    function globalProgress() {
+      if (externalProgress !== null) return externalProgress;
+      const maxScroll = document.body.scrollHeight - window.innerHeight;
+      return maxScroll > 0 ? clamp(window.scrollY / maxScroll, 0, 1) : 0;
+    }
+
+    // Intro scaling over first three text sections (scroll-driven)
+    const INTRO_SECTIONS = 3;
+    const INTRO_START_SCALE = 3.0; // begins at 2x Phase 1 size
+    function firstThreeScrollT() {
+      if (externalProgress !== null) return 1; // parent-controlled, skip intro gating
+      const a = window.innerHeight * INTRO_SECTIONS;
+      return clamp(window.scrollY / Math.max(1, a), 0, 1);
+    }
+
+    // ===== ANIMATION PHASE SYSTEM =====
+    /**
+     * 9 distinct animation phases triggered by scroll progress
+     * Each phase has specific timing, behavior, and visual characteristics
+     *
+     * PHASE TIMING (as percentage of total scroll):
+     * 1: 0.00-2.01% - Initial idle state with gentle floating
+     * 2: 2.01-12.06% - Large cubes explode into cloud formation
+     * 3: 12.06-14.48% - Pieces settle with random rotations
+     * 4: 14.48-31.38% - Large cubes shrink, mini-cubes emerge
+     * 5: 31.38-43.0% - Mini-cubes expand outward in cloud
+     * 6: 43.0-52.0% - Mini-cubes recolor cyan to purple one-by-one
+     * 7: 52.0-62.0% - Mini-cubes swirl and orbit in complex patterns
+     * 8: 62.0-70.0% - Transform into final spherical sculpture
+     * 9: 70.0-100% - Interactive final formation with mouse controls
+     */
+    const PHASES = [
+      { id: 1, start: 0.00, end: 0.0201, label: 'Phase 1 — Idle / Gentle Float' },
+      { id: 2, start: 0.0201, end: 0.1206, label: 'Phase 2 — First Dismantle / Dramatic Cloud' },
+      { id: 3, start: 0.1206, end: 0.1448, label: 'Phase 3 — Settle with Perspective' },
+      { id: 4, start: 0.1448, end: 0.3138, label: 'Phase 4 — Rubik Transform' },
+      { id: 5, start: 0.3138, end: 0.43, label: 'Phase 5 — Expand to 43.3%' },
+      { id: 6, start: 0.43, end: 0.52, label: 'Phase 6 — Popcorn Recolor' },
+      { id: 7, start: 0.52, end: 0.62, label: 'Phase 7 — Dance' },
+      { id: 8, start: 0.62, end: 0.70, label: 'Phase 8 — Final Morph' },
+      { id: 9, start: 0.70, end: 0.85, label: 'Phase 9 — Final Formation' },
+      //{ id: 10, start: 0.85, end: 1.0, label: 'Phase 10 — Finale Choice' }
+    ];
+
+    // Fixed dismantle radius for Phase 2 (no viewport-based formula)
+    const PHASE2_RADIUS = 8.0;
+
+    /*
+      NOTE: Alternative dynamic formula (to be tested only after final phase is done)
+
+      function dynamicPhase2Radius() {
+        const { halfW, halfH } = viewportWorldHalfExtents(camera);
+        const halfMin = Math.min(halfW, halfH);
+        const groupScale = largeGroup.scale.x;
+        const pieceHalf = Math.sqrt(3) * (LARGE_SIZE * groupScale) / 2;
+        return Math.max(halfMin * PAD_NDC - pieceHalf, STEP * 2);
+      }
+
+      function projectCornersWithinPad(center, halfDiag) {
+        const corners = [
+          new THREE.Vector3( 1, 1, 1), new THREE.Vector3( 1, 1,-1),
+          new THREE.Vector3( 1,-1, 1), new THREE.Vector3( 1,-1,-1),
+          new THREE.Vector3(-1, 1, 1), new THREE.Vector3(-1, 1,-1),
+          new THREE.Vector3(-1,-1, 1), new THREE.Vector3(-1,-1,-1)
+        ];
+        for (const c of corners) {
+          const p = center.clone().add(c.multiplyScalar(halfDiag)).project(camera);
+          if (Math.abs(p.x) > PAD_NDC || Math.abs(p.y) > PAD_NDC) return false;
+        }
+        return true;
+      }
+      // Usage idea:
+      // const R = dynamicPhase2Radius();
+      // const dir = largeDirs[i];
+      // binary search s in [0,R] where projectCornersWithinPad(dir*s, pieceHalf) == true
+    */
+
+    /**
+     * Determine which animation phase corresponds to current progress
+     * @param {number} g - Global progress (0-1)
+     * @returns {Object} Phase object with id, start, end, and label
+     */
+    function getPhase(g) {
+      for (const p of PHASES) if (g >= p.start && g <= p.end) return p; return PHASES[PHASES.length-1];
+    }
+
+    // ===== Layout helpers =====
+    function cloudRadiusForLarge() {
+      const { halfW, halfH } = viewportWorldHalfExtents(camera);
+      const halfMin = Math.min(halfW, halfH);
+      const pieceHalf = Math.sqrt(3) * (LARGE_SIZE * 0.5) * 1.5; // include initial scale 1.5
+      return Math.max(halfMin * 0.90 - pieceHalf, STEP * 2);
+    }
+
+    function cloudRadiusForMini() {
+      const { halfW, halfH } = viewportWorldHalfExtents(camera);
+      const halfMin = Math.min(halfW, halfH);
+      const pieceHalf = Math.sqrt(3) * (MINI_SIZE * 0.5);
+      return Math.max(halfMin * 0.95 - pieceHalf, MINI_STEP * 8);
+    }
+
+    // Precompute normalized directions for each large piece from center
+    const largeDirs = largePieces.map(p => {
+      const v = p.position.clone().normalize();
+      if (v.lengthSq() === 0) v.set(Math.random()*2-1, Math.random()*2-1, Math.random()*2-1).normalize();
+      return v;
+    });
+
+    // Utilities for deterministic pseudo-random
+    function hash11(x){
+      let t = (x>>>0) * 2654435761 >>> 0; t ^= t << 13; t ^= t >>> 17; t ^= t << 5; return (t>>>0) / 4294967295;
+    }
+
+    // Final sculpture targets (layered spherical distribution with oriented/elongated minis)
+    const sculpturePos = new Array(miniCubes.length);
+    const sculptureQuat = new Array(miniCubes.length);
+    const sculptureScale = new Array(miniCubes.length);
+    (function buildSculpture(){
+      const layers=9, latSteps=9, lonSteps=9;
+      const baseR = frameSize * (0.92 / 2.2); // match reference ratio, scaled to Phase 1 frame
+      let k=0;
+      for(let l=0; l<layers; l++){
+        const r = 0.55 + (l/(layers-1))*0.40;
+        for(let a=0; a<latSteps; a++){
+          const phi = Math.PI * (a+0.5)/latSteps;
+          for(let b=0; b<lonSteps; b++){
+            const theta = 2*Math.PI*(b/lonSteps);
+            const nx = Math.sin(phi)*Math.cos(theta);
+            const ny = Math.cos(phi);
+            const nz = Math.sin(phi)*Math.sin(theta);
+            const rad = baseR*r;
+            const px=nx*rad, py=ny*rad, pz=nz*rad;
+            const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1), new THREE.Vector3(nx,ny,nz));
+            const elong = 1.0 + 0.85*((a%3===0?0.9:0.4)+0.15*Math.sin((a+b+l)*0.7));
+            const s=new THREE.Vector3(1,1,elong);
+            sculpturePos[k]=new THREE.Vector3(px,py,pz);
+            sculptureQuat[k]=q;
+            sculptureScale[k]=s;
+            k++;
+          }
+        }
+      }
+    })();
+
+    // ===== Text-Phase Sync (pin text while animation runs given phases) =====
+    function setupPhaseTextSync(){
+      const sections = Array.from(document.querySelectorAll('.hero-row .text-section'));
+      if (sections.length < 8) return; // expect 8 sections
+      // Use a fixed scroll budget (the spacer) to avoid feedback loops that desync phases
+      const spacer = document.querySelector('.spacer');
+      const baseBudget = spacer ? parseFloat(getComputedStyle(spacer).height) || 20000 : 20000;
+      // Mapping of section index (0-based) to one or more animation phases to pin through
+      const mapping = new Map([
+        [3, [2,3]],   // The Anatomy of an Organization: P2 + P3
+        [4, [4]],     // The Hidden Relations: P4
+        [5, [5,6]],   // The Moment of Truth: P5 + P6
+        [6, [7]],     // Locks, Locks Everywhere: P7
+        [7, [8,9]],   // The Future, Ready Today: P8 + P9
+      ]);
+      let totalPads = 0;
+      sections.forEach((sec, idx) => {
+        let pad = sec.querySelector('.phase-pad');
+        if (!pad) { pad = document.createElement('div'); pad.className = 'phase-pad'; sec.appendChild(pad); }
+        let targetPx = 0;
+        const phaseIds = mapping.get(idx);
+        if (phaseIds){
+          const ids = Array.isArray(phaseIds) ? phaseIds : [phaseIds];
+          for (const id of ids) {
+            const p = PHASES.find(pp => pp.id === id);
+            if (p) targetPx += Math.max(0, Math.floor((p.end - p.start) * baseBudget));
+          }
+        }
+        const needed = Math.max(0, targetPx);
+        pad.style.height = needed + 'px';
+        totalPads += needed;
+      });
+      // Offset pads by shrinking the spacer so total scroll stays aligned with the animation’s timeline
+      if (spacer) {
+        const minTail = 600; // keep extra tail so last sticky stays pinned through P9
+        const newHeight = Math.max(minTail, baseBudget - totalPads + minTail);
+        spacer.style.height = newHeight + 'px';
+      }
+    }
+
+    // ===== UNIFIED GSAP TIMELINE SYSTEM =====
+    const overlayRoot = document.getElementById('phaseOverlay');
+    const overlayBlocks = overlayRoot ? Array.from(overlayRoot.querySelectorAll('.phase-text-block')) : [];
+    const overlayOrder = ['intro-1','intro-2','intro-3','p23-your-org','p4-hidden','p56-where','p7-two-years','p89-future','finale-twinlab-twinstudio'];
+    const orderIndex = new Map(overlayOrder.map((k,i)=>[k,i]));
+    let activeKey = '';
+    let lastActiveEl = null;
+    let overlayViewport = null;
+    
+    // ===== MASTER TIMELINE FOR SYNCHRONIZED ANIMATIONS =====
+    let masterTimeline = null;
+    let cubeAnimationTween = null;
+    let textAnimationTween = null;
+    let isTimelineReversed = false;
+    let currentPhaseIndex = 0;
+    
+    function initializeMasterTimeline() {
+      if (masterTimeline) {
+        masterTimeline.kill();
+      }
+      
+      // Create master timeline with smooth child timing enabled
+      masterTimeline = gsap.timeline({
+        smoothChildTiming: true,
+        paused: true,
+        onUpdate: function() {
+          // Sync Three.js rendering with GSAP timeline progress
+          const progress = this.progress();
+          updateThreeJSFromTimeline(progress);
+        }
+      });
+      
+      // Add phase animations with proper sequencing
+      setupPhaseAnimations();
+    }
+    
+    function setupPhaseAnimations() {
+      // Phase 1-2: Intro with 5% pause
+      masterTimeline.set({}, {}, 0)
+        .to({}, { duration: 0.05 }, "phase1-pause")
+        
+      // Phase 7: Brief pause (5%)
+        .to({}, { duration: 0.05 }, "phase7-pause")
+        
+      // Phase 8-9: Text exit and cube movement synchronized
+        .add("finale-start")
+        .to({}, { 
+          duration: 2.0, // Standardized duration for major phase transitions
+          ease: "power2.out",
+          onUpdate: function() {
+            updateFinaleSync(this.progress());
+          }
+        }, "finale-start");
+    }
+    
+    function updateThreeJSFromTimeline(progress) {
+      // Map timeline progress to global animation phase
+      const mappedProgress = progress;
+      
+      // Update cube animations based on timeline progress
+      if (cubeAnimationTween) {
+        cubeAnimationTween.progress(mappedProgress);
+      }
+      
+      // Sync text animations
+      updateTextSync(mappedProgress);
+    }
+    
+    function hideAllExcept(a,b){ overlayBlocks.forEach(el => { el.style.visibility = (el===a || el===b) ? 'visible' : 'hidden'; }); }
+
+    function setupOverlayViewport(){
+      if (!overlayRoot) return;
+      const inner = overlayRoot.querySelector('.overlay-inner');
+      if (!inner) return;
+      if (!overlayViewport) {
+        overlayViewport = inner.querySelector('.phase-viewport');
+        if (!overlayViewport) {
+          overlayViewport = document.createElement('div');
+          overlayViewport.className = 'phase-viewport';
+          const blocks = Array.from(inner.querySelectorAll('.phase-text-block'));
+          blocks.forEach(el => overlayViewport.appendChild(el));
+          inner.appendChild(overlayViewport);
+        }
+      }
+      measureViewport();
+    }
+
+    function measureViewport(){
+      if (!overlayViewport) return;
+      overlayViewport.style.height = '600px';
+    }
+
+    window.addEventListener('resize', () => { measureViewport(); });
+
+    function setActive(key){
+      if (!overlayRoot || key === activeKey) return;
+      setupOverlayViewport();
+      
+      // Clean up any previous phase-specific states before transition
+      overlayBlocks.forEach(el => {
+        el.removeAttribute('data-slide-triggered');
+        el.removeAttribute('data-pause-applied');
+        if (el.style.opacity !== '1' && el.style.opacity !== '') {
+          el.style.opacity = '1'; // Reset any opacity modifications
+        }
+      });
+      
+      const nextEl = overlayBlocks.find(el => el.getAttribute('data-key') === key) || null;
+      const prevEl = overlayBlocks.find(el => el.classList.contains('active')) || null;
+      activeKey = key;
+      overlayRoot.setAttribute('data-active', key);
+
+      // Use GSAP timeline for proper text transitions
+      if (textAnimationTween) {
+        textAnimationTween.kill();
+      }
+      
+      // Create text transition timeline with proper sequencing
+      textAnimationTween = gsap.timeline({
+        duration: 1.8, // Original slower timing for text transitions
+        ease: "power2.out",
+        onComplete: function() {
+          measureViewport();
+        }
+      });
+
+      // Clear previous active states
+      overlayBlocks.forEach(el => el.classList.remove('active'));
+      
+      if (nextEl) {
+        nextEl.classList.add('active');
+        
+        // Set up transition direction
+        const H = (overlayViewport && overlayViewport.clientHeight) ? overlayViewport.clientHeight : 600;
+        const prevKey = prevEl ? prevEl.getAttribute('data-key') : null;
+        const nextKey = nextEl ? nextEl.getAttribute('data-key') : null;
+        const idxPrev = prevKey != null ? (orderIndex.get(prevKey) ?? 0) : -1;
+        const idxNext = nextKey != null ? (orderIndex.get(nextKey) ?? 0) : 0;
+        const forward = (idxPrev === -1) ? true : (idxNext > idxPrev);
+
+        // Set visibility for transitioning elements
+        overlayBlocks.forEach(el => { 
+          el.style.visibility = (el === prevEl || el === nextEl) ? 'visible' : 'hidden'; 
+        });
+
+        // Animate out previous element if exists
+        if (prevEl) {
+          textAnimationTween.fromTo(prevEl, 
+            { y: 0 },
+            {
+              y: forward ? -H : H, 
+              duration: 1.8, // SLOWER exit - not too fast
+              ease: "power2.out",
+              onComplete: () => { 
+                prevEl.style.visibility = 'hidden'; 
+                prevEl.classList.remove('active');
+              }
+            }, 
+            0  // Start immediately
+          );
+        }
+
+        // Animate in next element - START AT SAME TIME AS EXIT
+        textAnimationTween.fromTo(nextEl, 
+          { y: forward ? H : -H, visibility: 'visible' },
+          { y: 0, duration: 1.8, ease: "power2.out" }, // SAME slower duration as exit
+          0  // SAME START TIME - NO DELAY - SYNCHRONIZED
+        );
+      }
+
+      lastActiveEl = nextEl;
+    }
+    function updateOverlayText(gPhase, introT){
+      const p = getPhase(gPhase).id;
+      if (p === 1 && externalProgress === null) {
+        if (introT < 0.33) setActive('intro-1');
+        else if (introT < 0.66) setActive('intro-2');
+        else setActive('intro-3');
+        return;
+      }
+      if (p===2 || p===3) return setActive('p23-your-org');
+      if (p===4) return setActive('p4-hidden');
+      if (p===5 || p===6) return setActive('p56-where');
+      if (p===7) {
+        // Phase 7: Add noticeable 5% pause when small purple cubes form circles
+        const phase7 = PHASES[6];
+        const phase7Start = phase7.start;
+        const phase7End = phase7.end;
+        const phase7Progress = clamp((gPhase - phase7Start) / (phase7End - phase7Start), 0, 1);
+        
+        if (phase7Progress < 0.95) {
+          // Normal phase 7 text for 95% of the phase
+          setActive('p7-two-years');
+        } else {
+          // 5% pause at the end - keep text visible and prevent transition to phase 8
+          setActive('p7-two-years');
+          return; // Stay in Phase 7 pause - don't continue to Phase 8 yet
+        }
+      }
+      if (p===8) {
+        // Calculate scroll progress within phase 8
+        const phase8 = PHASES[7];
+        const phase8Start = phase8.start;
+        const phase8End = phase8.end;
+        const scrollProgress = clamp((gPhase - phase8Start) / (phase8End - phase8Start), 0, 1);
+        
+        // Keep Phase 7 text briefly (first 30% of Phase 8), then transition to Phase 9 text
+        if (scrollProgress < 0.3) {
+          // Keep showing Phase 7 text briefly in early Phase 8
+          setActive('p7-two-years');
+        } else {
+          // Transition from p7-two-years to p89-future with sliding animation
+          setActive('p89-future');
+        }
+      }
+      if (p===9) {
+        setActive('p89-future');
+      }
+      if (p===10) {
+        setActive('finale-twinlab-twinstudio');
+      }
+      if (p === 8) {
+        // Ensure finale columns are hidden in phase 8
+        const finaleColumns = document.getElementById('finaleColumns');
+        if (finaleColumns) {
+          finaleColumns.style.display = 'none';
+          finaleColumns.removeAttribute('data-slide-state');
+        }
+      }
+    }
+
+    // ===== Animation per phase =====
+    let lastPhaseId = null;
+    function applyPhases(g) {
+      const phase = getPhase(g);
+      inInteractivePhase = (phase.id === 1 || phase.id === 9);
+      if (lastPhaseId !== phase.id) {
+        if (phase.id === 2) phase2Prepared = false; // re-anchor from current Phase 1 end on entry
+        if (phase.id === 3) phase3Prepared = false; // re-anchor from current Phase 2 end on entry
+        if (phase.id === 4) phase4Prepared = false; // re-anchor from current Phase 3 end on entry
+        if (phase.id === 5) phase5Prepared = false;
+        if (phase.id === 6) phase6Prepared = false;
+        if (phase.id === 7) phase7Prepared = false;
+        if (phase.id === 8) phase8Prepared = false;
+        lastPhaseId = phase.id;
+        try { window.parent && window.parent.postMessage({ type: 'RUBIKS_PHASE', id: phase.id, label: phase.label }, '*'); } catch (_) {}
+      }
+      const label = phase.label;
+      if (phaseLabelEl) phaseLabelEl.textContent = label;
+      if (progressEl) progressEl.textContent = (g * 100).toFixed(1) + '%';
+      // Smooth bloom ramp during glow phases and enable only in >= Phase 8
+      const tGlow = phase.id < 8 ? 0 : easeInOut(phaseProgress(g, PHASES[7].start, PHASES[7].end));
+      bloomEnabled = (phase.id >= 8);
+      if (bloomEnabled) {
+  bloomPass.enabled = true;
+  // Reduced bloom strength for less glow bleed
+  bloomPass.strength = THREE.MathUtils.lerp(0.0, 0.18, tGlow);
+      } else {
+        bloomPass.enabled = false;
+        bloomPass.strength = 0.0;
+      }
+
+      // Background handling with smooth tint darkening and video fade
+      const bgVid = document.querySelector('.bg-video');
+      // Compute darkness progress across phases 6 -> 7
+      const p6 = PHASES[5], p7 = PHASES[6];
+      const darkT = THREE.MathUtils.clamp((g - p6.start) / Math.max(1e-6, (p7.end - p6.start)), 0, 1);
+      if (bgTintEl) {
+        const base = { r: 10, g: 15, b: 28 };
+        const r = Math.round(base.r * (1 - darkT));
+        const gg = Math.round(base.g * (1 - darkT));
+        const b = Math.round(base.b * (1 - darkT));
+        const a = THREE.MathUtils.lerp(0.64, 1.0, easeInOut(darkT));
+        bgTintEl.style.background = `rgba(${r},${gg},${b},${a})`;
+      }
+      if (phase.id >= 8) {
+        const t8 = easeInOut(phaseProgress(g, PHASES[7].start, PHASES[7].end));
+        if (bgVid) { bgVid.style.opacity = (1 - t8).toFixed(3); bgVid.style.display = t8 > 0.99 ? 'none' : ''; }
+        document.documentElement.style.background = '#000000';
+        document.body.style.background = '#000000';
+        if (renderer.setClearAlpha) renderer.setClearAlpha(1);
+        renderer.setClearColor(0x000000, 1);
+        renderPass.clearAlpha = 1.0;
+      } else {
+        if (bgVid) { bgVid.style.opacity = '1'; bgVid.style.display = ''; }
+        document.documentElement.style.background = 'transparent';
+        document.body.style.background = 'transparent';
+        if (renderer.setClearAlpha) renderer.setClearAlpha(0);
+        renderer.setClearColor(0x000000, 0);
+        renderPass.clearAlpha = 0.0;
+      }
+
+      // Default visibility
+      if (mouseLabelEl) mouseLabelEl.style.display = 'none';
+
+      // Base transforms reset
+      // Keep root rotation gentle toward targetRot only in Phase 0 and 9
+
+      // Phase 1 — Idle / Gentle Float
+      if (phase.id === 1) {
+        // Set initial rotation for front-facing cube only once per Phase 1 entry
+        /*
+        if (typeof phase1InitialRotationSet === 'undefined' || lastPhaseId !== 1) {
+          root.rotation.set(-Math.PI/12, -Math.PI/4, 0); // Tilt top and turn front
+          phase1InitialRotationSet = true;
+        }
+        */
+        const t = phaseProgress(g, phase.start, phase.end);
+        if (mouseLabelEl) mouseLabelEl.style.display = 'none';
+        largeGroup.visible = true; miniGroup.visible = false;
+
+        // Scroll-driven scale from 3.0x -> 1.5x across first 3 sections
+        const introT = firstThreeScrollT();
+        const targetScale = THREE.MathUtils.lerp(INTRO_START_SCALE, PHASE1_INITIAL_SCALE, easeInOut(introT));
+
+        // deterministic positions/colors every frame for reversible scroll
+        largePieces.forEach((p, i) => {
+          // Smoothly settle back to Phase 1 initial positions to avoid snapping on reverse
+          const targetPos = initialLargePositions[i];
+          p.position.lerp(targetPos, 0.25);
+          if (p.material) {
+            if (Array.isArray(p.material)) {
+              p.material.forEach(m => { if (m){ m.transparent=false; m.opacity=1.0; m.depthWrite=true; }});
+            } else {
+              // Do not override color
+              p.material.transparent = false;
+              p.material.opacity = 1.0;
+              p.material.depthWrite = true;
+            }
+          }
+          // reset edges opacity/transparent
+          p.traverse(o => {
+            if (o.isLineSegments && o.material) {
+              o.material.transparent = false;
+              o.material.opacity = 1.0;
+              o.material.depthWrite = true;
+            }
+            if (o.userData && o.userData.sticker && o.material) {
+              o.material.transparent = false;
+              o.material.opacity = 1.0;
+              o.material.depthWrite = true;
+            }
+          });
+          p.scale.lerp(new THREE.Vector3(1,1,1), 0.25);
+        });
+
+        largeGroup.scale.setScalar(targetScale);
+        if (!isDragging) {
+          // gentle float & rotation
+          const tAuto = perf.now * 0.001;
+          const floatY = Math.sin(tAuto * 0.8) * (PHASE1_SPAN * 0.015);
+          root.position.y = THREE.MathUtils.damp(root.position.y, floatY, 3, delta);
+          const rx = Math.sin(tAuto * 0.15) * 0.15 + 1;
+          const ry = Math.cos(tAuto * 0.12) * 0.22 + 3;
+          root.rotation.x = THREE.MathUtils.damp(root.rotation.x, rx, 4, delta);
+          root.rotation.y = THREE.MathUtils.damp(root.rotation.y, ry, 4, delta);
+        }
+
+        // strict handover: snapshot end-state once when phase completes
+        if (!phase1AnchorSet && g >= phase.end - 1e-6) {
+          phase1Anchor.largePositions = largePieces.map(p => p.position.clone());
+          phase1Anchor.largeScale = largeGroup.scale.x;
+          phase1Anchor.rootRotation = new THREE.Vector2(root.rotation.x, root.rotation.y);
+          phase1AnchorSet = true;
+        }
+      }
+
+      // Phase 2 — First Dismantle / Dramatic Cloud
+      if (phase.id === 2) {
+        const t = easeInOut(phaseProgress(g, phase.start, phase.end));
+        largeGroup.visible = true; miniGroup.visible = false;
+
+        // Prepare on each entry using strict handover from current Phase 1 end
+        if (!phase2Prepared) {
+          phase2FromPositions = largePieces.map(p => p.position.clone());
+          
+          // if (phase1Anchor && phase1Anchor.rootRotation)
+//          root.rotation.x = phase1Anchor.rootRotation.x;
+//          root.rotation.y = phase1Anchor.rootRotation.y;
+          // else {
+          //   root.rotation.set(0, 0, 0);
+          // }
+          
+          phase2Prepared = true;
+        }
+
+        const R = PHASE2_RADIUS;
+
+        largePieces.forEach((p, i) => {
+          const dir = largeDirs[i];
+          const target = dir.clone().multiplyScalar(R);
+          const from = phase2FromPositions[i] || p.position.clone();
+          p.position.copy(from.clone().lerp(target, t));
+          if (p.material) {
+            if (Array.isArray(p.material)) {
+              p.material.forEach(m => { if (m){ m.transparent=false; m.opacity=1.0; m.depthWrite=true; }});
+            } else {
+              // Do not override color
+              p.material.transparent = false;
+              p.material.opacity = 1.0;
+              p.material.depthWrite = true;
+            }
+          }
+          p.traverse(o => {
+            if (o.isLineSegments && o.material) {
+              o.material.transparent = false;
+              o.material.opacity = 1.0;
+              o.material.depthWrite = true;
+            }
+            if (o.userData && o.userData.sticker && o.material) {
+              o.material.transparent = false;
+              o.material.opacity = 1.0;
+              o.material.depthWrite = true;
+            }
+          });
+        });
+        // capture end-state positions for use as Phase 3 base (consistent anchor)
+        if (t >= 0.999) {
+          phase2EndPositions = largePieces.map(p => p.position.clone());
+        }
+      }
+
+      // Phase 3 — Hovering with slow random rotations (no position drift)
+      if (phase.id === 3) {
+        const t = phaseProgress(g, phase.start, phase.end); // not used to change base positions
+        largeGroup.visible = true; miniGroup.visible = false;
+
+        // Keep stickers fully opaque in Phase 3
+        largePieces.forEach((p)=>{
+          p.traverse(o=>{
+            if (o.userData && o.userData.sticker && o.material){
+              o.material.transparent = false;
+              o.material.opacity = 1.0;
+              o.material.depthWrite = true;
+            }
+          });
+        });
+
+        // Strict handover: anchor from Phase 2 end on entry and set random axes/speeds
+        if (!phase3Prepared) {
+          // If available, use exact Phase 2 end snapshot; otherwise fallback to current
+          phase3FromPositions = (phase2EndPositions.length ? phase2EndPositions : largePieces.map(p => p.position.clone())).map(v=>v.clone());
+          phase3FromScale = largeGroup.scale.x;
+          phase3BaseRotations = largePieces.map(p => p.quaternion.clone());
+          phase3Axes = largePieces.map(() => new THREE.Vector3(Math.random()*2-1, Math.random()*2-1, Math.random()*2-1).normalize());
+          phase3Speeds = largePieces.map(() => THREE.MathUtils.lerp(0.05, 0.15, Math.random()));
+          phase3StartTime = perf.now * 0.001;
+          phase3Prepared = true;
+        }
+
+        const time = Math.max(0, (perf.now * 0.001) - phase3StartTime);
+        const t3 = easeInOut(phaseProgress(g, PHASES[2].start, PHASES[2].end));
+        largePieces.forEach((p, i) => {
+          // Position: base + gentle vertical hover
+          const base = phase3FromPositions[i] || p.position.clone();
+          const hover = Math.sin(time * PHASE3_HOVER_FREQ + i * 0.21) * PHASE3_HOVER_AMP;
+          p.position.set(base.x, base.y + hover, base.z);
+          if (p.material) {
+            if (Array.isArray(p.material)) {
+              p.material.forEach(m => { if (m){ m.transparent=true; m.opacity=THREE.MathUtils.lerp(1.0, 0.8, t3); }});
+            } else {
+              // Do not override color
+              p.material.transparent = true;
+              p.material.opacity = THREE.MathUtils.lerp(1.0, 0.8, t3);
+            }
+          }
+
+          // Rotation: base rotation * axis-angle(time * speed)
+          const axis = phase3Axes[i];
+          const speed = phase3Speeds[i];
+          const q = new THREE.Quaternion().setFromAxisAngle(axis, time * speed);
+          p.quaternion.copy(phase3BaseRotations[i]).multiply(q);
+        });
+
+        // Keep group scale unchanged in Phase 3
+        largeGroup.scale.setScalar(phase3FromScale);
+      }
+
+      // Phase 4 — Rubik Transform (reveal 729 mini cubes)
+      // Large cubes shrink and fade out while mini cubes grow from within to form the inner Rubik's cube
+      if (phase.id === 4) {
+        const t = easeInOut(phaseProgress(g, phase.start, phase.end));
+        largeGroup.visible = true; miniGroup.visible = true; frameGroup.visible = false; coreSphere.visible = false; if (typeof coreLight !== 'undefined') coreLight.visible = false;
+
+        // Prepare anchors once from Phase 3 rendered state (positions include current hover)
+        // This guarantees minis originate exactly where the visible large cubes are at transition time
+        if (!phase4Prepared) {
+          phase4FromLargePositions = largePieces.map(p => p.getWorldPosition(new THREE.Vector3()));
+          phase4FromLargeQuats = largePieces.map(p => p.getWorldQuaternion(new THREE.Quaternion()));
+          // Reset minis to a clean baseline (no elongation/rotation from later phases)
+          miniCubes.forEach((m) => {
+            m.quaternion.identity();
+            m.rotation.set(0,0,0);
+            const s0 = (m.userData && typeof m.userData.initialScale === 'number') ? m.userData.initialScale : 0.0001;
+            m.scale.setScalar(s0);
+          });
+          phase4Prepared = true;
+        }
+
+        // Fade large pieces out while minis grow into oriented local grids around each large piece's current pose
+        largePieces.forEach((p) => {
+          if (p.material) {
+            if (Array.isArray(p.material)) {
+              p.material.forEach(m => { if (!m) return; m.transparent = true; m.opacity = THREE.MathUtils.lerp(0.6, 0.0, t); m.depthWrite = false; });
+            } else {
+              p.material.transparent = true;
+              p.material.opacity = THREE.MathUtils.lerp(0.6, 0.0, t);
+              p.material.depthWrite = false;
+            }
+          }
+          p.traverse(o => {
+            if (o.isLineSegments && o.material) {
+              o.material.transparent = true;
+              o.material.opacity = THREE.MathUtils.lerp(0.5, 0.0, t);
+              o.material.depthWrite = false;
+            }
+            if (o.userData && o.userData.sticker && o.material) {
+              o.material.transparent = true;
+              o.material.opacity = THREE.MathUtils.lerp(1.0, 0.0, t);
+              o.material.depthWrite = false;
+            }
+          });
+          p.scale.setScalar(Math.max(0.001, 1 - t));
+        });
+
+        miniCubes.forEach((m) => {
+          const ownerIndex = (m.userData && typeof m.userData.ownerIndex === 'number') ? m.userData.ownerIndex : 0;
+          const lp = largePieces[ownerIndex];
+          const origin = phase4FromLargePositions[ownerIndex] || (lp ? lp.getWorldPosition(new THREE.Vector3()) : new THREE.Vector3());
+          const quat = phase4FromLargeQuats[ownerIndex] || (lp ? lp.getWorldQuaternion(new THREE.Quaternion()) : new THREE.Quaternion());
+          const local = m.userData.local || new THREE.Vector3();
+          const offset = new THREE.Vector3(local.x * MINI_STEP, local.y * MINI_STEP, local.z * MINI_STEP).applyQuaternion(quat);
+          const target = origin.clone().add(offset);
+          const pos = origin.clone().lerp(target, t);
+          m.position.copy(pos);
+          const s = lerp(m.userData.initialScale, 1, t);
+          m.scale.setScalar(s);
+        });
+        // Ensure the large cubes fully disappear at the end of Phase 4
+        largeGroup.visible = t < 0.98;
+        // Snapshot end-state positions for reversible anchoring
+        if (t >= 0.999) {
+          phase4EndPositions = miniCubes.map(m => m.getWorldPosition(new THREE.Vector3()));
+        }
+      }
+
+      // Phase 5 — Expand to 43.3% (retain Phase 4 color/state)
+      if (phase.id === 5) {
+        const t5 = easeInOut(phaseProgress(g, phase.start, phase.end));
+        largeGroup.visible = false; miniGroup.visible = true; frameGroup.visible = false; coreSphere.visible = false; if (typeof coreLight !== 'undefined') coreLight.visible = false;
+        if (!phase5Prepared) {
+          // Anchor deterministically from Phase 4 end for reversible scroll
+          phase5StartPositions = (phase4EndPositions.length ? phase4EndPositions : miniCubes.map(m => m.getWorldPosition(new THREE.Vector3())));
+          phase5Dirs = miniCubes.map((m) => {
+            const b = m.userData.base || new THREE.Vector3();
+            const v = new THREE.Vector3(b.x, b.y, b.z).normalize();
+            if (v.lengthSq() === 0) v.set(Math.random()*2-1, Math.random()*2-1, Math.random()*2-1).normalize();
+            return v;
+          });
+          phase5Prepared = true;
+        }
+        const R = cloudRadiusForMini();
+        const up = new THREE.Vector3(0,1,0);
+        miniCubes.forEach((m, idx) => {
+          const start = phase5StartPositions[idx];
+          const dir = phase5Dirs[idx];
+          const cloud = dir.clone().multiplyScalar(R);
+          const pos = start.clone().lerp(cloud, 0.433 * t5);
+          // Tiny hover for life, but largely static
+          const hover = Math.sin(perf.now * 0.001 + idx * 0.13) * 0.02;
+          m.position.lerp(pos.clone().addScaledVector(up, hover), 0.5);
+        });
+        if (t5 >= 0.999) {
+          phase5EndPositions = miniCubes.map(m => m.getWorldPosition(new THREE.Vector3()));
+        }
+      }
+
+      // ===== PHASE 6 — POPCORN RECOLORING =====
+      /**
+       * The signature "popcorn" animation where 729 mini-cubes recolor individually
+  * Each cube changes from cyan (0x00f0ff) to gold (0xD4AF37) at different times
+       * Creates a wave-like effect as cubes "pop" to their new color
+       *
+       * TIMING SYSTEM:
+       * - First 15 cubes activate slowly (0.02 per cube) for gentle start
+       * - Remaining cubes accelerate with quadratic curve for dramatic finish
+       * - Each cube has 0.08 progress window for smooth color transition
+       *
+       * VISUAL EFFECTS:
+       * - MeshBasicMaterial: Uses transparency for glow-like effect
+       * - MeshStandardMaterial: Uses emissive properties for true glow
+       * - Maintains positions with subtle hover animation
+       * - Dark navy edges remain consistent throughout
+       */
+      if (phase.id === 6) {
+        const t6 = easeInOut(phaseProgress(g, phase.start, phase.end));
+        largeGroup.visible = false; miniGroup.visible = true;
+        frameGroup.visible = false; coreSphere.visible = false;
+        if (typeof coreLight !== 'undefined') coreLight.visible = false;
+
+        // ===== PHASE 6 INITIALIZATION =====
+        if (!phase6Prepared) {
+          // Anchor positions from Phase 5 end-state for smooth transition
+          phase6AnchorPositions = (phase5EndPositions.length ?
+            phase5EndPositions : miniCubes.map(m => m.getWorldPosition(new THREE.Vector3())));
+
+          // ===== RANDOM ACTIVATION ORDER =====
+          // Create shuffled order for popcorn effect (not sequential)
+          phase6ColorOrder = [...miniCubes.keys()]; // [0,1,2,...,728]
+          // Fisher-Yates shuffle for random order
+          for (let i = phase6ColorOrder.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [phase6ColorOrder[i], phase6ColorOrder[j]] = [phase6ColorOrder[j], phase6ColorOrder[i]];
+          }
+
+          // ===== ACTIVATION TIMING SYSTEM =====
+          // Creates staggered activation for popcorn effect
+          const N = miniCubes.length; // 729 cubes
+          const first = 15; // First 15 cubes activate slowly
+          phase6Activation = new Array(N).fill(0);
+
+          for (let rank = 0; rank < N; rank++) {
+            const idx = phase6ColorOrder[rank]; // Which cube activates at this rank
+            if (rank < first) {
+              // Slow start: first 15 cubes spread evenly
+              phase6Activation[idx] = Math.min(1, rank * 0.02); // 0, 0.02, 0.04, ..., ~0.28
+            } else {
+              // Acceleration: quadratic curve for dramatic finish
+              const r = (rank - first) / (N - first); // 0 to 1 for remaining cubes
+              phase6Activation[idx] = 0.28 + r * r * (0.92 - 0.28); // 0.28 to 0.92
+            }
+          }
+
+          // Store end positions for Phase 7 handover
+          phase6EndPositions = phase6AnchorPositions.map(v => v.clone());
+          phase6Prepared = true;
+        }
+
+        // ===== COLOR TRANSITION SYSTEM =====
+    const fromColor = new THREE.Color(0x0066CC); // Blue (matches initial mini-cube color)
+  // const toColor = new THREE.Color(0xC084FC);   // Purple (legacy)
+  const toColor = new THREE.Color(SITE_GOLD);   // Site gold
+        const up = new THREE.Vector3(0,1,0); // Up vector for hover
+
+        miniCubes.forEach((m, idx) => {
+          // ===== POSITION MAINTENANCE =====
+          // Hold Phase 5 positions with subtle hover
+          const pos = phase6AnchorPositions[idx];
+          const hover = Math.sin(perf.now * 0.001 + idx * 0.13) * 0.015; // Unique hover per cube
+          m.position.lerp(pos.clone().addScaledVector(up, hover), 0.6);
+
+          // ===== INDIVIDUAL CUBE TIMING =====
+          const a = phase6Activation[idx]; // When this cube starts recoloring
+          const p = clamp((t6 - a) / 0.08, 0, 1); // 0.08 = transition window duration
+
+          // ===== MATERIAL RECOLORING =====
+          m.traverse(o => {
+            if (o.isMesh && o.material) {
+              const mats = Array.isArray(o.material) ? o.material : [o.material];
+              mats.forEach(mat => {
+                if (mat && mat.color) {
+                  // ===== COLOR INTERPOLATION =====
+                  mat.color = mat.color || new THREE.Color();
+                  mat.color.lerpColors(fromColor, toColor, p); // Smooth color transition
+
+                  // ===== GLOW EFFECT SYSTEM =====
+                  /*
+                  // Different approaches for different material types
+                  if (!('emissive' in mat)) {
+                    // MeshBasicMaterial: Use transparency for glow-like effect
+                    mat.transparent = true;
+                    mat.opacity = THREE.MathUtils.lerp(1.0, 0.8, p); // Slight fade for depth
+                  }
+                  if ('emissive' in mat) {
+                    // MeshStandardMaterial: Use emissive properties for true glow
+                    const emissiveTarget = new THREE.Color(0xD4AF37); // Gold glow
+                    mat.emissive = mat.emissive || new THREE.Color(0x000000);
+                      mat.emissive.lerpColors(new THREE.Color(0x000000), emissiveTarget, p);
+                    mat.emissiveIntensity = THREE.MathUtils.lerp(0.0, 0.75, p); // Glow intensity
+                  }
+                  */
+                }
+              });
+            }
+            // ===== EDGE COLOR CHANGE =====
+            // Change edges to grey for final sculpture / recolor
+            if (o.isLineSegments && o.material) {
+              o.material.color.set(0x737373); // Neutral grey for edges
+            }
+          });
+        });
+      }
+
+      // Phase 7 — Dance (swirl/orbit/hover)
+      if (phase.id === 7) {
+        const t7 = easeInOut(phaseProgress(g, phase.start, phase.end));
+        largeGroup.visible = false; miniGroup.visible = true; frameGroup.visible = false; coreSphere.visible = false; if (typeof coreLight !== 'undefined') coreLight.visible = false;
+        if (!phase7Prepared) {
+          // Anchor from Phase 6 end-state for reversible scroll
+          phase7StartPositions = (phase6EndPositions.length ? phase6EndPositions : miniCubes.map(m => m.getWorldPosition(new THREE.Vector3())));
+          phase7Dirs = miniCubes.map((m) => {
+            const b = m.userData.base || new THREE.Vector3();
+            const v = new THREE.Vector3(b.x, b.y, b.z).normalize();
+            if (v.lengthSq() === 0) v.set(Math.random()*2-1, Math.random()*2-1, Math.random()*2-1).normalize();
+            return v;
+          });
+          phase7Swirl = miniCubes.map(() => Math.random() * Math.PI * 2);
+          phase7Prepared = true;
+        }
+        const R = cloudRadiusForMini();
+        const up = new THREE.Vector3(0,1,0);
+        miniCubes.forEach((m, idx) => {
+          const base = phase7StartPositions[idx];
+          const dir = phase7Dirs[idx];
+          const anchor = dir.clone().multiplyScalar(R * 0.95);
+          const baseToAnchor = base.clone().lerp(anchor, t7);
+          const angle = (perf.now * 0.001) + phase7Swirl[idx];
+          const tangent = dir.clone().cross(up).normalize();
+          const binorm = dir.clone().cross(tangent).normalize();
+          const swirlRadius = MINI_STEP * 2.0 * t7; // start with no swirl and grow radius
+          const swirlOffset = tangent.multiplyScalar(Math.cos(angle) * swirlRadius).add(binorm.multiplyScalar(Math.sin(angle) * swirlRadius));
+          const pos = baseToAnchor.clone().add(swirlOffset);
+          const hover = Math.sin(perf.now * 0.0012 + idx * 0.17) * 0.06 * (0.5 + 0.5 * t7);
+          m.position.lerp(pos.clone().addScaledVector(up, hover), 0.6);
+          m.rotation.x += 0.004 * t7;
+          m.rotation.y -= 0.003 * t7;
+        });
+      }
+
+      // Phase 8 — Morph to final spherical sculpture (full black bg, glow, final size matches intro 3.0x)
+      if (phase.id === 8) {
+        const t8 = easeInOut(phaseProgress(g, phase.start, phase.end));
+        largeGroup.visible = false; miniGroup.visible = true; frameGroup.visible = true; coreSphere.visible = true; coreLight.visible = true;
+        // Final size should match intro oversized cube (3.0x vs Phase 1's 1.5x) with deterministic scaling
+        {
+          const FINAL_SCALE = INTRO_START_SCALE / PHASE1_INITIAL_SCALE; // 3.0 / 1.5 = 2.0
+          root.scale.setScalar(THREE.MathUtils.lerp(1.0, FINAL_SCALE, t8));
+        }
+        // Enable subtle glow already in Phase 8 to avoid pop in Phase 9
+        if (beamMat && 'emissive' in beamMat) {
+          beamMat.emissive = new THREE.Color(0xFFFFFF); // White color for frame
+          beamMat.emissiveIntensity = 0.6 + 0.3 * t8;
+        }
+        if (coreSphere.material && 'emissive' in coreSphere.material) {
+          coreSphere.material.emissive = new THREE.Color(0xBC9D00); // Soft gold color for core
+          coreSphere.material.emissiveIntensity = 0.8 + 0.4 * t8;
+        }
+        if (!phase8Prepared) {
+          phase8StartPositions = miniCubes.map(m => m.getWorldPosition(new THREE.Vector3()));
+          phase8Prepared = true;
+        }
+        miniCubes.forEach((m, idx) => {
+          const from = phase8StartPositions[idx];
+          const to = sculpturePos[idx];
+          const pos = from.clone().lerp(to, t8);
+          m.position.lerp(pos, 0.6);
+          // orient toward normal and elongate along it
+          const targetQ = sculptureQuat[idx];
+          m.quaternion.slerp(targetQ, 0.6 * t8);
+          const targetS = sculptureScale[idx];
+          m.scale.lerp(targetS, 0.4);
+          m.traverse(o => {
+            if (o.isMesh && o.material && 'emissiveIntensity' in o.material) {
+              o.material.emissive = new THREE.Color(FINAL_GOLD); // soft gold (use FINAL_GOLD)
+              o.material.emissiveIntensity = 0.2 + 0.2 * t8;
+            }
+          });
+        });
+      }
+
+      // Phase 9 — Final Formation (gold fills, mouse rotation enabled), show frame + core, full black bg, final size matches intro 3.0x
+      if (phase.id === 9) {
+        const t = easeInOut(phaseProgress(g, phase.start, phase.end));
+        largeGroup.visible = false; miniGroup.visible = true; frameGroup.visible = true; coreSphere.visible = true; coreLight.visible = true;
+        if (mouseLabelEl) mouseLabelEl.style.display = 'none';
+
+        // Move cube upward in sync with scroll progress in phase 9
+        frameGroup.position.y = 0; coreSphere.position.y = 0;
+        const phase9 = PHASES[8];
+        const phase9Start = phase9.start;
+        const phase9End = phase9.end;
+        let scrollOutProgress = 0;
+               if (g >= phase9Start && g <= phase9End && window.root) {
+             scrollOutProgress = clamp((g - phase9Start) / (phase9End - phase9Start), 0, 1);
+             // Move root group up by up to 120% of viewport height (scaled to world units)
+             const maxOffset = window.innerHeight * 1.2 * 0.02; // scale for world units
+             window.root.position.y = scrollOutProgress * maxOffset; } // This line seems to be missing a closing parenthesis in the original code.
+        if (!isDragging) {
+          const tAuto9 = perf.now * 0.001;
+          const rootFloat = Math.sin(tAuto9 * 0.8) * (PHASE1_SPAN * 0.02);
+          // Slower, more gentle exit - cube should exit gradually and be mostly gone by 85%
+          const maxOffset = PHASE1_SPAN * 8.0;
+          // Use eased progress for smoother movement
+          const easedProgress = easeInOut(scrollOutProgress);
+          const scrollY = easedProgress * maxOffset;
+          root.position.y = rootFloat + scrollY;
+          const rx9 = Math.sin(tAuto9 * 0.15) * 0.12;
+          const ry9 = Math.cos(tAuto9 * 0.12) * 0.20;
+          root.rotation.x = THREE.MathUtils.damp(root.rotation.x, rx9, 4, delta);
+          root.rotation.y = THREE.MathUtils.damp(root.rotation.y, ry9, 4, delta);
+        }
+        // Final size should match intro oversized cube (3.0x vs Phase 1's 1.5x) with deterministic scaling
+        {
+          const FINAL_SCALE = INTRO_START_SCALE / PHASE1_INITIAL_SCALE;
+          root.scale.setScalar(FINAL_SCALE);
+        }
+        coreSphere.scale.setScalar(1.0);
+        coreLight.distance = PHASE1_SPAN * 4.0;
+        coreLight.intensity = 3.2;
+        // Make frame and core sphere glow (emissive) in final phase
+        if (beamMat && 'emissive' in beamMat) {
+          beamMat.emissive = new THREE.Color(0xFFFFFF); // White color for frame
+          beamMat.emissiveIntensity = 1.0;
+        }
+        if (coreSphere.material && 'emissive' in coreSphere.material) {
+          coreSphere.material.emissive = new THREE.Color(0xBC9D00); // Soft gold color for core
+          // Reduced emissive intensity for less glow
+          coreSphere.material.emissiveIntensity = 0.9;
+        }
+        miniCubes.forEach((m, idx) => {
+          const ft = sculpturePos[idx];
+          m.position.lerp(ft, 0.2);
+          m.quaternion.slerp(sculptureQuat[idx], 0.15);
+          m.scale.lerp(sculptureScale[idx], 0.15);
+          
+          m.traverse(o => {
+            if (o.isMesh && o.material && 'emissiveIntensity' in o.material) {
+              o.material.emissive = new THREE.Color(FINAL_GOLD); // gold glow (use FINAL_GOLD)
+              o.material.emissiveIntensity = 0.6;
+            }
+          });
+          
+        });
+    // gold fills only
+  // setCubeFillColor(miniGroup, 0xC084FC); // original: light purple (legacy)
+  // setCubeFillColor(miniGroup, 0x6B21A8); // previous: dark purple (legacy)
+  // setCubeFillColor(miniGroup, 0x4B0082); // previous: even darker purple (legacy)
+  setCubeFillColor(miniGroup, FINAL_GOLD); // final: darker site gold
+      }
+
+      // Phase 10 — Finale Choice (maintain Phase 9 final state)
+      if (phase.id === 10) {
+        const t = easeInOut(phaseProgress(g, phase.start, phase.end));
+        largeGroup.visible = false; miniGroup.visible = true; frameGroup.visible = true; coreSphere.visible = true; coreLight.visible = true;
+        if (mouseLabelEl) mouseLabelEl.style.display = 'none';
+
+        // Keep cube in final raised position (no further movement)
+        frameGroup.position.y = 0; coreSphere.position.y = 0;
+        
+        if (!isDragging) {
+          const tAuto10 = perf.now * 0.001;
+          const rootFloat = Math.sin(tAuto10 * 0.8) * (PHASE1_SPAN * 0.02);
+          // Keep cube at maximum offset from Phase 9
+          const maxOffset = PHASE1_SPAN * 8.0;
+          root.position.y = rootFloat + maxOffset; // Maintain final position
+          const rx10 = Math.sin(tAuto10 * 0.15) * 0.12;
+          const ry10 = Math.cos(tAuto10 * 0.12) * 0.20;
+          root.rotation.x = THREE.MathUtils.damp(root.rotation.x, rx10, 4, delta);
+          root.rotation.y = THREE.MathUtils.damp(root.rotation.y, ry10, 4, delta);
+        }
+        
+        // Maintain final scale
+        const FINAL_SCALE = INTRO_START_SCALE / PHASE1_INITIAL_SCALE;
+        root.scale.setScalar(FINAL_SCALE);
+        coreSphere.scale.setScalar(1.0);
+        coreLight.distance = PHASE1_SPAN * 4.0;
+        coreLight.intensity = 3.2;
+        
+        // Maintain frame and core sphere glow
+        if (beamMat && 'emissive' in beamMat) {
+          beamMat.emissive = new THREE.Color(0xFFFFFF);
+          beamMat.emissiveIntensity = 1.0;
+        }
+        if (coreSphere.material && 'emissive' in coreSphere.material) {
+          coreSphere.material.emissive = new THREE.Color(0xBC9D00);
+          coreSphere.material.emissiveIntensity = 0.9;
+        }
+        
+  // Maintain sculpture formation and gold glow
+        miniCubes.forEach((m, idx) => {
+          const ft = sculpturePos[idx];
+          m.position.lerp(ft, 0.2);
+          m.quaternion.slerp(sculptureQuat[idx], 0.15);
+          m.scale.lerp(sculptureScale[idx], 0.15);
+          
+          m.traverse(o => {
+            if (o.isMesh && o.material && 'emissiveIntensity' in o.material) {
+              o.material.emissive = new THREE.Color(FINAL_GOLD);
+              o.material.emissiveIntensity = 0.6;
+            }
+          });
+        });
+        
+        // Maintain gold fills
+  setCubeFillColor(miniGroup, FINAL_GOLD);
+      } else if (phase.id === 4 || phase.id === 5) {
+        // During transform and expand, match minis to blue color
+        setCubeFillColor(miniGroup, 0x0066CC);
+      } else if (phase.id === 6 || phase.id === 7 || phase.id === 8) {
+        // Carry over per-cube colors from prior phase; no global override
+} else {
+          // This block now handles the final state for phases 9 & 10,
+            // and resets the state for all other phases that fall through.
+  if (phase.id === 9 || phase.id === 10) {
+    // --- Set and hold the final static state from Phase 9 ---
+
+    // 1. Make sure all final elements are visible
+    frameGroup.visible = true;
+    coreSphere.visible = true;
+    if (typeof coreLight !== 'undefined') coreLight.visible = true;
+
+  // 2. Set the final colors AND emissive properties to match Phase 9
+  setCubeFillColor(miniGroup, FINAL_GOLD); // Set final darker site gold fill color
+
+    if (beamMat && 'emissive' in beamMat) {
+      beamMat.emissive.setHex(0xFFFFFF);
+      beamMat.emissiveIntensity = 1.0;
+    }
+    if (coreSphere.material && 'emissive' in coreSphere.material) {
+      coreSphere.material.emissive.setHex(0xBC9D00);
+      coreSphere.material.emissiveIntensity = 0.9;
+    }
+  miniCubes.forEach(m => {
+    m.traverse(o => {
+      if (o.isMesh && o.material && 'emissiveIntensity' in o.material) {
+        // Use the darker FINAL_GOLD for final emissive color so it matches the fill
+        o.material.emissive.setHex(FINAL_GOLD);
+        // Slightly reduce emissive intensity to avoid washout
+        o.material.emissiveIntensity = 0.45;
+      }
+    });
+  });
+
+  } else {
+    // For all other phases, perform the original reset.
+    setCubeFillColor(miniGroup, 0x1f2937); // Dark neutral color
+    miniCubes.forEach((m) => {
+      m.traverse(o => {
+        if (o.isMesh && o.material && 'emissiveIntensity' in o.material) {
+          o.material.emissive.setHex(0x000000);
+          o.material.emissiveIntensity = 0.0;
+        }
+      });
+    });
+    frameGroup.visible = false;
+    coreSphere.visible = false;
+    if (typeof coreLight !== 'undefined') coreLight.visible = false;
+            }
+          }
+      // Locking behavior: large pieces remain at their phase-end positions after Phase 2 completion (implicitly handled by continuous lerp to cloud target before transform)
+
+      // Autonomous rotation in phases 1 and 9 is applied above; otherwise settle to neutral
+      if (phase.id !== 1 && phase.id !== 9) {
+        root.rotation.x = THREE.MathUtils.damp(root.rotation.x, 0, 2, delta);
+        root.rotation.y = THREE.MathUtils.damp(root.rotation.y, 0, 2, delta);
+        root.position.y = THREE.MathUtils.damp(root.position.y, 0, 3, delta);
+      }
+
+      // Restore orientations when not in Phase 3 to avoid residual rotation on reverse scroll
+      if (phase.id !== 3 && phase3Prepared) {
+        largePieces.forEach((p, i) => {
+          if (phase3BaseRotations[i]) p.quaternion.copy(phase3BaseRotations[i]);
+        });
+      }
+
+      // Metrics
+      if (metricsEl) metricsEl.textContent = label;
+      updateCoords(phase.id);
+  }
+
+    // ===== Resize =====
+    function fitCameraToPhase1Bounds() {
+      const scale = 1.5;
+      const halfExtent = (STEP + LARGE_SIZE * 0.5) * scale;
+      const fov = THREE.MathUtils.degToRad(camera.fov * 0.5);
+      const rect = containerEl.getBoundingClientRect();
+      const aspect = Math.max(0.0001, rect.width / Math.max(1, rect.height));
+      const dVert = halfExtent / Math.tan(fov);
+      const dHoriz = (halfExtent / aspect) / Math.tan(fov);
+      let need = Math.max(dVert, dHoriz) * 1.8; // stronger margin to ensure full fit
+      const current = camera.position.length();
+      if (need < current) need = current; // never move closer than current distance
+      const dir = camera.position.clone().normalize();
+      camera.position.copy(dir.multiplyScalar(need));
+      camera.lookAt(0, CAMERA_TARGET_Y, 0);
+    }
+
+    function layoutAndResize() {
+      const headerEl = document.querySelector('header');
+      const footerEl = document.querySelector('footer');
+      const topInset = headerEl ? headerEl.offsetHeight : 0;
+      const bottomInset = footerEl ? footerEl.offsetHeight : 0;
+      containerEl.style.top = topInset + 'px';
+      containerEl.style.bottom = bottomInset + 'px';
+
+      const rect = containerEl.getBoundingClientRect();
+      const w = Math.max(1, Math.floor(rect.width));
+      const h = Math.max(1, Math.floor(rect.height));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h; camera.updateProjectionMatrix();
+      composer.setSize(w, h);
+      bloomPass.setSize(w, h);
+      renderer.setViewport(0, 0, w, h);
+      renderer.setScissorTest(false);
+    }
+    window.addEventListener('resize', layoutAndResize);
+    layoutAndResize();
+    try { window.parent && window.parent.postMessage({ type: 'RUBIKS_READY' }, '*'); } catch (_) {}
+
+    // ===== MAIN ANIMATION LOOP =====
+    /**
+     * Core render loop handling progress calculation, phase application, and rendering
+     * Runs at 60fps using requestAnimationFrame for smooth animation
+     */
+
+    const clock = new THREE.Clock();
+    let delta = 0; // Time delta between frames
+    let perf = { now: 0 }; // Performance tracking
+    let lastBroadcastProgress = -1; // Last progress value sent to parent
+    let introOffset = null; // Timeline offset for smooth intro transition
+
+    /**
+     * Main render function called each frame
+     * Handles progress calculation, phase logic, and rendering
+     */
+    function render() {
+      delta = clock.getDelta(); // Time since last frame
+      perf.now = performance.now(); // Current timestamp
+
+      const g = globalProgress(); // Get current scroll progress (0-1)
+
+      // Broadcast progress to parent component (throttled)
+      if (Math.abs(g - lastBroadcastProgress) > 0.001) {
+        lastBroadcastProgress = g;
+        try { window.parent && window.parent.postMessage({ type: 'RUBIKS_PROGRESS', value: g }, '*'); } catch (_) {}
+      }
+
+      // ===== PROGRESS CALCULATION =====
+      let gPhase; // Phase-specific progress
+      const introT = firstThreeScrollT(); // Intro scroll progress
+
+      if (introT < 1 && externalProgress === null) {
+        // During intro: Map first 3 sections to Phase 1 smoothly
+        gPhase = THREE.MathUtils.lerp(PHASES[0].start, PHASES[0].end, easeInOut(introT));
+        introOffset = null;
+      } else {
+        // After intro: Rebase timeline so scroll release = Phase 2 start
+        if (introOffset === null) introOffset = g - PHASES[1].start;
+        gPhase = clamp(g - introOffset, 0, 1);
+      }
+
+      // ===== VIEWPORT MANAGEMENT =====
+      // Ensure clean rendering without artifacts
+      const rect = containerEl.getBoundingClientRect();
+      const w = Math.max(1, Math.floor(rect.width));
+      const h = Math.max(1, Math.floor(rect.height));
+      renderer.setViewport(0, 0, w, h);
+      renderer.setScissorTest(false);
+
+      // ===== ANIMATION APPLICATION =====
+      // Option 1: Animate cube position upward in phase 9
+      const phase9 = PHASES[8];
+      const phase9Start = phase9.start;
+      const phase9End = phase9.end;
+      let scrollOutProgress = 0;
+             if (g >= phase9Start && g <= phase9End && window.root) {
+           scrollOutProgress = clamp((g - phase9Start) / (phase9End - phase9Start), 0, 1);
+           // Move root group up by up to 120% of viewport height (scaled to world units)
+           const maxOffset = window.innerHeight * 1.2 * 0.02; // scale for world units
+           window.root.position.y = scrollOutProgress * maxOffset; } // This line seems to be missing a closing parenthesis in the original code.
+      applyPhases(gPhase); // Apply current phase animations
+
+      // Update text overlays based on phase
+      updateOverlayText(gPhase, introT);
+
+      // ===== RENDERING =====
+      // Use bloom composer if enabled, otherwise direct renderer
+      if (bloomEnabled) composer.render(); else renderer.render(scene, camera);
+
+      requestAnimationFrame(render); // Schedule next frame
+    }
+
+    // ===== ANIMATION INITIALIZATION =====
+    render(); // Start the animation loop
+    
+    
+
+    // ===== EXTERNAL COMMUNICATION =====
+    // Notify parent component that animation is ready
+    try { window.parent && window.parent.postMessage({ type: 'RUBIKS_READY' }, '*'); } catch (_) {}
+  </script>
+</body>
+</html>

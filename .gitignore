@@ -89,5 +89,27 @@ secrets.*
 # These are tracked now but should be ignored for future commits
 codebase_search.py
 backend/new.prompt.prompt.md
+# Ignore MCP Router sandbox during unrelated development
+/backend/mcp-server/servers/mcp-router/
 backend/*.prompt.md
 backend/tools/llm_runtime_vector_search.py
+# Ignore large knowledge media and stash dumps
+# These are currently tracked in history; to stop tracking them after this change run the git commands shown below.
+frontend/public/knowledge/
+frontend/public/knowledge/**/*.mp4
+frontend/public/knowledge/**/*.m4a
+stash/chatreplit_legacy/
+stash/chatreplit_legacy/**/*.sql
+
+# OpenMemory - IDE/Assistant specific rules
+.github/instructions/openmemory.instructions.md
+
+# Large media files
+frontend/public/knowledge/video/
+frontend/public/knowledge/audio/
+frontend/public/knowledge/ar/audio/
+stash/chatreplit_legacy/db_dump/
+*.mp4
+*.m4a
+*.mp3
+*.wav

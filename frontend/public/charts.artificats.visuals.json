@@ -1,0 +1,494 @@
+{
+  "artifact_type": "CHART",
+  "content_keys": [
+    "xAxis",
+    "yAxis",
+    "color",
+    "data",
+    "chart"
+  ],
+  "external_data_length": 4,
+  "external_data_sample": {
+    "quarter": "Q1",
+    "count": 12
+  },
+  "full_artifact": {
+    "artifact_type": "CHART",
+    "title": "Quarterly Project Count (2025)",
+    "content": {
+      "xAxis": "Quarter",
+      "yAxis": "Number of Projects",
+      "color": "#4A90E2",
+      "data": [
+        {
+          "quarter": "Q1",
+          "count": 12
+        },
+        {
+          "quarter": "Q2",
+          "count": 15
+        },
+        {
+          "quarter": "Q3",
+          "count": 9
+        },
+        {
+          "quarter": "Q4",
+          "count": 14
+        }
+      ],
+      "chart": {
+        "type": "column"
+      }
+    },
+    "data": [
+      {
+        "quarter": "Q1",
+        "count": 12
+      },
+      {
+        "quarter": "Q2",
+        "count": 15
+      },
+      {
+        "quarter": "Q3",
+        "count": 9
+      },
+      {
+        "quarter": "Q4",
+        "count": 14
+      }
+    ]
+  }
+}
+
+
+
+{
+  "artifact_type": "CHART",
+  "content_keys": [
+    "xAxis",
+    "yAxis",
+    "strokeWidth",
+    "data",
+    "chart"
+  ],
+  "external_data_length": 6,
+  "external_data_sample": {
+    "month": "Jan",
+    "rate": 22
+  },
+  "full_artifact": {
+    "artifact_type": "CHART",
+    "title": "Policy Tool Adoption Over Time (2025)",
+    "content": {
+      "xAxis": "Month",
+      "yAxis": "Adoption Rate (%)",
+      "strokeWidth": 2,
+      "data": [
+        {
+          "month": "Jan",
+          "rate": 22
+        },
+        {
+          "month": "Feb",
+          "rate": 27
+        },
+        {
+          "month": "Mar",
+          "rate": 31
+        },
+        {
+          "month": "Apr",
+          "rate": 38
+        },
+        {
+          "month": "May",
+          "rate": 44
+        },
+        {
+          "month": "Jun",
+          "rate": 49
+        }
+      ],
+      "chart": {
+        "type": "line"
+      }
+    },
+    "data": [
+      {
+        "month": "Jan",
+        "rate": 22
+      },
+      {
+        "month": "Feb",
+        "rate": 27
+      },
+      {
+        "month": "Mar",
+        "rate": 31
+      },
+      {
+        "month": "Apr",
+        "rate": 38
+      },
+      {
+        "month": "May",
+        "rate": 44
+      },
+      {
+        "month": "Jun",
+        "rate": 49
+      }
+    ]
+  }
+}
+
+
+{
+  "artifact_type": "CHART",
+  "content_keys": [
+    "axes",
+    "maxValue",
+    "data",
+    "chart"
+  ],
+  "external_data_length": 4,
+  "external_data_sample": {
+    "axis": "People",
+    "value": 3.8
+  },
+  "full_artifact": {
+    "artifact_type": "CHART",
+    "title": "Capability Maturity Radar (2025)",
+    "content": {
+      "axes": [
+        "People",
+        "Process",
+        "Technology",
+        "Governance"
+      ],
+      "maxValue": 5,
+      "data": [
+        {
+          "axis": "People",
+          "value": 3.8
+        },
+        {
+          "axis": "Process",
+          "value": 4.1
+        },
+        {
+          "axis": "Technology",
+          "value": 3.5
+        },
+        {
+          "axis": "Governance",
+          "value": 4.3
+        }
+      ],
+      "chart": {
+        "type": "radar"
+      }
+    },
+    "data": [
+      {
+        "axis": "People",
+        "value": 3.8
+      },
+      {
+        "axis": "Process",
+        "value": 4.1
+      },
+      {
+        "axis": "Technology",
+        "value": 3.5
+      },
+      {
+        "axis": "Governance",
+        "value": 4.3
+      }
+    ]
+  }
+}
+
+
+{
+  "artifact_type": "CHART",
+  "content_keys": [
+    "xAxis",
+    "yAxis",
+    "sizeMetric",
+    "data",
+    "chart"
+  ],
+  "external_data_length": 3,
+  "external_data_sample": {
+    "risk": "Data Breach",
+    "likelihood": 4,
+    "impact": 5,
+    "exposure": 120
+  },
+  "full_artifact": {
+    "artifact_type": "CHART",
+    "title": "Risk‑Impact Bubble Chart (2025)",
+    "content": {
+      "xAxis": "Likelihood",
+      "yAxis": "Impact",
+      "sizeMetric": "Financial Exposure (M SAR)",
+      "data": [
+        {
+          "risk": "Data Breach",
+          "likelihood": 4,
+          "impact": 5,
+          "exposure": 120
+        },
+        {
+          "risk": "Service Outage",
+          "likelihood": 3,
+          "impact": 4,
+          "exposure": 80
+        },
+        {
+          "risk": "Regulatory Change",
+          "likelihood": 2,
+          "impact": 3,
+          "exposure": 45
+        }
+      ],
+      "chart": {
+        "type": "bubble"
+      }
+    },
+    "data": [
+      {
+        "risk": "Data Breach",
+        "likelihood": 4,
+        "impact": 5,
+        "exposure": 120
+      },
+      {
+        "risk": "Service Outage",
+        "likelihood": 3,
+        "impact": 4,
+        "exposure": 80
+      },
+      {
+        "risk": "Regulatory Change",
+        "likelihood": 2,
+        "impact": 3,
+        "exposure": 45
+      }
+    ]
+  }
+}
+
+
+{
+  "artifact_type": "CHART",
+  "content_keys": [
+    "measure",
+    "target",
+    "range",
+    "data",
+    "chart"
+  ],
+  "external_data_length": 2,
+  "external_data_sample": {
+    "kpi": "Digital Service Uptake",
+    "actual": 68,
+    "target": 75
+  },
+  "full_artifact": {
+    "artifact_type": "CHART",
+    "title": "Performance vs Target (2025 Q2)",
+    "content": {
+      "measure": "Actual KPI",
+      "target": "Planned KPI",
+      "range": [
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "data": [
+        {
+          "kpi": "Digital Service Uptake",
+          "actual": 68,
+          "target": 75
+        },
+        {
+          "kpi": "Process Cycle Time",
+          "actual": 42,
+          "target": 40
+        }
+      ],
+      "chart": {
+        "type": "bullet"
+      }
+    },
+    "data": [
+      {
+        "kpi": "Digital Service Uptake",
+        "actual": 68,
+        "target": 75
+      },
+      {
+        "kpi": "Process Cycle Time",
+        "actual": 42,
+        "target": 40
+      }
+    ]
+  }
+}
+
+
+{
+  "artifact_type": "CHART",
+  "content_keys": [
+    "primary",
+    "secondary",
+    "data",
+    "chart"
+  ],
+  "external_data_length": 3,
+  "external_data_sample": {
+    "project": "e‑Gov Portal",
+    "budget": 85,
+    "completion": 62
+  },
+  "full_artifact": {
+    "artifact_type": "CHART",
+    "title": "Projects & Budget Combo Chart (2025)",
+    "content": {
+      "primary": {
+        "type": "column",
+        "metric": "Budget (M SAR)"
+      },
+      "secondary": {
+        "type": "line",
+        "metric": "Completion %"
+      },
+      "data": [
+        {
+          "project": "e‑Gov Portal",
+          "budget": 85,
+          "completion": 62
+        },
+        {
+          "project": "Smart City Sensors",
+          "budget": 120,
+          "completion": 48
+        },
+        {
+          "project": "Health Data Hub",
+          "budget": 70,
+          "completion": 79
+        }
+      ],
+      "chart": {
+        "type": "combo"
+      }
+    },
+    "data": [
+      {
+        "project": "e‑Gov Portal",
+        "budget": 85,
+        "completion": 62
+      },
+      {
+        "project": "Smart City Sensors",
+        "budget": 120,
+        "completion": 48
+      },
+      {
+        "project": "Health Data Hub",
+        "budget": 70,
+        "completion": 79
+      }
+    ]
+  }
+}
+
+
+{
+  "artifact_type": "TABLE",
+  "content_keys": [
+    "columns",
+    "sortable",
+    "pageSize",
+    "data",
+    "chart"
+  ],
+  "external_data_length": 3,
+  "external_data_sample": {
+    "id": "P‑2025‑001",
+    "name": "e‑Gov Portal",
+    "start": "2025‑01‑15",
+    "end": "2025‑12‑31",
+    "status": "In‑Progress"
+  },
+  "full_artifact": {
+    "artifact_type": "TABLE",
+    "title": "Project Summary Table (2025)",
+    "content": {
+      "columns": [
+        "Project ID",
+        "Name",
+        "Start Date",
+        "End Date",
+        "Status"
+      ],
+      "sortable": true,
+      "pageSize": 20,
+      "data": [
+        {
+          "id": "P‑2025‑001",
+          "name": "e‑Gov Portal",
+          "start": "2025‑01‑15",
+          "end": "2025‑12‑31",
+          "status": "In‑Progress"
+        },
+        {
+          "id": "P‑2025‑002",
+          "name": "Smart City Sensors",
+          "start": "2025‑02‑01",
+          "end": "2026‑01‑30",
+          "status": "Planned"
+        },
+        {
+          "id": "P‑2025‑003",
+          "name": "Health Data Hub",
+          "start": "2024‑07‑10",
+          "end": "2025‑11‑20",
+          "status": "Near Completion"
+        }
+      ],
+      "chart": {
+        "type": "table"
+      }
+    },
+    "data": [
+      {
+        "id": "P‑2025‑001",
+        "name": "e‑Gov Portal",
+        "start": "2025‑01‑15",
+        "end": "2025‑12‑31",
+        "status": "In‑Progress"
+      },
+      {
+        "id": "P‑2025‑002",
+        "name": "Smart City Sensors",
+        "start": "2025‑02‑01",
+        "end": "2026‑01‑30",
+        "status": "Planned"
+      },
+      {
+        "id": "P‑2025‑003",
+        "name": "Health Data Hub",
+        "start": "2024‑07‑10",
+        "end": "2025‑11‑20",
+        "status": "Near Completion"
+      }
+    ]
+  }
+}

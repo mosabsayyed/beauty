@@ -4,7 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RubiksCubeExperience – CDN</title>
+  <link rel="icon" type="image/svg" href="./logo-aitwintech.svg" />
   <style>
+    /* Font size variables - edit these to change all heading and paragraph sizes */
+    :root {
+      --h1-font-size: 72px;
+      --h1-line-height: 84px;
+      --h2-font-size: 48px;
+      --h2-line-height: 54px;
+      --p-font-size: 28px;
+      --p-line-height: 44px;
+      --intro1-h1-font-size: 58px;
+      --intro1-h1-line-height: 66px;
+    }
     /* Top controls: visible toggle + skip styling */
     #rubiks-top-controls { gap: 10px; }
   #rubiks-top-controls .lang-toggle { display:flex; align-items:center; gap:8px; background: rgba(10,15,28,0.6); padding:6px 8px; border-radius:999px; color:#fff; border: 1px solid rgba(255,255,255,0.12); }
@@ -12,7 +24,7 @@
   .simple-toggle .knob { position:absolute; top:3px; left:3px; width:18px; height:18px; background:#fff; border-radius:50%; transition: left .18s cubic-bezier(.2,.9,.3,1); box-shadow:0 1px 2px rgba(0,0,0,0.4); }
   .simple-toggle.pressed { background: linear-gradient(135deg,#D4AF37 0%,#B8960F 100%); }
   .simple-toggle.pressed .knob { left: calc(100% - 21px); }
-  #rubiks-top-controls .lang-label { font-size:13px; color:#fff; font-weight:600; }
+  #rubiks-top-controls .lang-label { font-size:11px; color:#fff; font-weight:600; }
   #rubiks-top-controls .top-skip { color: #fff; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.12); padding:8px 12px; border-radius:8px; font-weight:700; }
     @media (max-width:640px) { #rubiks-top-controls { right:8px; left:auto; } }
     /* :root { --panel:#0a0f1c; --text:#e5e7eb; --accent:#7c3aed; }*/
@@ -25,22 +37,22 @@
     #scroll-hint { position: fixed; left: 50%; transform: translateX(-50%) translateY(12px); bottom: 28px; background: rgba(0,0,0,0.56); color: #fff; padding: 8px 14px; border-radius: 999px; display:flex; gap:10px; align-items:center; z-index:10000; font-weight:700; pointer-events:auto; border: 1px solid rgba(255,255,255,0.12); opacity: 0; transition: opacity .32s ease, transform .32s ease; }
     #scroll-hint.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     #scroll-hint .hint-text { font-size: 13px; letter-spacing: .02em; }
-    #scroll-hint .hint-arrow { width:14px; height:14px; display:inline-block; border-left:2px solid #fff; border-bottom:2px solid #fff; transform: rotate(45deg); margin-top:2px; animation: hint-bounce 1.2s infinite; }
-    @keyframes hint-bounce { 0%{ transform: translateY(0) rotate(45deg) } 50%{ transform: translateY(6px) rotate(45deg) } 100%{ transform: translateY(0) rotate(45deg) } }
+    #scroll-hint .hint-hand { width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; font-size:20px; animation: hint-hand-scroll 1.2s infinite; }
+    @keyframes hint-hand-scroll { 0%{ transform: translateY(0); } 50%{ transform: translateY(8px); } 100%{ transform: translateY(0); } }
 
   /*.bg-tint { position: fixed; inset: 0; background: rgb(255, 255, 255); z-index: 0; }*/
 .hero-row { display: none; }
   .text-col { width: 500px; max-width: 640px; padding: 0 19px 0 60px; color: #ffffff; font-family: Inter, sans-serif; position: sticky; top: 60px; }
 .text-section { min-height: 590.4px; display: flex; align-items: flex-start; justify-content: flex-start; padding-top: 60px; }
-.text-col h1 { margin: 20px 0 12px; font: 400 58px/66px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 2px rgba(255,255,255,0.544), 0 0 12px rgba(76,201,255,0.531), 0 0 28px rgba(76,201,255,0.498), 0 0 56px rgba(30,144,255,0.476), 0 0 110px rgba(14,110,253,0.434); }
+.text-col h1 { margin: 20px 0 12px; font: 400 72px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 2px rgba(255,255,255,0.544), 0 0 12px rgba(76,201,255,0.531), 0 0 28px rgba(76,201,255,0.498), 0 0 56px rgba(30,144,255,0.476), 0 0 110px rgba(14,110,253,0.434); }
 .hero-row section:nth-of-type(2) .text-col h1 { font: 400 58px/66px "Allerta Stencil", sans-serif; }
 .hero-row section:nth-of-type(3) .text-col h1 { font: 400 58px/66px "Allerta Stencil", sans-serif; }
 .hero-row section:nth-of-type(1) .text-col { width: 640px; }
-.hero-row section:nth-of-type(1) .text-col h1 { font: 400 58px/66px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
-.hero-row section:nth-of-type(1) .text-col h2 { font-size: 32px; }
-.text-col h2 { font-weight: 700; margin: 0 0 20px; text-transform: uppercase; letter-spacing: 1.30458px; font-size: 32px; color: rgba(37, 128, 250, 1); }
-.text-col p  { font-weight: 300; margin: 0; font-size: clamp(1.2rem, 1.5vw, 1.5rem); line-height: 1.6; }
-.hero-row section:nth-of-type(1) .text-col p { font-size: 23px; line-height: 30px; }
+.hero-row section:nth-of-type(1) .text-col h1 { font: 400 72px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
+.hero-row section:nth-of-type(1) .text-col h2 { font-size: 40px; }
+.text-col h2 { font-weight: 50px; margin: 0 0 20px; text-transform: uppercase; letter-spacing: 1.30458px; font-size: 40px; color: rgba(37, 128, 250, 1); }
+.text-col p  { font-weight: 500; margin: 0; font-size: clamp(1.2rem, 1.5vw, 1.5rem); line-height: 1.6; }
+.hero-row section:nth-of-type(1) .text-col p { font-size: 28px; line-height: 44px; }
   .sticky-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; background: transparent; z-index: 2; }
   #stage { background: none; }
     #stage { width: 100%; height: 100%; display:block; }
@@ -51,16 +63,16 @@
   .phase-text-block { position: absolute; top: 0; left: 0; width: 625px !important; max-width: none !important; padding: 0 19px 0 56px; box-sizing: content-box; opacity: 1; pointer-events: none; font-family: Inter,  sans-serif; color: #ffffff; transform: translateY(0); transition: none; z-index: 1; visibility: hidden; will-change: transform; background: transparent !important; }
     .phase-text-block.finale-blocks { pointer-events: auto; }
     /* Match backup typography inside overlay */
-    .phase-overlay .phase-text-block h1 { margin: 20px 0 12px; font: 400 58px/66px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 2px rgba(255,255,255,0.544), 0 0 12px rgba(76,201,255,0.531), 0 0 28px rgba(76,201,255,0.498), 0 0 56px rgba(30,144,255,0.476), 0 0 110px rgba(14,110,253,0.434); }
+    .phase-overlay .phase-text-block h1 { margin: 20px 0 12px; font: 400 72px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 2px rgba(255,255,255,0.544), 0 0 12px rgba(76,201,255,0.531), 0 0 28px rgba(76,201,255,0.498), 0 0 56px rgba(30,144,255,0.476), 0 0 110px rgba(14,110,253,0.434); }
     .phase-overlay .phase-text-block[data-key="intro-1"] h1 { font: 400 58px/66px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
-    .phase-overlay .phase-text-block[data-key="p89-future"] h1 { font: 400 58px/66px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
-    .phase-overlay .phase-text-block h2 { font-weight: 700; margin: 0 0 20px; text-transform: uppercase; letter-spacing: 1.30458px; font-size: 32px; color: rgba(37, 128, 250, 1); }
-        .phase-overlay .phase-text-block:not([data-key="intro-1"]) h2 { font-size: 32px; font-weight: 700; color: rgba(37, 128, 250, 1); }
-    .phase-overlay .phase-text-block[data-key="intro-1"] h2 { font-size: 32px; font-weight: 700; color: rgba(37, 128, 250, 1); }
-    .phase-overlay .phase-text-block[data-key="p89-future"] h2 { font-size: 32px; font-weight: 700; color: rgba(37, 128, 250, 1); }
-    .phase-overlay .phase-text-block p  { font-weight: 300; margin: 0; font-size: 22px; line-height: 30px; }
-    .phase-overlay .phase-text-block[data-key="intro-1"] p { font-size: 22px; line-height: 30px; }
-    .phase-overlay .phase-text-block[data-key="p89-future"] p { font-size: 22px; line-height: 30px; }
+    .phase-overlay .phase-text-block[data-key="p89-future"] h1 { font: 400 72px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
+    .phase-overlay .phase-text-block h2 { font-weight: 50px; margin: 0 0 20px; text-transform: uppercase; letter-spacing: 1.30458px; font-size: 40px; color: rgba(37, 128, 250, 1); }
+        .phase-overlay .phase-text-block:not([data-key="intro-1"]) h2 { font-size: 40px; font-weight: 50px; color: rgba(37, 128, 250, 1); }
+    .phase-overlay .phase-text-block[data-key="intro-1"] h2 { font-size: 40px; font-weight: 50px; color: rgba(37, 128, 250, 1); }
+    .phase-overlay .phase-text-block[data-key="p89-future"] h2 { font-size: 40px; font-weight: 700; color: rgba(37, 128, 250, 1); }
+    .phase-overlay .phase-text-block p  { font-weight: 300; margin: 0; font-size: 28px; line-height: 44px; }
+    .phase-overlay .phase-text-block[data-key="intro-1"] p { font-size: 28px; line-height: 44px; }
+    .phase-overlay .phase-text-block[data-key="p89-future"] p { font-size: 28px; line-height: 44px; }
     .phase-text-block.active { z-index: 2; visibility: visible; }
     .phase-viewport { position: relative; overflow: visible; height: 600px; }
   @media (prefers-reduced-motion: reduce) { .phase-text-block { transition: none !important; } .phase-text-block.leaving { transition: none !important; } }
@@ -68,20 +80,16 @@
 
     /* Overlay-specific typography and sizing */
     .phase-overlay .phase-text-block[data-key="intro-1"] { width: 650px !important; max-width: none !important; }
-    .phase-overlay .phase-text-block[data-key="p89-future"] { width: 600px !important; max-width: none !important; }
-    .phase-overlay .phase-text-block[data-key="intro-2"],
+    .phase-overlay .phase-text-block[data-key="p89-future"] { width: 650px !important; max-width: none !important; }
     .phase-overlay .phase-text-block[data-key="intro-3"],
-    .phase-overlay .phase-text-block[data-key="p23-your-org"],
-    .phase-overlay .phase-text-block[data-key="p4-hidden"],
-    .phase-overlay .phase-text-block[data-key="p56-where"],
-    .phase-overlay .phase-text-block[data-key="p7-two-years"] { width: 600px !important; max-width: none !important; } 
+    .phase-overlay .phase-text-block[data-key="p4-hidden"] { width: 650px !important; max-width: none !important; } 
         /* Ensure children use container width */
     .phase-text-block > h1, .phase-text-block > h2, .phase-text-block > p { display: block; max-width: 100%; }
     /* Ensure consistent top alignment between blocks */
     #phaseOverlay .phase-text-block h1:first-child { margin-top: 20px; }
-        .phase-overlay .phase-text-block[data-key="intro-1"] h1 { font: 400 58px/66px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
-    .phase-overlay .phase-text-block[data-key="intro-1"] h2 { font-size: 32px; font-weight: 700; color: rgba(37, 128, 250, 1); }
-    .phase-overlay .phase-text-block[data-key="intro-1"] p  { font-size: 23px; line-height: 30px; }
+        .phase-overlay .phase-text-block[data-key="intro-1"] h1 { font: 400 72px/84px "Allerta Stencil", sans-serif; color: #ffffff; text-shadow: 0 0 3px rgba(255,255,255,0.544), 0 0 18px rgba(76,201,255,0.544), 0 0 40px rgba(76,201,255,0.52), 0 0 84px rgba(30,144,255,0.488), 0 0 140px rgba(14,110,253,0.462); }
+    .phase-overlay .phase-text-block[data-key="intro-1"] h2 { font-size: 40px; font-weight: 50px; color: rgba(37, 128, 250, 1); }
+    .phase-overlay .phase-text-block[data-key="intro-1"] p  { font-size: 28px; line-height: 44px; }
     
     /* Finale columns styling */
     .finale-columns {
@@ -127,7 +135,7 @@
     }
     
     .finale-columns h1 {
-      font: 400 48px/53px "Allerta Stencil", sans-serif;
+      font: 400 72px/84px "Allerta Stencil", sans-serif;
       color: #ffffff;
       text-shadow: 0 0 2px rgba(255,255,255,0.544), 0 0 12px rgba(76,201,255,0.531), 0 0 28px rgba(76,201,255,0.498);
       margin: 0;
@@ -135,7 +143,8 @@
     
     .finale-columns h2 {
       font-weight: 700;
-      font-size: 32px;
+      font-size: 48px;
+      line-height: 54px;
       color: rgba(37, 128, 250, 1);
       text-transform: uppercase;
       letter-spacing: 1.2px;
@@ -144,8 +153,8 @@
     
     .finale-columns p {
       font-weight: 300;
-      font-size: 21px;
-      line-height: 28px;
+      font-size: 28px;
+      line-height: 44px;
       margin: 0 0 24px 0;
     }
     
@@ -235,6 +244,11 @@
 </head>
 <body>
   <div class="wrap">
+    <!-- Header: company logo + name on left, controls on right -->
+    <div id="rubiks-header" style="position:fixed; top:12px; left:12px; z-index:9999; display:flex; gap:8px; align-items:center; pointer-events:auto;">
+      <img src="./logo-aitwintech.svg" alt="AI Twin Tech Logo" style="width:44px; height:39.6px; object-fit:cover;" />
+      <span style="color:#fff; font-size:13px; font-weight:700; letter-spacing:0.05em; font-family:Inter, sans-serif;">AI Twin Tech</span>
+    </div>
     <!-- Top controls: language toggle, Skip and "Skip next time" checkbox -->
     <div id="rubiks-top-controls" style="position:fixed; top:12px; right:12px; z-index:9999; display:flex; gap:8px; align-items:center; pointer-events:auto;">
       <div class="lang-toggle" style="display:flex; align-items:center; gap:8px;">
@@ -242,16 +256,15 @@
         <button id="lang-toggle" class="simple-toggle" aria-label="Toggle language"><span class="knob"></span></button>
         <span id="lang-ar" class="lang-label" style="opacity:0.6">ع</span>
       </div>
-      <button id="top-skip-btn" class="top-skip" style="padding:8px 12px;">Skip</button>
-      <label style="display:flex; align-items:center; gap:6px; color:#fff; font-size:13px; background: rgba(10,15,28,0.6); padding:6px 8px; border-radius:8px;">
-        <input id="topSkipCheckbox" type="checkbox" style="width:16px; height:16px;" />
-        <span style="font-size:13px;">Skip next time</span>
+      <label style="display:flex; align-items:center; gap:6px; color:#fff; font-size:11px; background: rgba(10,15,28,0.6); padding:4px 6px; border-radius:8px;">
+        <input id="topSkipCheckbox" type="checkbox" style="width:14px; height:14px;" />
+        <span style="font-size:11px;">Skip next time</span>
       </label>
     </div>
     <!-- Scroll hint overlay (LTR) -->
     <div id="scroll-hint" role="status" aria-hidden="true">
       <span class="hint-text">Scroll to explore</span>
-      <span class="hint-arrow" aria-hidden="true"></span>
+      <span class="hint-hand" aria-hidden="false">👆</span>
     </div>
   <!-- <img class="bg-image" src="/att/cube/images/HomeBackground.png" alt="Background" style="position:fixed; inset:0; width:100vw; height:100vh; object-fit:cover; z-index:0;" /> -->
     <div class="bg-tint"></div>
@@ -260,75 +273,29 @@
     <div id="phaseOverlay" class="phase-overlay">
       <div class="overlay-inner">
         <div class="phase-text-block" data-key="intro-1">
-          <h1>Complex Transformation? Good.</h1>
-          <h2>JOSOOR: KSA’s Vision 2030 Operating System</h2>
-          <p>Welcome to the Age of Coherence. <br><br>
-          Where complexity is embraced by unleashing the full potential of AI in your government agency. <br><br> 
-          <b>Transform Strategy-Execution with a totally reimagined experience.</b>
-
+          <h1>Complex Transformation? Good</h1>
+          <h2>2026 will be more complex? Even better</h2>
+          <p>Welcome to the True Digital Age, where complexity becomes your most valuable insitutional asset. Turn Vision 2030’s rising ambition and race for national resources into your competitive advantage
 </p>
-        </div>
-        <div class="phase-text-block" data-key="intro-2">
-          <h1>Are you ready for Saudi 2026?</h1>
-          <h2>Gear up for Phase 3 - Vision Acceleration</h2>
-          <p>2026 will witness Sectors and GIGAs accelerating their plans, pressure-testing the Vision ecosystem, and creating a highly entangled competition on resources (funds, talent and CoG support).<br><br>
-          Government Entities all across must work in harmony, operating at efficiency levels beyond what today's tools can provide.<br><br>
-          <b>Are you ready?</b></p>
         </div>
         <div class="phase-text-block" data-key="intro-3">
-          <h1>Move at the Speed of Ambition</h1>
-          <h2>Through a Quantum Leap in Efficiency</h2>
-          <p>Saudi's Ambition knows no limits, and accepts no compromise. An ambition that challenges everyone to improve, not in marginal increments but in leaps. <br><br>
-          Using AI to its full potential is the only path. <br><br>
-          A path demanding a different way of thinking. Bold. Creative. An AI-first transformation, to redesign the very rules of the game. 
-           
-</p>
-        </div>
-        <div class="phase-text-block" data-key="p23-your-org">
-          <h1>The Cognitive Twin of an Organization</h1>
-          <h2>Meet Your Organizational Intelligence </h2>
-          <p>A simple recipe...<br><br>
-            <b>TWIN it -</b> Utilize a Database Triage (vectors, graphs, and relational models), with a DTDL 2.0 compliant proprietary Ontology, and Agentic Feeders for an authentic Digital Twin.<br><br>
-          <b>LIVE it-</b> Fuse the Twin as a Memory for a GenAI, power it with MCPs and Advanced Prompt Engineering to bring the Twin to life.
+          <h1>Your Organization's Cognitive Twin</h1>
+          <h2>Moves at the Speed of Ambition</h2>
+          <p>A living model of your organization fused as GenAI’s memory, creating a true AI-first operating system for Vision 2030, where every decision is confident and grounded in real data.   
 </p>
         </div>
         <div class="phase-text-block" data-key="p4-hidden">
-          <h1>How To Spot the Right Partners?</h1>
-          <h2>Noise Filters for a Noisy Market</h2>
-          <p><b>1) DEEP FUNCTIONAL KNOWLEDGE</b><br>
-          Ask for end to end mastery of organizational management invested in solving the problem of organizational complexity and increasing your efficiency.
-          <br><br>
-          <b>2) AI FIRST THINKING</b><br>
-          Listen for conversations that start with "what would this experience look like with an automated, adaptive and learning intelligence?" VS "how to improve what exists"
-</p>
-        </div>
-        <div class="phase-text-block" data-key="p56-where">
-          <h1>2 years Dissecting Complexity</h1>
-          <h2>Our Most Valuable Asset</h2>
-          <p>A journey to unlock every aspect of organizational complexity led to one conclusion.<br>
-          Complexity is miss-understood. It is not the enemy. It is a Teacher. If embraced, it offers lessons and wisdom. <br> <br> 
-          The journey paused with a clear model, a mapped solution, but technology lagging. <br><br>Until now.
-</p>
-        </div>
-        <div class="phase-text-block" data-key="p7-two-years">
-          <h1>The Agency of the Future Reimagined</h1>
-          <h2>Fresh Experiences, New Powers</h2>
-          <p>The Power to...<br>
-            - Describe what is happening right now<br>
-            -	Predict what could happen next<br>
-            -	Prescribe what to do about it<br> 
-            …. In minutes and hours instead of days and weeks.<br><br>
-            A Coherent organization in its direction, priorities and speed.
+          <h1>Not PPT Slides. Not a Generic AI Pitch</h1>
+          <h2>Deep Domain, Innovative Saudi Agentics</h2>
+          <p>You heard all the ideas and read all the posts, now meet the working model. Forged from real KSA public sector experiences, and elevated with new Saudi-only Agentic techniques
 </p>
         </div>
         <div class="phase-text-block" data-key="p89-future">
-          <h1>The Future Cognitive Government </h1>
-          <h2>Saudi - Ready to Scale</h2>
-          <p>Past Investments come together to provision all Success Factors from Regulatory frameworks, Architectural foundations, Technical infrastructure, Global partners and A National Champion.
-          <br>Setting up the building blocks of the journey to evolve from Compliance to Coherence to Cognitive Intelligence. 
-<br><br> Shall we begin?</p>
+          <h1>Coherent Agencies for a Cognitive State</h1>
+          <h2>KSA's Foundations are ready. So are you</h2>
+          <p>From regulations and infrastructure to a celebrated national champion, KSA has set the stage for agencies to grow into coherence and builds towards a cognitive nation. 
           <div style="margin-top: 40px; display: flex; flex-direction: column; align-items: left; gap: 18px;">
-            <button id="enterPortalBtn" class="finale-enter-btn" style="margin-top:0;">Take the First Step</button>
+            <button id="enterPortalBtn" class="finale-enter-btn" style="margin-top:0; display:flex; align-items:center; gap:8px; justify-content:center;"><img src="/icons/josoor.svg" alt="JOSOOR" style="width:48px; height:48px; object-fit:cover;" /> JOSOOR - The Last Piece of the Puzzle</button>
           </div>
         </div>
 
@@ -398,6 +365,17 @@ FLOW</h2>
   const SITE_GOLD = 0xD4AF37; // transient popcorn color
   const FINAL_GOLD = 0x987D0C; // final sculpture fill color (restored to first darker grade)
 
+  // --- Auto-redirect based on language preference ---
+  (function checkLanguageRedirect() {
+    try {
+      const savedLang = localStorage.getItem('josoor_language');
+      if (savedLang === 'ar' && window.location.href.indexOf('index-ar') === -1) {
+        window.location.href = './index-ar.html';
+        return; // Exit early, don't run the rest of the script
+      }
+    } catch(_) {}
+  })();
+
   // --- Top controls and Portal Button logic ---
     window.addEventListener('DOMContentLoaded', function() {
       // Scroll hint behavior: show until user scrolls or taps; persist seen state
@@ -406,25 +384,22 @@ FLOW</h2>
           const HKEY = 'rubiks_scroll_hint_seen';
           const hint = document.getElementById('scroll-hint');
           if (!hint) return;
-          const wasSeen = (()=>{ try{ return localStorage.getItem(HKEY) === '1'; }catch(e){return false;} })();
-          if (wasSeen) return; // don't show
-          // show after small delay
-          setTimeout(()=>hint.classList.add('show'), 400);
+          const userSkipped = (()=>{ try{ return localStorage.getItem('topSkipCheckboxState') === 'true'; }catch(e){return false;} })();
+          if (userSkipped) return; // only hide if user checked "Skip next time"
+          // show immediately
+          hint.classList.add('show');
           function dismiss(){
             hint.classList.remove('show');
-            try{ localStorage.setItem(HKEY,'1'); }catch(e){}
             window.removeEventListener('scroll', onScroll);
             hint.removeEventListener('click', onClick);
           }
-          function onScroll(){ if (window.scrollY>8) dismiss(); }
+          function onScroll(){ if (window.scrollY>150) dismiss(); }
           function onClick(){ // allow tapping the hint to jump and dismiss
             window.scrollBy({ top: 120, left:0, behavior: 'smooth' });
             setTimeout(dismiss, 500);
           }
           window.addEventListener('scroll', onScroll, { passive:true });
           hint.addEventListener('click', onClick);
-          // auto-dismiss after 6s
-          setTimeout(()=>{ if (hint.classList.contains('show')) dismiss(); }, 6000);
         }catch(e){/* defensive */}
       })();
       var enterBtn = document.getElementById('enterPortalBtn');
@@ -484,8 +459,13 @@ FLOW</h2>
               try { window.parent && window.parent.postMessage({ type: 'RUBIKS_SKIP' }, '*'); } catch (_){ }
             }
           } catch (_){ /* defensive */ }
-          // navigate to chat (SPA) directly
-          window.top.location.href = '/chat';
+          // navigate based on auth
+          try {
+            const isAuth = window.parent.localStorage.getItem('josoor_authenticated') === 'true';
+            window.top.location.href = isAuth ? '/chat' : '/landing';
+          } catch (e) {
+            window.top.location.href = '/landing';
+          }
         });
       }
 
@@ -497,8 +477,9 @@ FLOW</h2>
           }
           // Enter portal: perform full-page navigation to the experience (top-level)
           try {
-            // navigate to chat (SPA)
-            window.top.location.href = '/chat';
+            // navigate based on auth
+            const isAuth = window.parent.localStorage.getItem('josoor_authenticated') === 'true';
+            window.top.location.href = isAuth ? '/chat' : '/landing';
           } catch (_){
             // fallback: use parent postMessage as a last resort
             try { window.parent && window.parent.postMessage({ type: 'navigate', route: 'twinlife' }, '*'); } catch (_){ }
@@ -1899,60 +1880,14 @@ FLOW</h2>
     function updateOverlayText(gPhase, introT){
       const p = getPhase(gPhase).id;
       if (p === 1 && externalProgress === null) {
-        if (introT < 0.33) setActive('intro-1');
-        else if (introT < 0.66) setActive('intro-2');
+        if (introT < 0.5) setActive('intro-1');
         else setActive('intro-3');
         return;
       }
-      if (p===2 || p===3) return setActive('p23-your-org');
+      if (p===2 || p===3 || p===5 || p===6) return; // No overlay for these phases
       if (p===4) return setActive('p4-hidden');
-      if (p===5 || p===6) return setActive('p56-where');
-      if (p===7) {
-        // Phase 7: Add noticeable 5% pause when small purple cubes form circles
-        const phase7 = PHASES[6];
-        const phase7Start = phase7.start;
-        const phase7End = phase7.end;
-        const phase7Progress = clamp((gPhase - phase7Start) / (phase7End - phase7Start), 0, 1);
-        
-        if (phase7Progress < 0.95) {
-          // Normal phase 7 text for 95% of the phase
-          setActive('p7-two-years');
-        } else {
-          // 5% pause at the end - keep text visible and prevent transition to phase 8
-          setActive('p7-two-years');
-          return; // Stay in Phase 7 pause - don't continue to Phase 8 yet
-        }
-      }
-      if (p===8) {
-        // Calculate scroll progress within phase 8
-        const phase8 = PHASES[7];
-        const phase8Start = phase8.start;
-        const phase8End = phase8.end;
-        const scrollProgress = clamp((gPhase - phase8Start) / (phase8End - phase8Start), 0, 1);
-        
-        // Keep Phase 7 text briefly (first 30% of Phase 8), then transition to Phase 9 text
-        if (scrollProgress < 0.3) {
-          // Keep showing Phase 7 text briefly in early Phase 8
-          setActive('p7-two-years');
-        } else {
-          // Transition from p7-two-years to p89-future with sliding animation
-          setActive('p89-future');
-        }
-      }
-      if (p===9) {
-        setActive('p89-future');
-      }
-      if (p===10) {
-        setActive('finale-twinlab-twinstudio');
-      }
-      if (p === 8) {
-        // Ensure finale columns are hidden in phase 8
-        const finaleColumns = document.getElementById('finaleColumns');
-        if (finaleColumns) {
-          finaleColumns.style.display = 'none';
-          finaleColumns.removeAttribute('data-slide-state');
-        }
-      }
+      if (p===7 || p===8 || p===9) return setActive('p89-future');
+      if (p===10) return setActive('p89-future');
     }
 
     // ===== Animation per phase =====
