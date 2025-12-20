@@ -113,3 +113,67 @@ stash/chatreplit_legacy/db_dump/
 *.m4a
 *.mp3
 *.wav
+
+## Additional secret patterns added to prevent accidental commits of credentials
+# AWS credentials
+.aws/
+.aws/credentials
+
+# Docker/NPM/Netrc
+.docker/config.json
+.npmrc
+.npmrc.local
+.netrc
+
+# SSH private keys
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+.ssh/
+
+# Editor/IDE secrets
+.env.*.secret
+secrets.env
+
+# Google / service account keys
+*.gcloud
+*.google-credentials.json
+
+# Local runtime files
+backend/.env.local
+frontend/.env
+frontend/.env.local
+
+# Additional sensitive files
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+# Vault and keyring
+.vault/
+*.vault
+
+# Local settings
+local.settings.json
+appsettings.*.json
+
+# CI / token files
+.github/workflows/secrets.yml
+.vercel
+.now
+.netlify
+
+# Firebase / Google
+google-services.json
+serviceAccountKey.json
+
+# IDE specifics
+.idea/
+.sublime-project
+.sublime-workspace
+
+# Yarn v2 PnP
+.pnp.*

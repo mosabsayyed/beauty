@@ -20,15 +20,17 @@ import openai
 from neo4j import GraphDatabase
 
 
-# ---- TEMP HARDCODED CONFIG (edit here for quick local testing) ----
-# Replace the placeholder strings below with real values for this quick test run.
-HARDCODE_NEO4J_URI = 'neo4j+s://097a9e5c.databases.neo4j.io'  # e.g. 'neo4j+s://097a9e5c.databases.neo4j.io'
-HARDCODE_NEO4J_USER = 'neo4j'
-HARDCODE_NEO4J_PASSWORD = 'kHRlxPU_u-sRldkXtqM9YRCmue1Yu841zKYvwYI0H6s'
-HARDCODE_OPENAI_API_KEY = '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'  # e.g. 'sk-...'
-HARDCODE_INDEX_NAME = 'vector_index_entityproject'
+# ---- LOCAL TEST CONFIG (do NOT commit secrets) ----
+# For security, avoid committing secrets into repository files. This script prefers
+# environment variables (from .env or CI). If you need quick local overrides,
+# set them in your local `.env` file or export them in your shell—do NOT commit.
+HARDCODE_NEO4J_URI = None
+HARDCODE_NEO4J_USER = None
+HARDCODE_NEO4J_PASSWORD = None
+HARDCODE_OPENAI_API_KEY = None
+HARDCODE_INDEX_NAME = None
 
-# If you set the HARDCODE_* values above, the script will use them. Otherwise it will fall back to the .env values.
+# INDEX_NAME: fall back to environment or default
 INDEX_NAME = HARDCODE_INDEX_NAME or os.getenv('VECTOR_INDEX_PROJECT_NAME', 'vector_index_project')
 
 
