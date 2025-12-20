@@ -6155,7 +6155,7 @@ Server started successfully! But Neo4j is disabled. Need to fix the environment 
 </assistant>
 <user>
 ✅ Supabase connected successfully via REST API
-Failed to connect to Neo4j: {neo4j_code: Neo.ClientError.Database.DatabaseNotFound} {message: Unable to get a routing table for database 'neo4jNEO4J_AURA_PASSWORD=***REMOVED***# JOSOOR Application Environment Configuration' because this database does not exist} {gql_status: 22000} {gql_status_description: error: data exception}
+Failed to connect to Neo4j: {neo4j_code: Neo.ClientError.Database.DatabaseNotFound} {message: Unable to get a routing table for database 'neo4j<REDACTED_PASSWORD># JOSOOR Application Environment Configuration' because this database does not exist} {gql_status: 22000} {gql_status_description: error: data exception}
 ⚠️ Neo4j not available (graph features will be disabled)
 INFO: Application startup complete.
 </user>
