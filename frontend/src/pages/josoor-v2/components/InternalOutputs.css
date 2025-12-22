@@ -1,0 +1,49 @@
+/* InternalOutputs.css - V1.3 Compliant Styles */
+/* Uses theme.css variables ONLY */
+
+.v2-internal-outputs {
+    margin-bottom: 2rem;
+}
+
+.v2-section-title {
+    font-family: var(--component-font-heading);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--component-text-primary);
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--component-panel-border);
+}
+
+.v2-kpi-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--component-text-muted);
+    margin-top: auto;
+    margin-bottom: 4px;
+}
+
+.v2-kpi-trend {
+    font-size: 0.9rem;
+}
+
+.v2-kpi-trend-up {
+    color: var(--component-text-accent);
+}
+
+.v2-kpi-trend-down {
+    color: var(--component-color-danger);
+}
+
+.v2-kpi-trend-neutral {
+    color: var(--component-text-muted);
+}
+
+/* Force title visibility in DimensionModule panels */
+/* Fixes issue where text might be dark on dark background if theme not detected */
+.dm-panel h3 {
+    color: var(--component-text-primary) !important;
+    opacity: 1 !important;
+    display: block !important;
+}

@@ -1,0 +1,368 @@
+{
+  "dimensions": [
+    {
+      "id": "dim1",
+      "title": "Strategic Plan Alignment",
+      "label": "% progress of programs against strategic plans in the quarter",
+      "kpi": "84",
+      "lastQuarterKpi": "86.1",
+      "nextQuarterKpi": "90",
+      "delta": -4.55,
+      "trendDirection": "down",
+      "baseline": 86.1,
+      "quarterlyTarget": 88,
+      "quarterlyActual": 84,
+      "finalTarget": 95,
+      "planned": 92.63157894736842,
+      "actual": 88.42105263157895,
+      "healthState": "Healthy",
+      "healthScore": 88.42105263157895,
+      "trend": "Decline"
+    },
+    {
+      "id": "dim2",
+      "title": "Operational Efficiency",
+      "label": "% of beneficiary support requests closed successfully in a quarter",
+      "kpi": "78",
+      "lastQuarterKpi": "73.1",
+      "nextQuarterKpi": "80",
+      "delta": 2.63,
+      "trendDirection": "steady",
+      "baseline": 73.1,
+      "quarterlyTarget": 76,
+      "quarterlyActual": 78,
+      "finalTarget": 90,
+      "planned": 84.44444444444444,
+      "actual": 86.66666666666667,
+      "healthState": "Healthy",
+      "healthScore": 86.66666666666667,
+      "trend": "Rise"
+    },
+    {
+      "id": "dim3",
+      "title": "Risk Mitigation Rate",
+      "label": "% of identified risks mitigated in the quarter",
+      "kpi": "74",
+      "lastQuarterKpi": "71.1",
+      "nextQuarterKpi": "76",
+      "delta": 1.37,
+      "trendDirection": "steady",
+      "baseline": 71.1,
+      "quarterlyTarget": 73,
+      "quarterlyActual": 74,
+      "finalTarget": 85,
+      "planned": 85.88235294117646,
+      "actual": 87.05882352941177,
+      "healthState": "Healthy",
+      "healthScore": 87.05882352941177,
+      "trend": "Rise"
+    },
+    {
+      "id": "dim4",
+      "title": "Investment Portfolio ROI",
+      "label": "% return on investment portfolio in the quarter",
+      "kpi": "4",
+      "lastQuarterKpi": "3.7",
+      "nextQuarterKpi": "4.7",
+      "delta": -8.88,
+      "trendDirection": "steady",
+      "baseline": 3.2,
+      "quarterlyTarget": 4.4,
+      "quarterlyActual": 4,
+      "finalTarget": 10,
+      "planned": 44.00000000000001,
+      "actual": 40,
+      "healthState": "At Risk",
+      "healthScore": 40,
+      "trend": "Steady"
+    },
+    {
+      "id": "dim5",
+      "title": "Active Investor Rate",
+      "label": "% of active investors in the quarter",
+      "kpi": "73.7",
+      "lastQuarterKpi": "72.9",
+      "nextQuarterKpi": "75.4",
+      "delta": -1.47,
+      "trendDirection": "steady",
+      "baseline": 72,
+      "quarterlyTarget": 74.8,
+      "quarterlyActual": 73.7,
+      "finalTarget": 85,
+      "planned": 88,
+      "actual": 86.70588235294117,
+      "healthState": "Healthy",
+      "healthScore": 86.70588235294117,
+      "trend": "Steady"
+    },
+    {
+      "id": "dim6",
+      "title": "Employee Engagement Score",
+      "label": "Average employee engagement score in the quarter",
+      "kpi": "4.8",
+      "lastQuarterKpi": "4.4",
+      "nextQuarterKpi": "6.1",
+      "delta": -12.33,
+      "trendDirection": "steady",
+      "baseline": 3.6,
+      "quarterlyTarget": 5.5,
+      "quarterlyActual": 4.8,
+      "finalTarget": 9.5,
+      "planned": 57.89473684210527,
+      "actual": 50.526315789473685,
+      "healthState": "At Risk",
+      "healthScore": 50.526315789473685,
+      "trend": "Steady"
+    },
+    {
+      "id": "dim7",
+      "title": "Project Delivery Velocity",
+      "label": "% of planned project deliveries completed in the quarter",
+      "kpi": "82.9",
+      "lastQuarterKpi": "82.9",
+      "nextQuarterKpi": "80.4",
+      "delta": 3.88,
+      "trendDirection": "steady",
+      "baseline": 78,
+      "quarterlyTarget": 79.8,
+      "quarterlyActual": 82.9,
+      "finalTarget": 90,
+      "planned": 88.66666666666666,
+      "actual": 92.11111111111111,
+      "healthState": "Healthy",
+      "healthScore": 92.11111111111111,
+      "trend": "Steady"
+    },
+    {
+      "id": "dim8",
+      "title": "Tech Stack SLA Compliance",
+      "label": "% of tech stack services meeting SLA compliance in the quarter",
+      "kpi": "90.9",
+      "lastQuarterKpi": "90.1",
+      "nextQuarterKpi": "91.6",
+      "delta": -0.29,
+      "trendDirection": "steady",
+      "baseline": 89,
+      "quarterlyTarget": 91.2,
+      "quarterlyActual": 90.9,
+      "finalTarget": 98,
+      "planned": 93.06122448979592,
+      "actual": 92.75510204081633,
+      "healthState": "Healthy",
+      "healthScore": 92.75510204081633,
+      "trend": "Steady"
+    }
+  ],
+  "insight1": {
+    "title": "Investment Portfolio Health",
+    "subtitle": "Are we prioritizing our big needle movers? Portfolio distribution against strategic alignment and risk.",
+    "initiatives": [
+      {
+        "name": "Cloud Migration",
+        "budget": 5,
+        "risk": 2,
+        "alignment": 4
+      },
+      {
+        "name": "AI Platform",
+        "budget": 8,
+        "risk": 4,
+        "alignment": 5
+      },
+      {
+        "name": "ERP Upgrade",
+        "budget": 6,
+        "risk": 3,
+        "alignment": 3
+      },
+      {
+        "name": "Legacy Decommissioning",
+        "budget": 3,
+        "risk": 1,
+        "alignment": 2
+      },
+      {
+        "name": "Data Lake",
+        "budget": 7,
+        "risk": 4,
+        "alignment": 2
+      },
+      {
+        "name": "Digital Twin Infrastructure",
+        "budget": 9,
+        "risk": 5,
+        "alignment": 4
+      },
+      {
+        "name": "Cybersecurity Enhancement",
+        "budget": 4,
+        "risk": 2,
+        "alignment": 5
+      }
+    ]
+  },
+  "insight2": {
+    "title": "Projects & Operations Integration",
+    "subtitle": "How integrated are projects and operations quarter over quarter?",
+    "labels": [
+      "Last Q",
+      "Current Q",
+      "Next Q"
+    ],
+    "projectVelocity": [
+      78.3,
+      82.9,
+      82.9
+    ],
+    "operationalEfficiency": [
+      75.3,
+      73.1,
+      78
+    ]
+  },
+  "insight3": {
+    "title": "Economic Impact Correlation",
+    "subtitle": "The better we do, the better the economy: connecting internal efficiencies with external outcomes.",
+    "labels": [
+      "Last Q",
+      "Current Q",
+      "Next Q"
+    ],
+    "operationalEfficiency": [
+      75.3,
+      73.1,
+      78
+    ],
+    "citizenQoL": [
+      7.6,
+      8.6,
+      6.6
+    ],
+    "jobsCreated": [
+      17
+    ]
+  },
+  "outcomes": {
+    "outcome1": {
+      "title": "Macroeconomic Impact",
+      "macro": {
+        "labels": [
+          "2025",
+          "2025",
+          "2025"
+        ],
+        "fdi": {
+          "actual": [
+            2.2,
+            2.3,
+            2.4
+          ],
+          "target": [
+            2.1,
+            2.2,
+            2.3
+          ],
+          "baseline": [
+            1,
+            1,
+            1
+          ]
+        },
+        "trade": {
+          "actual": [
+            -2.5,
+            -2,
+            -1.5
+          ],
+          "target": [
+            -3.5,
+            -3,
+            -2.5
+          ],
+          "baseline": [
+            -10,
+            -10,
+            -10
+          ]
+        },
+        "jobs": {
+          "actual": [
+            15,
+            16,
+            17
+          ],
+          "target": [
+            13,
+            14,
+            15
+          ],
+          "baseline": [
+            3,
+            3,
+            3
+          ]
+        }
+      }
+    },
+    "outcome2": {
+      "title": "Private Sector Partnerships",
+      "partnerships": {
+        "actual": 66,
+        "target": 68,
+        "baseline": 45
+      }
+    },
+    "outcome3": {
+      "title": "Citizen Quality of Life",
+      "qol": {
+        "labels": [
+          "Water",
+          "Energy",
+          "Transport"
+        ],
+        "coverage": {
+          "actual": [
+            88,
+            95,
+            81
+          ],
+          "target": [
+            90,
+            93,
+            83
+          ],
+          "baseline": [
+            70,
+            75,
+            65
+          ]
+        },
+        "quality": {
+          "actual": [
+            7.6,
+            8.6,
+            6.6
+          ],
+          "target": [
+            8,
+            9,
+            7.6
+          ],
+          "baseline": [
+            6,
+            6.5,
+            5.5
+          ]
+        }
+      }
+    },
+    "outcome4": {
+      "title": "Community Engagement",
+      "community": {
+        "actual": 48,
+        "target": 53,
+        "baseline": 30
+      }
+    }
+  }
+}

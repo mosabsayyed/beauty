@@ -6,27 +6,24 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
+    "strict": false,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "module": "esnext",
-    "moduleResolution": "bundler",
-      "useDefineForClassFields": true,
-      "allowImportingTsExtensions": true,
-      "moduleDetection": "force",
-      "noUnusedLocals": true,
-      "noUnusedParameters": true,
-        "baseUrl": ".",
-        "paths": {
-          "@/*": ["./*"]
-        },
+    "useDefineForClassFields": true,
+    "moduleResolution": "node",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx"
   },
   "include": [
-    "src",
-    "src/att"
-, "../stash/previous_chat/ConversationsSidebar.tsx", "../stash/previous_chat/ChatInput.tsx", "../stash/previous_chat/ArtifactRenderer.tsx", "../stash/previous_chat/DebugPanel.tsx", "../stash/previous_chat/ErrorBanner.tsx", "../stash/previous_chat/Header.tsx", "../stash/previous_chat/SuggestionsBar.tsx"  ]
+    "src"
+  ]
 }

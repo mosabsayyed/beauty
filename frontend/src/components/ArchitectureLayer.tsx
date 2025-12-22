@@ -10,7 +10,7 @@ interface ArchitectureLayerProps {
 export default function ArchitectureLayer({
   layer,
   animatingComponentId,
-}: ArchitectureLayerProps): JSX.Element {
+}: ArchitectureLayerProps): React.ReactElement {
   return (
     <section className="arch-layer" data-layer-id={layer.id}>
       <div className="arch-layer-header">

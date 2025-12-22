@@ -15,8 +15,19 @@ import {
   Code,
   Eye,
   Layers,
+  Settings as SettingsIcon,
+  Plus,
+  Save,
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import {
+  fetchSettings,
+  saveSettings,
+  AdminSettings,
+  MCPEntry,
+} from '../services/adminSettingsService';
 import './ObservabilityPage.css';
+import { useCallback } from 'react';
 
 // Use same pattern as chatService for API base URL (CRA + Vite)
 const VITE_ENV: any = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env : undefined;
@@ -64,6 +75,10 @@ interface TraceDetail {
   errors: any[];
   raw: any;
 }
+
+// Admin settings types
+type TabKey = 'traces' | 'admin-settings';
+const TOOL_OPTIONS = ['recall_memory', 'retrieve_instructions', 'read_neo4j_cypher'];
 
 // ============================================================================
 // TRACE LIST COMPONENT
@@ -211,6 +226,37 @@ function Timeline({ events }: { events: TimelineEvent[] }) {
 // ============================================================================
 // REASONING PANEL
 // ============================================================================
+function normalizeThought(thought: unknown): Array<{ text: string; type?: string }> {
+  if (!thought) return [];
+
+  if (Array.isArray(thought)) {
+    return thought
+      .map((item) => {
+        if (!item) return null;
+        if (typeof item === 'string') return { text: item };
+        if (typeof item === 'object' && 'text' in (item as any)) {
+          const text = (item as any).text;
+          const type = (item as any).type;
+          return { text: typeof text === 'string' ? text : JSON.stringify(text), type };
+        }
+        return { text: JSON.stringify(item) };
+      })
+      .filter((x) => Boolean(x)) as { text: string; type?: string }[];
+  }
+
+  if (typeof thought === 'string') return [{ text: thought }];
+
+  if (typeof thought === 'object') {
+    const maybeText = (thought as any).text;
+    const maybeType = (thought as any).type;
+    if (typeof maybeText === 'string') return [{ text: maybeText, type: maybeType }];
+    if (maybeText != null) return [{ text: JSON.stringify(maybeText), type: maybeType }];
+    return [{ text: JSON.stringify(thought) }];
+  }
+
+  return [{ text: String(thought) }];
+}
+
 function ReasoningPanel({ reasoning }: { reasoning: any[] }) {
   if (!reasoning || reasoning.length === 0) {
     return (
@@ -230,7 +276,7 @@ function ReasoningPanel({ reasoning }: { reasoning: any[] }) {
             Reasoning Step {index + 1}
           </div>
           <div className="reasoning-step-content">
-            {step.thought?.map((t: any, i: number) => (
+            {normalizeThought(step?.thought ?? step?.text ?? step).map((t, i) => (
               <div key={i} className="reasoning-thought">
                 {t.text}
               </div>
@@ -445,17 +491,351 @@ function TraceDetailView({ trace, onBack }: { trace: TraceDetail; onBack: () => 
 // ============================================================================
 // MAIN OBSERVABILITY PAGE
 // ============================================================================
-export default function ObservabilityPage() {
+function AdminSettingsPanel({
+  userRole,
+  token,
+  settings,
+  draft,
+  setDraft,
+  onReload,
+  onSave,
+  loading,
+  error,
+}: {
+  userRole?: string;
+  token: string | null;
+  settings: AdminSettings | null;
+  draft: AdminSettings | null;
+  setDraft: (cfg: AdminSettings | null) => void;
+  onReload: () => void;
+  onSave: () => void;
+  loading: boolean;
+  error: string | null;
+}) {
+  // Use permissive logic if token is missing (dev mode / auth bypass)
+  const isGuest = !token;
+  const isAdmin = userRole === 'admin';
+
+  const updateProvider = (key: keyof AdminSettings['provider'], value: any) => {
+    if (!draft) return;
+    setDraft({
+      ...draft,
+      provider: { ...draft.provider, [key]: value },
+    });
+  };
+
+  const updateBinding = (persona: string, label: string) => {
+    if (!draft) return;
+    setDraft({
+      ...draft,
+      mcp: {
+        ...draft.mcp,
+        persona_bindings: { ...draft.mcp.persona_bindings, [persona]: label },
+      },
+    });
+  };
+
+  const updateEndpoint = (idx: number, key: keyof MCPEntry, value: any) => {
+    if (!draft) return;
+    const endpoints = [...(draft.mcp.endpoints || [])];
+    endpoints[idx] = { ...endpoints[idx], [key]: value };
+    setDraft({ ...draft, mcp: { ...draft.mcp, endpoints } });
+  };
+
+  const toggleTool = (idx: number, tool: string) => {
+    if (!draft) return;
+    const endpoints = [...(draft.mcp.endpoints || [])];
+    const entry = endpoints[idx];
+    const next = entry.allowed_tools.includes(tool)
+      ? entry.allowed_tools.filter((t) => t !== tool)
+      : [...entry.allowed_tools, tool];
+    endpoints[idx] = { ...entry, allowed_tools: next };
+    setDraft({ ...draft, mcp: { ...draft.mcp, endpoints } });
+  };
+
+  const addEndpoint = () => {
+    if (!draft) return;
+    const endpoints = [...(draft.mcp.endpoints || [])];
+    endpoints.push({ label: 'new-mcp', url: 'http://localhost:8201', allowed_tools: TOOL_OPTIONS });
+    setDraft({ ...draft, mcp: { ...draft.mcp, endpoints } });
+  };
+
+  const removeEndpoint = (idx: number) => {
+    if (!draft) return;
+    const endpoints = [...(draft.mcp.endpoints || [])];
+    endpoints.splice(idx, 1);
+    setDraft({ ...draft, mcp: { ...draft.mcp, endpoints } });
+  };
+
+  if (!draft) {
+    return (
+      <div className="detail-panel" style={{ padding: '24px' }}>
+        {error && (
+          <div className="observability-error" style={{ marginBottom: '12px' }}>
+            <AlertCircle className="icon-md" />
+            <p>{error}</p>
+          </div>
+        )}
+        <button className="trace-list-refresh" onClick={onReload} disabled={loading}>
+          <RefreshCw className="icon-md" />
+          Load Settings
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="observability-main" style={{ gap: '16px' }}>
+      <div className="detail-panel" style={{ width: '100%', padding: '16px' }}>
+        <div className="observability-header-left" style={{ marginBottom: '12px' }}>
+          <SettingsIcon className="observability-header-icon" />
+          <div>
+            <h2 className="observability-header-title" style={{ margin: 0 }}>Admin Settings</h2>
+            <p className="observability-header-subtitle" style={{ margin: 0 }}>
+              Manage provider routing, v1/responses toggle, and MCP endpoints.
+            </p>
+          </div>
+        </div>
+
+        {error && (
+          <div className="observability-error" style={{ marginBottom: '12px' }}>
+            <AlertCircle className="icon-md" />
+            <p>{error}</p>
+          </div>
+        )}
+
+        <div className="admin-settings-grid">
+          <div className="admin-card">
+            <h3>Provider & Models</h3>
+            <label className="admin-field">
+              <span>Use Local LLM</span>
+              <input
+                type="checkbox"
+                checked={draft.provider.local_llm_enabled}
+                onChange={(e) => updateProvider('local_llm_enabled', e.target.checked)}
+              />
+            </label>
+            <label className="admin-field">
+              <span>Local Base URL</span>
+              <input
+                type="text"
+                value={draft.provider.local_llm_base_url || ''}
+                onChange={(e) => updateProvider('local_llm_base_url', e.target.value)}
+                placeholder="http://localhost:1234"
+              />
+            </label>
+            <label className="admin-field">
+              <span>Local Model</span>
+              <input
+                type="text"
+                value={draft.provider.local_llm_model || ''}
+                onChange={(e) => updateProvider('local_llm_model', e.target.value)}
+                placeholder="llama3.1:8b"
+              />
+            </label>
+            <label className="admin-field">
+              <span>Timeout (s)</span>
+              <input
+                type="number"
+                value={draft.provider.local_llm_timeout || 60}
+                onChange={(e) => updateProvider('local_llm_timeout', Number(e.target.value))}
+              />
+            </label>
+            <label className="admin-field">
+              <span>Use /v1/responses</span>
+              <input
+                type="checkbox"
+                checked={draft.provider.use_responses_api ?? true}
+                onChange={(e) => updateProvider('use_responses_api', e.target.checked)}
+              />
+            </label>
+            <label className="admin-field">
+              <span>Max Output Tokens</span>
+              <input
+                type="number"
+                value={draft.provider.max_output_tokens || 8000}
+                onChange={(e) => updateProvider('max_output_tokens', Number(e.target.value))}
+              />
+            </label>
+            <label className="admin-field">
+              <span>Temperature</span>
+              <input
+                type="number"
+                step="0.1"
+                value={draft.provider.temperature ?? 0.1}
+                onChange={(e) => updateProvider('temperature', Number(e.target.value))}
+              />
+            </label>
+            <label className="admin-field">
+              <span>OpenRouter Endpoint</span>
+              <input
+                type="text"
+                value={draft.provider.openrouter_api_endpoint || ''}
+                onChange={(e) => updateProvider('openrouter_api_endpoint', e.target.value)}
+                placeholder="https://openrouter.ai/api/v1/responses"
+              />
+            </label>
+            <label className="admin-field">
+              <span>Primary Model</span>
+              <input
+                type="text"
+                value={draft.provider.openrouter_model_primary || ''}
+                onChange={(e) => updateProvider('openrouter_model_primary', e.target.value)}
+                placeholder="google/gemma-3-27b-it"
+              />
+            </label>
+            <label className="admin-field">
+              <span>Fallback Model</span>
+              <input
+                type="text"
+                value={draft.provider.openrouter_model_fallback || ''}
+                onChange={(e) => updateProvider('openrouter_model_fallback', e.target.value)}
+                placeholder="google/gemini-2.5-flash"
+              />
+            </label>
+            <label className="admin-field">
+              <span>Alt Model</span>
+              <input
+                type="text"
+                value={draft.provider.openrouter_model_alt || ''}
+                onChange={(e) => updateProvider('openrouter_model_alt', e.target.value)}
+                placeholder="mistralai/devstral-2512:free"
+              />
+            </label>
+          </div>
+
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <h3>MCP Endpoints</h3>
+              <button className="trace-list-refresh" onClick={addEndpoint} type="button">
+                <Plus className="icon-sm" /> Add
+              </button>
+            </div>
+            <div className="admin-mcp-list">
+              {(draft.mcp.endpoints || []).map((ep, idx) => (
+                <div key={`${ep.label}-${idx}`} className="admin-mcp-entry">
+                  <div className="admin-mcp-row">
+                    <input
+                      type="text"
+                      value={ep.label}
+                      onChange={(e) => updateEndpoint(idx, 'label', e.target.value)}
+                      placeholder="label"
+                    />
+                    <input
+                      type="text"
+                      value={ep.url}
+                      onChange={(e) => updateEndpoint(idx, 'url', e.target.value)}
+                      placeholder="http://localhost:8201"
+                    />
+                    <button
+                      className="trace-list-refresh"
+                      onClick={() => removeEndpoint(idx)}
+                      type="button"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="admin-tools-row">
+                    {TOOL_OPTIONS.map((tool) => (
+                      <label key={tool} className="admin-tool-chip">
+                        <input
+                          type="checkbox"
+                          checked={ep.allowed_tools?.includes(tool)}
+                          onChange={() => toggleTool(idx, tool)}
+                        />
+                        {tool}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="admin-card" style={{ marginTop: '12px' }}>
+              <h4>Persona Bindings</h4>
+              {['noor', 'maestro', 'default'].map((persona) => (
+                <label key={persona} className="admin-field">
+                  <span>{persona} →</span>
+                  <select
+                    value={draft.mcp.persona_bindings?.[persona] || ''}
+                    onChange={(e) => updateBinding(persona, e.target.value)}
+                  >
+                    <option value="">Select endpoint</option>
+                    {(draft.mcp.endpoints || []).map((ep) => (
+                      <option key={ep.label} value={ep.label}>
+                        {ep.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
+          <div>
+            <p style={{ margin: 0, fontSize: '12px', color: '#9ca3af' }}>
+              Last updated: {settings?.updated_at || 'n/a'} by {settings?.updated_by || 'n/a'}
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className="trace-list-refresh" onClick={onReload} disabled={loading}>
+              <RefreshCw className="icon-sm" /> Reload
+            </button>
+            <button className="trace-list-refresh" onClick={() => setDraft(settings)} disabled={loading}>
+              Revert
+            </button>
+            <button className="trace-list-refresh" onClick={onSave} disabled={loading}>
+              <Save className="icon-sm" /> Save
+            </button>
+          </div>
+        </div>
+
+        {draft.audit && draft.audit.length > 0 && (
+          <div className="admin-card" style={{ marginTop: '16px' }}>
+            <h4>Recent Changes</h4>
+            <div className="admin-audit-list">
+              {draft.audit.slice(-5).reverse().map((a, idx) => (
+                <div key={idx} className="admin-audit-row">
+                  <span>{a.updated_at}</span>
+                  <span>{a.updated_by}</span>
+                  <span>providers/mcp updated</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// OBSERVABILITY DASHBOARD COMPONENT (Embeddable)
+// ============================================================================
+export function ObservabilityDashboard({ 
+  showHeader = true,
+  mode
+}: { 
+  showHeader?: boolean;
+  mode?: 'admin-only' | 'full';
+}) {
   const [traces, setTraces] = useState<Trace[]>([]);
   const [selectedTrace, setSelectedTrace] = useState<TraceDetail | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabKey>(mode === 'admin-only' ? 'admin-settings' : 'traces');
+  const [settings, setSettings] = useState<AdminSettings | null>(null);
+  const [draftSettings, setDraftSettings] = useState<AdminSettings | null>(null);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
 
   // Auto-refresh state
   const [isLive, setIsLive] = useState(true);
+  const { user, token } = useAuth();
 
-  const fetchTraces = async () => {
+  const fetchTraces = useCallback(async () => {
     // Don't set loading to true for background updates to avoid UI flicker
     if (!isLive) setLoading(true);
     setError(null);
@@ -471,15 +851,17 @@ export default function ObservabilityPage() {
     } finally {
       if (!isLive) setLoading(false);
     }
-  };
+  }, [isLive]);
 
   // Auto-polling effect
   useEffect(() => {
     // Initial fetch
-    fetchTraces();
+    if (activeTab === 'traces') {
+      fetchTraces();
+    }
 
     let intervalId: NodeJS.Timeout;
-    if (isLive) {
+    if (isLive && activeTab === 'traces') {
       intervalId = setInterval(() => {
         fetchTraces();
       }, 3000); // Poll every 3 seconds
@@ -488,7 +870,28 @@ export default function ObservabilityPage() {
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [isLive]);
+  }, [isLive, activeTab, fetchTraces]);
+
+  const loadSettings = useCallback(async () => {
+    // Proceed even without token (backend handles dev-fallback)
+    setSettingsLoading(true);
+    setSettingsError(null);
+    try {
+      const cfg = await fetchSettings(token);
+      setSettings(cfg);
+      setDraftSettings(cfg);
+    } catch (err: any) {
+      setSettingsError(err.message || 'Failed to load settings');
+    } finally {
+      setSettingsLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (activeTab === 'admin-settings' && !draftSettings && !settingsLoading) {
+      loadSettings();
+    }
+  }, [activeTab, loadSettings, draftSettings, settingsLoading]);
 
   const fetchTraceDetail = async (conversationId: string) => {
     // Detail view doesn't auto-refresh, so we use standard loading state
@@ -507,48 +910,78 @@ export default function ObservabilityPage() {
     }
   };
 
+  const isAdminOnly = mode === 'admin-only';
+
   return (
-    <div className="observability-page">
+    <div className="observability-page" style={!showHeader ? { padding: 0, height: '100%' } : {}}>
       {/* Header */}
+      {showHeader && (
       <header className="observability-header">
         <div className="observability-header-left">
-          <Eye className="observability-header-icon" />
+          {isAdminOnly ? (
+            <SettingsIcon className="observability-header-icon" />
+          ) : (
+            <Eye className="observability-header-icon" />
+          )}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <h1 className="observability-header-title">Observability Dashboard</h1>
-              <button 
-                onClick={() => setIsLive(!isLive)}
-                className={`badge clickable ${isLive ? 'badge-success' : 'badge-secondary'}`}
-                style={{ 
-                  border: 'none', 
-                  cursor: 'pointer', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '6px',
-                  padding: '4px 10px',
-                  fontSize: '12px'
-                }}
-              >
-                {isLive && (
-                  <span className="live-indicator">
-                    <span className="live-dot"></span>
-                  </span>
-                )}
-                {isLive ? 'LIVE' : 'PAUSED'}
-              </button>
+              <h1 className="observability-header-title">
+                {isAdminOnly ? 'System Administration' : 'Observability Dashboard'}
+              </h1>
+              {!isAdminOnly && (
+                <button 
+                  onClick={() => setIsLive(!isLive)}
+                  className={`badge clickable ${isLive ? 'badge-success' : 'badge-secondary'}`}
+                  style={{ 
+                    border: 'none', 
+                    cursor: 'pointer', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px',
+                    padding: '4px 10px',
+                    fontSize: '12px'
+                  }}
+                >
+                  {isLive && (
+                    <span className="live-indicator">
+                      <span className="live-dot"></span>
+                    </span>
+                  )}
+                  {isLive ? 'LIVE' : 'PAUSED'}
+                </button>
+              )}
             </div>
             <p className="observability-header-subtitle">
-              Monitor LLM reasoning, tool calls, and cognitive flow
+              {isAdminOnly 
+                ? 'Configure platform providers, MCP endpoints, and system behaviors' 
+                : 'Monitor LLM reasoning, tool calls, and cognitive flow'}
             </p>
           </div>
         </div>
         <button 
           className="observability-back-btn"
-          onClick={() => window.location.href = '/chat'}
+          onClick={() => window.location.href = isAdminOnly ? '/josoor-v2' : '/chat'}
         >
-          Back to Chat
+          {isAdminOnly ? 'Back to Dashboard' : 'Back to Chat'}
         </button>
       </header>
+      )}
+
+      {/* Embedded Controls if Header Hidden */}
+      {!showHeader && !isAdminOnly && (
+          <div className="flex justify-between items-center mb-4 px-4 pt-2">
+             <div className="flex items-center gap-2">
+                <h3 className="text-white font-semibold">Live Monitoring</h3>
+                <button 
+                onClick={() => setIsLive(!isLive)}
+                className={`badge clickable ${isLive ? 'badge-success' : 'badge-secondary'}`}
+                style={{ fontSize: '10px', padding: '2px 8px' }}
+              >
+                {isLive ? 'ON' : 'PAUSED'}
+              </button>
+             </div>
+          </div>
+      )}
 
       {/* Error Banner */}
       {error && (
@@ -558,40 +991,96 @@ export default function ObservabilityPage() {
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="observability-main">
-        {/* Left Panel - Trace List */}
-        <TraceList
-          traces={traces}
-          selectedId={selectedId}
-          onSelect={fetchTraceDetail}
-          onRefresh={fetchTraces}
-          loading={loading}
-        />
-
-        {/* Right Panel - Detail View */}
-        <div className="detail-panel">
-          {selectedTrace ? (
-            <TraceDetailView
-              trace={selectedTrace}
-              onBack={() => {
-                setSelectedTrace(null);
-                setSelectedId(null);
-              }}
-            />
-          ) : (
-            <div className="detail-empty">
-              <Eye className="detail-empty-icon" />
-              <h3>Select a Trace</h3>
-              <p>
-                Click on a conversation trace to view its full execution details,
-                <br />
-                including reasoning steps, tool calls, and errors.
-              </p>
-            </div>
-          )}
+      {!isAdminOnly && (
+        <div className="tab-switcher" style={{ display: 'flex', gap: '12px', margin: '12px 0' }}>
+          <button
+            className={`tab-trigger ${activeTab === 'traces' ? 'active' : ''}`}
+            onClick={() => setActiveTab('traces')}
+          >
+            <Layers className="icon-sm" />
+            Traces
+          </button>
+          <button
+            className={`tab-trigger ${activeTab === 'admin-settings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('admin-settings')}
+          >
+            <SettingsIcon className="icon-sm" />
+            Admin Settings
+          </button>
         </div>
-      </div>
+      )}
+
+      {activeTab === 'traces' && !isAdminOnly && (
+        <div className="observability-main" style={!showHeader ? { height: 'calc(100% - 40px)' } : {}}>
+          {/* Left Panel - Trace List */}
+          <TraceList
+            traces={traces}
+            selectedId={selectedId}
+            onSelect={fetchTraceDetail}
+            onRefresh={fetchTraces}
+            loading={loading}
+          />
+
+          {/* Right Panel - Detail View */}
+          <div className="detail-panel">
+            {selectedTrace ? (
+              <TraceDetailView
+                trace={selectedTrace}
+                onBack={() => {
+                  setSelectedTrace(null);
+                  setSelectedId(null);
+                }}
+              />
+            ) : (
+              <div className="detail-empty">
+                <Eye className="detail-empty-icon" />
+                <h3>Select a Trace</h3>
+                <p>
+                  Click on a conversation trace to view its full execution details,
+                  <br />
+                  including reasoning steps, tool calls, and errors.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'admin-settings' && (
+        <div className={isAdminOnly ? "observability-full-page" : ""}>
+          <AdminSettingsPanel
+            userRole={(user as any)?.role}
+            token={token}
+            settings={settings}
+            draft={draftSettings}
+            setDraft={setDraftSettings}
+            onReload={loadSettings}
+            onSave={async () => {
+              if (!draftSettings) return;
+              setSettingsError(null);
+              setSettingsLoading(true);
+              try {
+                const saved = await saveSettings(draftSettings, token);
+                setSettings(saved);
+                setDraftSettings(saved);
+              } catch (err: any) {
+                setSettingsError(err.message || 'Failed to save settings');
+              } finally {
+                setSettingsLoading(false);
+              }
+            }}
+            loading={settingsLoading}
+            error={settingsError}
+          />
+        </div>
+      )}
     </div>
   );
+}
+
+// ============================================================================
+// MAIN PAGE WRAPPER
+// ============================================================================
+export default function ObservabilityPage({ mode }: { mode?: 'admin-only' | 'full' }) {
+    return <ObservabilityDashboard showHeader={true} mode={mode} />;
 }

@@ -20,7 +20,10 @@ export default defineConfig({
       '/api/dashboard': 'http://localhost:3001',
       '/api/graph': 'http://localhost:3001',
       '/api/business-chain': 'http://localhost:3001',
-      '/api/debug': 'http://localhost:3001'
+      '/api/control-tower': 'http://localhost:3001',
+      '/api/dependency': 'http://localhost:3001',
+      '/api/debug': 'http://localhost:3001',
+      '/api/domain-graph': 'http://localhost:3001'
     }
   },
 })

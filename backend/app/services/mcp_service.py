@@ -274,96 +274,104 @@ async def retrieve_instructions(
                 logger.warning(f"Elements not found: {missing}")
             
             logger.info(f"retrieve_instructions: Loaded {len(contents)} elements (~{total_tokens} tokens)")
-            return "\n\n".join(contents)
+
+            # Return only DB element contents with no added preambles or wrappers
+            return "".join(contents)
         
         # =====================================================================
-        # v3.3 TIER 2: Data Mode Definitions
+        # v3.3 TIER 2: Data Mode Definitions with Context-First Ordering
         # =====================================================================
         if tier == "data_mode_definitions":
             logger.info(f"retrieve_instructions: Tier 2 - Loading data mode definitions for mode '{mode}'")
             
-            # Data mode definitions are stored in instruction_bundles with tag 'data_mode_definitions'
-            # or the original 'cognitive_cont' bundle which contains the 5-step loop
-            bundle_response = supabase.table('instruction_bundles') \
-                .select('content, avg_tokens') \
-                .eq('tag', 'data_mode_definitions') \
+            # Tier 2 elements stored in instruction_elements with bundle='tier2'
+            tier2_response = supabase.table('instruction_elements') \
+                .select('element, content, avg_tokens') \
+                .eq('bundle', 'tier2') \
                 .eq('status', 'active') \
-                .single() \
                 .execute()
             
-            if bundle_response.data:
-                logger.info(f"retrieve_instructions: Loaded Tier 2 (~{bundle_response.data.get('avg_tokens', 0)} tokens)")
-                return bundle_response.data['content']
+            if not tier2_response.data:
+                logger.warning("No Tier 2 elements found (bundle=tier2, status=active)")
+                return ""
             
-            # Fallback to cognitive_cont if data_mode_definitions doesn't exist
-            logger.info("Tier 2 bundle not found, falling back to cognitive_cont")
-            return await _get_bundle_content('cognitive_cont')
+            # CRITICAL: Front-load context and rules BEFORE step-by-step instructions.
+            # This prevents LLM from "overthinking pit stops" when it discovers constraints mid-instruction.
+            def _tier2_rank(elem_name: str) -> tuple:
+                """
+                Rank Tier 2 elements: context/rules BEFORE instructions, organized by step.
+                
+                Step 1 (1.x elements): Requirements/Context/Rules
+                - Context: requirements, graph_schema, level_definitions, temporal_logic, business_chains
+                - Rules: scope_chain_gate, data_integrity_rules, chain_query_budget
+                
+                Step 2 (2.x elements): Recollect
+                - Instruction with context
+                
+                Step 3 (3.x elements): Recall
+                - Rules first, then instruction
+                
+                Step 4 (4.x elements): Reconcile
+                - Final instruction
+                """
+                n = (elem_name or "").lower()
+                
+                # Step 1: Requirements (context/rules front-loaded)
+                if n.startswith('1.'):
+                    # Context elements
+                    if any(k in n for k in ['requirements', 'graph_schema', 'level_definitions', 'temporal_logic', 'business_chains', 'summary']):
+                        return (1, 0, n)  # Step 1, Context
+                    # Rules elements
+                    if any(k in n for k in ['scope_chain_gate', 'data_integrity_rules', 'chain_query_budget', 'rules', 'gate']):
+                        return (1, 1, n)  # Step 1, Rules
+                    return (1, 2, n)  # Step 1, Default
+                
+                # Step 2: Recollect
+                if n.startswith('2.'):
+                    # Context within Step 2
+                    if any(k in n for k in ['business_chains', 'summary', 'context']):
+                        return (2, 0, n)
+                    # Recollect instruction
+                    return (2, 1, n)
+                
+                # Step 3: Recall
+                if n.startswith('3.'):
+                    # Rules within Step 3
+                    if any(k in n for k in ['tool_execution_rules', 'rules', 'tool_rules']):
+                        return (3, 0, n)  # Step 3, Rules
+                    # Recall instruction
+                    return (3, 1, n)  # Step 3, Instruction
+                
+                # Step 4: Reconcile
+                if n.startswith('4.'):
+                    return (4, 0, n)  # Step 4, Reconcile
+                
+                # Default: unknown step
+                return (5, 0, n)
+
+            tier2_sorted = sorted(tier2_response.data, key=lambda e: _tier2_rank(e.get('element')))
+
+            # Concatenate DB contents only (no wrappers/preambles)
+            contents = []
+            total_tokens = 0
+            for elem in tier2_sorted:
+                contents.append(elem['content'])
+                total_tokens += elem.get('avg_tokens') or 0
+            
+            logger.info(f"retrieve_instructions: Loaded {len(contents)} Tier 2 elements (~{total_tokens} tokens)")
+            
+            # Return only the concatenated DB contents, no additional text
+            return "".join(contents)
         
         # =====================================================================
-        # LEGACY v3.2: Mode-based Bundle Retrieval (instruction_metadata mapping)
+        # FALLBACK: No valid tier specified
         # =====================================================================
-        logger.info(f"retrieve_instructions: Legacy mode - Loading bundles for mode '{mode}'")
-        
-        # Query instruction_metadata to find bundles for this mode
-        metadata_response = supabase.table('instruction_metadata') \
-            .select('tag') \
-            .contains('trigger_modes', [mode]) \
-            .execute()
-        
-        if not metadata_response.data:
-            logger.warning(f"No instruction bundles mapped for mode '{mode}'")
-            return await _get_bundle_content('cognitive_cont')
-        
-        # Get all required bundle tags
-        bundle_tags = [row['tag'] for row in metadata_response.data]
-        logger.info(f"retrieve_instructions: Mode '{mode}' requires bundles: {bundle_tags}")
-        
-        # Fetch active bundle content
-        bundles_response = supabase.table('instruction_bundles') \
-            .select('tag, content, avg_tokens') \
-            .in_('tag', bundle_tags) \
-            .eq('status', 'active') \
-            .execute()
-        
-        if not bundles_response.data:
-            raise ValueError(f"No active bundles found for tags: {bundle_tags}")
-        
-        # Concatenate bundle content
-        contents = []
-        total_tokens = 0
-        for bundle in bundles_response.data:
-            contents.append(bundle['content'])
-            total_tokens += bundle.get('avg_tokens', 0)
-        
-        logger.info(f"retrieve_instructions: Loaded {len(contents)} bundles (~{total_tokens} tokens)")
-        return "\n\n".join(contents)
+        logger.warning(f"retrieve_instructions: Invalid tier specified for mode '{mode}'")
+        return ""
         
     except Exception as e:
         logger.error(f"retrieve_instructions failed: {e}")
         raise ValueError(f"Failed to retrieve instructions for mode '{mode}': {e}")
-
-
-async def _get_bundle_content(tag: str) -> str:
-    """Get content for a specific bundle tag."""
-    try:
-        from supabase import create_client
-        
-        supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
-        
-        response = supabase.table('instruction_bundles') \
-            .select('content') \
-            .eq('tag', tag) \
-            .eq('status', 'active') \
-            .single() \
-            .execute()
-        
-        if response.data:
-            return response.data['content']
-        return ""
-        
-    except Exception as e:
-        logger.error(f"Failed to get bundle '{tag}': {e}")
-        return ""
 
 
 # =============================================================================
@@ -452,7 +460,8 @@ def read_neo4j_cypher(cypher_query: str, parameters: Optional[Dict[str, Any]] = 
             database=settings.NEO4J_DATABASE,
             default_access_mode=AccessMode.READ
         ) as session:
-            result = session.run(cypher_query, parameters or {})
+            # Set query timeout to 30 seconds to prevent hanging
+            result = session.run(cypher_query, parameters or {}, timeout=30)
             # Return structured data - constraint enforcement means this should be id/name only
             records = [dict(record) for record in result]
             

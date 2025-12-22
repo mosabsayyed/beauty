@@ -8,7 +8,8 @@ import type { OutcomesData } from '../types';
 
 
 interface SectorOutcomesProps {
-  outcomes: OutcomesData;
+  outcomes?: OutcomesData;
+  data?: OutcomesData;
   isDark: boolean;
   language: string;
 }
@@ -79,7 +80,8 @@ const DoughnutChartWithLabel: React.FC<{
 };
 
 
-const SectorOutcomes: React.FC<SectorOutcomesProps> = ({ outcomes, isDark, language }) => {
+const SectorOutcomes: React.FC<SectorOutcomesProps> = ({ outcomes: outcomesProp, data, isDark, language }) => {
+  const outcomes = outcomesProp || data;
   // Theme object with access to isDark
   const theme = {
     muted: isDark ? '#9CA3AF' : '#6B7280',
@@ -137,8 +139,8 @@ const SectorOutcomes: React.FC<SectorOutcomesProps> = ({ outcomes, isDark, langu
           {/* Panel 1: Bar/Line */}
           <Panel>
               <h3 className="insight-title" style={{ color: isDark ? '#F9FAFB' : '#1F2937' }}>{outcomes?.outcome1?.title || 'Network Scale Metrics'}</h3>
-              <div className="chart-container">
-                  <div className="chart-absolute-fill">
+              <div className="chart-container relative w-full" style={{ height: '200px', width: '100%', position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart data={outcome1Data} margin={{ top: 10, right: 10, bottom: 20, left: 15 }}>
                             <CartesianGrid stroke={theme.borderColor} vertical={false} />
@@ -175,8 +177,8 @@ const SectorOutcomes: React.FC<SectorOutcomesProps> = ({ outcomes, isDark, langu
           {/* Panel 3: Bar/Line */}
           <Panel>
               <h3 className="insight-title" style={{ color: isDark ? '#F9FAFB' : '#1F2937' }}>{outcomes?.outcome3?.title || t('netCov')}</h3>
-              <div className="chart-container">
-                  <div className="chart-absolute-fill">
+              <div className="chart-container relative w-full" style={{ height: '200px', width: '100%', position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart data={outcome3Data} margin={{ top: 10, right: 10, bottom: 20, left: 15 }}>
                             <CartesianGrid stroke={theme.borderColor} vertical={false} />

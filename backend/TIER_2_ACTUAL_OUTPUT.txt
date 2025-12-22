@@ -1,0 +1,99 @@
+===================================================================
+TIER 2: Actual Output as LLM Receives It (Data Mode Definitions)
+Source: MCP Router → mcp_wrapper.py → mcp_service.retrieve_instructions(mode, tier="data_mode_definitions")
+Database Query: instruction_elements WHERE bundle='tier2' AND status='active'
+Ordering: Sorted by _tier2_rank() - Step 1→2→3→4, context/rules before instructions per step
+Total Length: 12318 characters
+===================================================================
+
+GRAPH SCHEMA OVERVIEW
+
+Node Types (17):
+EntityProject, EntityCapability, EntityRisk, EntityProcess, EntityITSystem, EntityOrgUnit, EntityVendor, EntityCultureHealth, EntityChangeAdoption, SectorObjective, SectorPolicyTool, SectorPerformance, SectorAdminRecord, SectorBusiness, SectorGovEntity, SectorCitizen, SectorDataTransaction
+
+Core Relationships:
+MONITORED_BY: Objectives/Performance/Capabilities → Risks
+CLOSE_GAPS: Projects → Risks
+OPERATES: OrgUnits → Processes/ITSystems
+CONTRIBUTES_TO: Capabilities/Projects → Objectives
+REALIZED_VIA: Objectives → Capabilities/Projects
+DEPENDS_ON: Processes → ITSystems, ITSystems → Vendors
+GOVERNED_BY: Objectives → PolicyTools
+AGGREGATES_TO: DataTransactions → Performance
+
+Universal Properties (ALL nodes):
+id, level, year, quarter, embedding, embedding_generated_at
+
+Optional Hierarchical Properties:
+parent_id, parent_year
+
+Use retrieve_instructions for detailed node properties.
+
+BUSINESS CHAINS SUMMARY
+
+1. SectorOps: SectorObjective → PolicyTool → DataTransaction → Performance
+2. Strategy_to_Tactics_Priority_Capabilities: SectorObjective → Capability → SectorObjective
+3. Strategy_to_Tactics_Capabilities_Targets: SectorObjective → Stakeholders → DataTransaction
+4. Tactical_to_Strategy: EntityProject → SectorObjective → Performance
+5. Risk_Build_Mode: EntityCapability → Risk → Project
+6. Risk_Operate_Mode: OrgUnit → Process → ITSystem → Risk
+7. Internal_Efficiency: OrgUnit → Process → Risk → Project → ITSystem
+
+Note: For detailed paths with full relationship names and business narratives, use retrieve_instructions with specific chain name (e.g., elements=["business_chain_SectorOps"]).
+
+STEP 1: REQUIREMENTS (Contextualization) – CHAIN-FIRST
+
+Objective:
+Convert the user question into an executable query_plan WITHOUT assuming labels, relationships, or data existence.
+
+Inputs (in order):
+1) Current user query
+2) Conversation context (only to resolve references; never to invent facts)
+3) Graph schema (node types + relationship types + shared properties)
+4) Business chains summary + specific business_chain_* definitions
+
+Mandatory decisions (populate in memory_process.intent and data.query_plan):
+A) scope = "single_label" OR "business_chain"
+   - single_label: the ask targets one entity type and does NOT require cross-element reasoning
+   - business_chain: the ask requires cross-element reasoning (impact/dependency/propagation/path) or mentions multiple entity types
+
+B) target selection
+   - single_label: set primary_label
+   - business_chain: set selected_chain + pivot_label + hop_labels (authoritative order from the chain definition)
+
+C) filters_by_label (map)
+   - Only include filters explicitly requested or unambiguously resolved from context
+   - NEVER fabricate ids/names/statuses
+
+D) result_budget
+   - Apply hard limits (paths_limit / nodes_per_label / max_hops) to prevent runaway queries
+
+Deliverable of Step 1:
+A complete query_plan object (see Step 5 output schema) ready for Step 2 (RECOLLECT).
+
+GRAPH SCHEMA OVERVIEW
+
+Node Types (17):
+EntityProject, EntityCapability, EntityRisk, EntityProcess, EntityOrgUnit, EntityITSystem, EntityVendor,
+EntityCultureHealth, EntityChangeAdoption,
+SectorObjective, SectorPerformance, SectorPolicyTool, SectorAdminRecord, SectorDataTransaction,
+SectorCitizen, SectorBusiness, SectorGovEntity
+
+Core Relationships (examples; prefer the authoritative chain definitions when available):
+MONITORED_BY: Objectives/Performance/Capabilities -> Risks
+CLOSE_GAPS: Projects -> Risks
+OPERATES: OrgUnits -> Processes/ITSystems
+CONTRIBUTES_TO: Capabilities/Projects -> Objectives
+REALIZED_VIA: Objectives -> Capabilities/Projects
+DEPENDS_ON: Processes -> ITSystems, ITSystems -> Vendors
+GOVERNED_BY: Objectives -> PolicyTools
+AGGREGATES_TO: DataTransactions -> Performance
+
+Shared Properties (check node schemas for exact availability):
+id, level, year, quarter, embedding, embedding_generated_at
+
+Rule:
+- Do not assume a property exists on a label unless you have retrieved its schema via retrieve_instructions
+- NEVER invent new node labels or relationship types
+
+[Remaining content truncated for file length; includes Steps 2-4: RECOLLECT, RECALL, RECONCILE - total 12318 chars]

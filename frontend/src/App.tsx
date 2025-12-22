@@ -15,23 +15,25 @@ import CanvasTestPage from './pages/CanvasTestPage';
 import FounderLetterPage from './pages/FounderLetterPage';
 import ContactUsPage from './pages/ContactUsPage';
 import ArchitecturePage from './pages/ArchitecturePage';
-import ObservabilityPage from './pages/ObservabilityPage';
+import JosoorDashboardPage from './pages/josoor-dashboards/JosoorDashboardPage';
+import { JosoorV2Page } from './pages/josoor-v2/JosoorV2Page';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import ObservabilityPage from './pages/ObservabilityPage';
 
 function ScrollToTop() {
   const location = useLocation();
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
+    window.scrollTo({ top: 0, behavior: "auto" });
   }, [location.pathname]);
 
   return null;
 }
 
 
-function ProtectedRoute({ children }: { children: React.ReactElement }) {
+function ProtectedRoute({ children, allowGuest = false }: { children: React.ReactElement; allowGuest?: boolean }) {
   const { user, loading } = useAuth();
   
   if (loading) {
@@ -39,6 +41,10 @@ function ProtectedRoute({ children }: { children: React.ReactElement }) {
   }
   
   if (!user) {
+    if (allowGuest) {
+      // Allow guest access for this route
+      return children;
+    }
     return <Navigate to="/landing" replace />;
   }
   return children;
@@ -66,10 +72,14 @@ function AppRoutes() {
           element={<WelcomeEntry/>}
         />
 
-        <Route path="/landing" element={<LandingPage />} />
+        <Route path="/landing" element={
+          <ProtectedRoute allowGuest={true}>
+            <LandingPage />
+          </ProtectedRoute>
+        } />
 
         <Route path="/chat" element={
-          <ProtectedRoute>
+          <ProtectedRoute allowGuest={true}>
             <ChatAppPage />
           </ProtectedRoute>
         } />
@@ -78,14 +88,35 @@ function AppRoutes() {
 
         <Route path="/canvas-test" element={<CanvasTestPage />} />
 
+        <Route path="/josoor-dashboards" element={<JosoorDashboardPage />} />
+        <Route path="/josoor-v2" element={<JosoorV2Page />} />
+
         <Route path="/founder-letter" element={<FounderLetterPage />} />
 
         <Route path="/contact-us" element={<ContactUsPage />} />
 
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
 
-        {/* Admin-only route - not linked in UI */}
-        <Route path="/admin/observability" element={<ObservabilityPage />} />
+        {/* Dashboard route - protected */}
+        {/* Dashboard route - bypass auth if requested */}
+        <Route path="/admin/settings" element={<ObservabilityPage mode="admin-only" />} />
+        <Route path="/admin/observability" element={<ObservabilityPage mode="full" />} />
+
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <JosoorDashboardPage />
+          </ProtectedRoute>
+        } />
+
+        {/* JOSOOR V2 ISOLATED SANDBOX */}
+        <Route path="/josoor-v2" element={
+           <ProtectedRoute>
+              {/* Ensure we lazy load or directly import. For now direct import is fine as per file size */}
+              <React.Suspense fallback={<div>Loading V2...</div>}>
+                  <JosoorV2Page />
+              </React.Suspense>
+           </ProtectedRoute>
+        } />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

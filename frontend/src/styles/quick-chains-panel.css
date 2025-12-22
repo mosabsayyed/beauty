@@ -1,0 +1,101 @@
+.quick-chains-panel {
+  background: var(--canvas-card-bg, #1f2937);
+  border: 1px solid var(--border-default, rgba(255,255,255,0.08));
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--text-primary, #f9fafb);
+}
+
+.quick-chains-header {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--color-gold, #ffd700);
+}
+
+.quick-chains-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.quick-chains-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary, #d1d5db);
+}
+
+.quick-chains-input {
+  background: var(--component-panel-bg, #111827);
+  border: 1px solid var(--border-default, #374151);
+  border-radius: 8px;
+  padding: 8px;
+  color: var(--text-primary, #f9fafb);
+}
+
+.quick-chains-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.quick-chains-button {
+  background: var(--component-panel-bg, #1f2937);
+  border: 1px solid var(--border-default, #374151);
+  color: var(--text-primary, #f9fafb);
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+
+.quick-chains-button:hover:not(:disabled) {
+  border-color: var(--color-gold, #ffd700);
+  transform: translateY(-1px);
+}
+
+.quick-chains-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.quick-chains-error {
+  color: var(--component-color-danger, #ef4444);
+  font-size: 13px;
+}
+
+.quick-chains-result {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-default, #374151);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quick-chains-result-title {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.quick-chains-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary, #d1d5db);
+}
+
+.quick-chains-pre {
+  max-height: 180px;
+  overflow: auto;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 12px;
+}

@@ -57,6 +57,7 @@ export interface Dimension {
     healthState?: string; // 'Healthy', 'At Risk', 'Distressed'
     healthScore?: number;
     trend?: string; // 'Growth', 'Decline', 'Steady'
+    year?: number;
 }
 
 // --- ZONE 2: STRATEGIC INSIGHTS ---

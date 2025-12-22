@@ -1,0 +1,33 @@
+/* ControlTower.css - V1.3 Compliant Styles */
+/* Uses theme.css variables ONLY */
+
+.v2-control-tower {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding-bottom: 4rem;
+}
+
+.v2-section {
+    margin-bottom: 0;
+}
+
+/* L-22: Lower Deck - Three columns (2fr 1fr 1fr) */
+.v2-lower-deck {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 1rem;
+    align-items: stretch;
+}
+
+/* L-23: Equal heights for lower deck panels */
+.v2-lower-deck > .panel {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* L-24: Scrollable content in panels */
+.v2-lower-deck .v2-list-panel {
+    overflow: hidden;
+}

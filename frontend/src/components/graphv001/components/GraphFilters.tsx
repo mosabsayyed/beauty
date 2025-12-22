@@ -129,10 +129,10 @@ export function GraphFilters({
     padding: '0.5rem 0.75rem',
     fontSize: '0.875rem',
     fontWeight: 500,
-    border: `1px solid ${isDark ? '#FFD700' : '#D97706'}`,
+    border: `1px solid var(--component-text-accent)`,
     borderRadius: '0.375rem',
-    backgroundColor: isDark ? 'rgba(17,24,39,0.9)' : 'rgba(255,255,255,0.9)',
-    color: isDark ? '#FFD700' : '#D97706',
+    backgroundColor: 'var(--component-panel-bg)',
+    color: 'var(--component-text-accent)',
     cursor: 'pointer',
     transition: 'all 0.2s',
   };
@@ -140,12 +140,13 @@ export function GraphFilters({
   const panelStyle: React.CSSProperties = {
     marginTop: '0.5rem',
     padding: '1rem',
-    border: `1px solid ${isDark ? '#374151' : '#D1D5DB'}`,
+    border: `1px solid var(--component-panel-border)`,
     borderRadius: '0.5rem',
     maxHeight: '500px',
     overflowY: 'auto',
     width: '320px',
-    backgroundColor: isDark ? 'rgba(17,24,39,0.95)' : 'rgba(255,255,255,0.95)',
+    backgroundColor: 'var(--component-panel-bg)',
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
   };
 
   const sectionStyle: React.CSSProperties = {
@@ -157,7 +158,7 @@ export function GraphFilters({
     marginBottom: '0.5rem',
     fontSize: '0.875rem',
     fontWeight: 500,
-    color: isDark ? '#D1D5DB' : '#4B5563',
+    color: 'var(--component-text-primary)',
   };
 
   const smallButtonStyle: React.CSSProperties = {
@@ -166,7 +167,7 @@ export function GraphFilters({
     borderRadius: '0.25rem',
     border: 'none',
     background: 'transparent',
-    color: isDark ? '#9CA3AF' : '#6B7280',
+    color: 'var(--component-text-muted)',
     cursor: 'pointer',
   };
 
@@ -211,7 +212,7 @@ export function GraphFilters({
         <div style={panelStyle}>
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h3 style={{ fontWeight: 600, color: isDark ? '#FFD700' : '#D97706', margin: 0 }}>Graph Filters</h3>
+            <h3 style={{ fontWeight: 600, color: 'var(--component-text-accent)', margin: 0 }}>Graph Filters</h3>
             <button
               onClick={handleCancel}
               style={{ 
@@ -219,7 +220,7 @@ export function GraphFilters({
                 border: 'none', 
                 cursor: 'pointer', 
                 padding: '0.25rem',
-                color: isDark ? '#9CA3AF' : '#6B7280'
+                color: 'var(--component-text-muted)'
               }}
               data-testid="button-close-filters"
             >
@@ -232,10 +233,10 @@ export function GraphFilters({
             <div style={{ 
               marginBottom: '0.75rem', 
               padding: '0.5rem', 
-              backgroundColor: isDark ? 'rgba(255, 215, 0, 0.1)' : 'rgba(217, 119, 6, 0.1)', 
+              backgroundColor: 'rgba(255, 215, 0, 0.1)', 
               borderRadius: '0.25rem',
               fontSize: '0.75rem',
-              color: isDark ? '#FFD700' : '#D97706'
+              color: 'var(--component-text-accent)'
             }}>
               ⚠ Changes not applied yet. Click "Apply Filters" to apply.
             </div>
@@ -255,14 +256,14 @@ export function GraphFilters({
                 width: '100%',
                 padding: '0.5rem 0.75rem',
                 borderRadius: '0.25rem',
-                border: `1px solid ${isDark ? '#374151' : '#D1D5DB'}`,
+                border: `1px solid var(--component-panel-border)`,
                 fontSize: '0.875rem',
-                backgroundColor: isDark ? '#1F2937' : '#F3F4F6',
-                color: isDark ? '#F9FAFB' : '#111827',
+                backgroundColor: 'var(--component-bg-primary)',
+                color: 'var(--component-text-primary)',
               }}
               data-testid="input-limit-filter"
             />
-            <p style={{ fontSize: '0.75rem', marginTop: '0.25rem', color: isDark ? '#9CA3AF' : '#6B7280' }}>
+            <p style={{ fontSize: '0.75rem', marginTop: '0.25rem', color: 'var(--component-text-muted)' }}>
               Current: {limit} | Pending: {pendingLimit}
             </p>
           </div>
@@ -292,7 +293,7 @@ export function GraphFilters({
                     data-testid={`checkbox-label-${label}`}
                   />
                   <div style={{ width: '12px', height: '12px', flexShrink: 0, backgroundColor: NODE_COLORS[label] || '#9CA3AF' }} />
-                  <span style={{ fontSize: '0.875rem', color: isDark ? '#F9FAFB' : '#111827' }}>{label}</span>
+                  <span style={{ fontSize: '0.875rem', color: 'var(--component-text-primary)' }}>{label}</span>
                 </label>
               ))}
             </div>
@@ -322,7 +323,7 @@ export function GraphFilters({
                     onChange={() => toggleRelationship(rel)}
                     data-testid={`checkbox-relationship-${rel}`}
                   />
-                  <span style={{ fontSize: '0.875rem', color: isDark ? '#F9FAFB' : '#111827' }}>{rel}</span>
+                  <span style={{ fontSize: '0.875rem', color: 'var(--component-text-primary)' }}>{rel}</span>
                 </label>
               ))}
             </div>
@@ -337,8 +338,8 @@ export function GraphFilters({
                 padding: '0.5rem 1rem',
                 borderRadius: '0.375rem',
                 border: 'none',
-                backgroundColor: isDark ? '#FFD700' : '#FBBF24',
-                color: isDark ? '#111827' : '#1F2937',
+                backgroundColor: 'var(--component-text-accent)',
+                color: 'var(--component-text-on-accent)',
                 fontWeight: 600,
                 cursor: 'pointer',
               }}
@@ -351,9 +352,9 @@ export function GraphFilters({
               style={{ 
                 padding: '0.5rem 1rem',
                 borderRadius: '0.375rem',
-                border: `1px solid ${isDark ? '#374151' : '#D1D5DB'}`,
+                border: `1px solid var(--component-panel-border)`,
                 backgroundColor: 'transparent',
-                color: isDark ? '#F9FAFB' : '#111827',
+                color: 'var(--component-text-primary)',
                 fontWeight: 500,
                 cursor: 'pointer',
               }}

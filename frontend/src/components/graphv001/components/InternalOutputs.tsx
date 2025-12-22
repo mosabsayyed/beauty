@@ -85,7 +85,7 @@ const InternalOutputs: React.FC<InternalOutputsProps> = ({
       ) : error ? (
         <ErrorState />
       ) : (
-        <div className="grid-container internal-outputs-grid">
+        <div className="grid-container internal-outputs-grid" style={{ minHeight: '300px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', width: '100%' }}>
           {dimensions.map(dim => (
             <DimensionModule key={dim.id} dimension={dim} isDark={isDark} language={language} />
           ))}

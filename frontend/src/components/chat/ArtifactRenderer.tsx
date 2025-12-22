@@ -96,12 +96,13 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 
 // Color constants for charts
 const CHART_COLORS = {
-  primary: 'var(--component-text-accent)', // Gold accent
-  gray1: 'var(--component-text-primary)',   // Text primary
-  gray2: 'var(--component-text-secondary)',   // Text secondary
-  gray3: 'var(--component-text-muted)',   // Text tertiary
-  gray4: 'var(--component-panel-border)',   // Border light
-  gray5: 'var(--component-bg-secondary)',   // Background light
+  primary: '#0F172A', // Slate 900
+  secondary: '#64748B', // Slate 500
+  gray1: '#F8FAFC',
+  gray2: '#E2E8F0',
+  gray3: '#CBD5E1',
+  gray4: '#94A3B8',
+  gray5: '#64748B'
 };
 
 const COLOR_SEQUENCE = [
@@ -228,7 +229,7 @@ function ArtifactRendererContent({ artifact, language = 'en', fullHeight = false
       case 'CHART':
         return <ChartRenderer artifact={artifact as ChartArtifact} />;
       case 'TABLE':
-        return <TableRenderer artifact={artifact as TableArtifact} />;
+        return <TableRenderer artifact={artifact as TableArtifact} language={language} fullHeight={fullHeight} />;
       case 'REPORT':
         return <ReportRenderer artifact={artifact as ReportArtifact} language={language} fullHeight={fullHeight} />;
       case 'DOCUMENT':
@@ -243,17 +244,28 @@ function ArtifactRendererContent({ artifact, language = 'en', fullHeight = false
         console.log('[ArtifactRenderer] Returning HtmlRenderer; content keys:', Object.keys(artifact.content || {}));
         return <HtmlRenderer artifact={artifact} />;
       case 'MARKDOWN':
-        // Assuming MarkdownRenderer exists and takes artifact
-        return <MarkdownRenderer artifact={artifact} />;
+        // Match MarkdownRendererProps: { content: string; title?: string }
+        const markdownBody = typeof artifact.content === 'string' ? artifact.content : (artifact.content?.body || JSON.stringify(artifact.content));
+        return <MarkdownRenderer content={markdownBody} title={artifact.title} />;
       case 'CODE':
-        // Assuming CodeRenderer exists and takes code, language, title
-        return <CodeRenderer code={artifact.content} language={artifact.language || 'text'} title={artifact.title} />;
-      case 'MEDIA':
-        // Assuming MediaRenderer exists and takes artifact
-        return <MediaRenderer artifact={artifact} />;
-      case 'FILE':
-        // Assuming FileRenderer exists and takes artifact
-        return <FileRenderer artifact={artifact} />;
+        // Match MarkdownRendererProps: { content: string; title?: string }
+        const codeStart = artifact.content as any;
+        const codeContent = typeof codeStart === 'string' ? codeStart : (codeStart.code || codeStart.body || JSON.stringify(codeStart, null, 2));
+        return <CodeRenderer code={codeContent} language={artifact.language || 'text'} title={artifact.title} />;
+      case 'MEDIA': {
+        const content = artifact.content as any;
+        return <MediaRenderer url={content.url} type={content.type} title={artifact.title} />;
+      }
+      case 'FILE': {
+        const content = artifact.content as any;
+        return <FileRenderer 
+          filename={content.filename || artifact.title} 
+          url={content.url} 
+          size={content.size} 
+          type={content.type} 
+          content={content.body} 
+        />;
+      }
       case 'JSON':
         // Assuming CodeRenderer can render JSON
         return <CodeRenderer code={JSON.stringify(artifact.content, null, 2)} language="json" title={artifact.title} />;
@@ -456,11 +468,13 @@ function ChartRenderer({ artifact }: { artifact: ChartArtifact }) {
             console.log('[ChartRenderer] Rendering chart type:', chartType);
             
             if (chartType === 'bar' || chartType === 'column') {
-              const xAxisLabel = content.xAxis;
-              const yAxisLabel = content.yAxis;
+              const xAxisObj = content.xAxis;
+              const yAxisObj = content.yAxis;
+              const xAxisLabel = typeof xAxisObj === 'string' ? xAxisObj : xAxisObj?.title?.text;
+              const yAxisLabel = typeof yAxisObj === 'string' ? yAxisObj : yAxisObj?.title?.text;
               const barColor = content.color || CHART_COLORS.primary;
-              // Try to resolve explicit key, or infer one
-              const actualXAxisKey = resolveDataKey(xAxisLabel, data?.[0]) || inferCategoryKey(data?.[0]);
+              // If xAxis is a string, it might be the key. If object, fallback to inference.
+              const actualXAxisKey = resolveDataKey(typeof xAxisObj === 'string' ? xAxisObj : undefined, data?.[0]) || inferCategoryKey(data?.[0]);
               const dataKeys = getNumericDataKeys(data?.[0], actualXAxisKey);
               return (
                 <BarChart data={data} {...commonProps} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
@@ -475,11 +489,13 @@ function ChartRenderer({ artifact }: { artifact: ChartArtifact }) {
                 </BarChart>
               );
             } else if (chartType === 'line') {
-              const xAxisLabel = content.xAxis;
-              const yAxisLabel = content.yAxis;
+              const xAxisObj = content.xAxis;
+              const yAxisObj = content.yAxis;
+              const xAxisLabel = typeof xAxisObj === 'string' ? xAxisObj : xAxisObj?.title?.text;
+              const yAxisLabel = typeof yAxisObj === 'string' ? yAxisObj : yAxisObj?.title?.text;
               const strokeWidth = content.strokeWidth || 2;
               // Try to resolve explicit key, or infer one
-              const actualXAxisKey = resolveDataKey(xAxisLabel, data?.[0]) || inferCategoryKey(data?.[0]);
+              const actualXAxisKey = resolveDataKey(typeof xAxisObj === 'string' ? xAxisObj : undefined, data?.[0]) || inferCategoryKey(data?.[0]);
               const dataKeys = getNumericDataKeys(data?.[0], actualXAxisKey);
               return (
                 <LineChart data={data} {...commonProps} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
@@ -494,10 +510,12 @@ function ChartRenderer({ artifact }: { artifact: ChartArtifact }) {
                 </LineChart>
               );
             } else if (chartType === 'area') {
-               const xAxisLabel = content.xAxis;
-               const yAxisLabel = content.yAxis;
+               const xAxisObj = content.xAxis;
+               const yAxisObj = content.yAxis;
+               const xAxisLabel = typeof xAxisObj === 'string' ? xAxisObj : xAxisObj?.title?.text;
+               const yAxisLabel = typeof yAxisObj === 'string' ? yAxisObj : yAxisObj?.title?.text;
                // Try to resolve explicit key, or infer one
-               const actualXAxisKey = resolveDataKey(xAxisLabel, data?.[0]) || inferCategoryKey(data?.[0]);
+               const actualXAxisKey = resolveDataKey(typeof xAxisObj === 'string' ? xAxisObj : undefined, data?.[0]) || inferCategoryKey(data?.[0]);
                const dataKeys = getNumericDataKeys(data?.[0], actualXAxisKey);
                return (
                  <AreaChart data={data} {...commonProps} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
@@ -512,12 +530,17 @@ function ChartRenderer({ artifact }: { artifact: ChartArtifact }) {
                  </AreaChart>
                );
             } else if (chartType === 'bubble') {
-              const xLabel = content.xAxis;
-              const yLabel = content.yAxis;
-              const zLabel = content.sizeMetric;
-              const xKey = resolveDataKey(xLabel, data?.[0]) || 'x';
-              const yKey = resolveDataKey(yLabel, data?.[0]) || 'y';
-              const zKey = resolveDataKey(zLabel, data?.[0]) || 'z';
+              const xObj = content.xAxis;
+              const yObj = content.yAxis;
+              const zObj = content.sizeMetric;
+              // Extract label strings
+              const xLabel = typeof xObj === 'string' ? xObj : xObj?.title?.text;
+              const yLabel = typeof yObj === 'string' ? yObj : yObj?.title?.text;
+              const zLabel = typeof zObj === 'string' ? zObj : zObj?.title?.text;
+              
+              const xKey = resolveDataKey(typeof xObj === 'string' ? xObj : undefined, data?.[0]) || 'x';
+              const yKey = resolveDataKey(typeof yObj === 'string' ? yObj : undefined, data?.[0]) || 'y';
+              const zKey = resolveDataKey(typeof zObj === 'string' ? zObj : undefined, data?.[0]) || 'z';
               return (
                 <ScatterChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.gray4} />
@@ -526,30 +549,45 @@ function ChartRenderer({ artifact }: { artifact: ChartArtifact }) {
                   <ZAxis type="number" dataKey={zKey} range={[100, 1000]} name={zLabel} />
                   <Tooltip cursor={{ strokeDasharray: '3 3' }} />
                   <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                  <Scatter name={content.title || 'Items'} data={data} fill={CHART_COLORS.primary} />
+                  <Scatter name={typeof content.title === 'string' ? content.title : content.title?.text || 'Items'} data={data} fill={CHART_COLORS.primary} />
                 </ScatterChart>
               );
             } else if (chartType === 'radar') {
-              const angleKey = resolveDataKey(content.xAxis, data?.[0]) || 'subject';
-              const valueKey = resolveDataKey(content.primary?.metric, data?.[0]) || 'A';
+              const xAxisObj = content.xAxis;
+              const angleKey = resolveDataKey(typeof xAxisObj === 'string' ? xAxisObj : undefined, data?.[0]) || 'subject';
+              
+              const primMetric = content.primary?.metric;
+              const valueKey = resolveDataKey(typeof primMetric === 'string' ? primMetric : primMetric?.title?.text, data?.[0]) || 'A';
+              
+              const titleText = typeof content.title === 'string' ? content.title : content.title?.text;
+              
               return (
                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
                   <PolarGrid stroke={CHART_COLORS.gray4} />
+                  {/* @ts-ignore */}
                   <PolarAngleAxis dataKey={angleKey} stroke={CHART_COLORS.gray2} fontSize={12} />
+                  {/* @ts-ignore */}
                   <PolarRadiusAxis angle={30} domain={[0, content.maxValue || 'auto']} stroke={CHART_COLORS.gray4} />
-                  <Radar name={content.title || 'Value'} dataKey={valueKey} stroke={CHART_COLORS.primary} fill={CHART_COLORS.primary} fillOpacity={0.3} />
+                  <Radar name={titleText || 'Value'} dataKey={valueKey} stroke={CHART_COLORS.primary} fill={CHART_COLORS.primary} fillOpacity={0.3} />
                   <Legend wrapperStyle={{ paddingTop: '10px' }} />
                   <Tooltip />
                 </RadarChart>
               );
             } else if (chartType === 'bullet') {
-              const measureLabel = (content as any).measure;
-              const targetLabel = (content as any).target;
+              const measureLabelObj = (content as any).measure;
+              const targetLabelObj = (content as any).target;
+              
+              const measureLabel = typeof measureLabelObj === 'string' ? measureLabelObj : measureLabelObj?.title?.text;
+              const targetLabel = typeof targetLabelObj === 'string' ? targetLabelObj : targetLabelObj?.title?.text;
+
               const measureKey = resolveDataKey(measureLabel, data?.[0]) || 'actual';
               const targetKey = resolveDataKey(targetLabel, data?.[0]) || 'target';
+              
+              const xAxisObj = content.xAxis;
+              
               // Use xAxis from content for the category name, or fallback to inferring it
               // Exclude the measure and target keys from inference
-              const nameKey = resolveDataKey(content.xAxis, data?.[0]) || inferCategoryKey(data?.[0], [measureKey, targetKey]);
+              const nameKey = resolveDataKey(typeof xAxisObj === 'string' ? xAxisObj : undefined, data?.[0]) || inferCategoryKey(data?.[0], [measureKey, targetKey]);
               return (
                 <ComposedChart layout="vertical" data={data} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.gray4} horizontal={false} />
@@ -562,12 +600,19 @@ function ChartRenderer({ artifact }: { artifact: ChartArtifact }) {
                 </ComposedChart>
               );
             } else if (chartType === 'combo') {
-              const primaryMetric = (content as any).primary?.metric;
-              const secondaryMetric = (content as any).secondary?.metric;
+              const primaryMetricObj = (content as any).primary?.metric;
+              const secondaryMetricObj = (content as any).secondary?.metric;
+              
+              const primaryMetric = typeof primaryMetricObj === 'string' ? primaryMetricObj : primaryMetricObj?.title?.text;
+              const secondaryMetric = typeof secondaryMetricObj === 'string' ? secondaryMetricObj : secondaryMetricObj?.title?.text;
+
               const barKey = resolveDataKey(primaryMetric, data?.[0]);
               const lineKey = resolveDataKey(secondaryMetric, data?.[0]);
+              
+              const xAxisObj = content.xAxis;
+              
               // Fix: Use content.xAxis to resolve the key, instead of hardcoded 'project'
-              const xAxisKey = resolveDataKey(content.xAxis, data?.[0]) || 'name';
+              const xAxisKey = resolveDataKey(typeof xAxisObj === 'string' ? xAxisObj : undefined, data?.[0]) || 'name';
               return (
                 <ComposedChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.gray4} />

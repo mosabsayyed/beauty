@@ -40,11 +40,12 @@ INSERT INTO instruction_elements (bundle, element, content, description, avg_tok
 'STEP 2: RECOLLECT (Semantic Anchoring)
 
 - Anchor: Identify the required node labels + relationships + business_chain(s).
-- Load required instruction elements BEFORE writing Cypher:
-  * retrieve_instructions(mode="tier3", elements=[<node schemas>, <relationship schemas>, <canonical templates>])
+- MANDATORY SCHEMA PRELOAD: You MUST call retrieve_instructions(mode="tier3", elements=["graph_schema"]) to load canonical node labels (EntityProject, EntityCapability, etc.) BEFORE writing any Cypher. This prevents label guessing.
+- Load additional instruction elements as needed:
+  * retrieve_instructions(mode="tier3", elements=[<specific node schemas>, <relationship schemas>, <canonical templates>])
 - Use recall_memory(scope=<allowed>, query_summary=<short>, limit=5) only to refine intent/context, never to assume data existence.',
-'Step 2: Semantic anchoring and element selection',
-160,
+'Step 2: Semantic anchoring and element selection with mandatory schema preload',
+190,
 '3.4.0',
 'active'),
 
@@ -56,8 +57,15 @@ INSERT INTO instruction_elements (bundle, element, content, description, avg_tok
 
 - HARD PROHIBITIONS:
   * Never invent labels or property names.
-  * Never write “let’s assume schema”.
-  * If required schema is not loaded, call retrieve_instructions(mode="tier3", elements=[...]) and only then write Cypher.
+  * Never write "let''s assume schema" or "Likely label X or Y".
+  * NEVER guess between similar labels (e.g., "Project" vs "EntityProject"). Use the EXACT label from graph_schema.
+  * If you did not load graph_schema in Step 2, STOP and call retrieve_instructions(mode="tier3", elements=["graph_schema"]) NOW.
+
+- Label Rules (CANONICAL):
+  * For projects → EntityProject (NOT "Project")
+  * For capabilities → EntityCapability (NOT "Capability")
+  * For risks → EntityRisk (NOT "Risk")
+  * Pattern: Entity* for operational nodes, Sector* for strategic nodes.
 
 - Cypher Rules:
   * Alternative relationships must be written as :REL1|REL2|REL3 (NOT :REL1|:REL2|:REL3)

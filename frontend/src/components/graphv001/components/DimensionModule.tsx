@@ -9,7 +9,7 @@ interface DimensionModuleProps {
   language: string;
 }
 
-const TrendArrow: React.FC<{ direction: 'up' | 'down' | 'steady' }> = ({ direction, isDark, language }) => {
+const TrendArrow: React.FC<{ direction: 'up' | 'down' | 'steady'; isDark?: boolean; language?: string }> = ({ direction, isDark, language }) => {
   // Theme object with access to isDark
   const theme = {
     muted: isDark ? '#9CA3AF' : '#6B7280',
@@ -50,7 +50,7 @@ const TrendArrow: React.FC<{ direction: 'up' | 'down' | 'steady' }> = ({ directi
 };
 
 
-const HorizontalBar: React.FC<{ label: string; value: number; max: number; target?: number }> = ({ label, value, max, target, isDark, language }) => {
+const HorizontalBar: React.FC<{ label: string; value: number; max: number; target?: number; isDark?: boolean; language?: string }> = ({ label, value, max, target, isDark, language }) => {
   // Theme object with access to isDark
   const theme = {
     muted: isDark ? '#9CA3AF' : '#6B7280',

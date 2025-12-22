@@ -41,6 +41,8 @@ export function FileRenderer({ url, filename, size, type, content }: FileRendere
     return <DocumentIcon className="w-8 h-8" />;
   };
 
+  const Player = ReactPlayer as any;
+
   return (
     <div className="w-full space-y-4">
       {/* File Card */}
@@ -70,8 +72,7 @@ export function FileRenderer({ url, filename, size, type, content }: FileRendere
       {/* Media Player */}
       {isMedia && fileUrl && (
         <div className="mt-4 border overflow-hidden bg-black flex items-center justify-center">
-          {/* @ts-ignore - ReactPlayer types can be finicky */}
-          <ReactPlayer
+          <Player
             url={fileUrl}
             controls
             width="100%"

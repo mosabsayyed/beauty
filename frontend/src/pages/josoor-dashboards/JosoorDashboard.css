@@ -1,0 +1,428 @@
+/* ===========================================
+   JOSOOR DASHBOARDS - SCREENSHOT MATCH V2
+   Exact V10/Blue Theme
+   =========================================== */
+
+.josoor-dashboard {
+  /* Map to Global styles_v9.css variables */
+  --jd-bg: var(--bg-page);           /* #0F172A */
+  --jd-sidebar: #0B1121;             /* Slightly darker than page for sidebar */
+  --jd-card-bg: var(--bg-card);      /* #1E293B */
+  --jd-card-border: var(--border-soft);
+  --jd-accent: var(--text-accent);   /* #38BDF8 */
+  --jd-text-primary: var(--text-primary);
+  --jd-text-dim: var(--text-secondary);
+  
+  --jd-gold: var(--accent-gold);
+  --jd-red: var(--accent-risk);
+  --jd-green: var(--accent-success);
+
+  display: flex;
+  height: 100vh;
+  background-color: var(--jd-bg);
+  color: var(--jd-text-primary);
+  /* Ensure font inheritance */
+  font-family: var(--font-body);
+}
+
+/* RTL Global Adjustments */
+[dir="rtl"] .josoor-dashboard {
+  font-family: 'Tajawal', 'Cairo', sans-serif; /* Use Arabic fonts */
+}
+
+[dir="rtl"] .jd-sidebar {
+  border-right: none;
+  border-left: 1px solid var(--jd-card-border);
+}
+
+[dir="rtl"] .jd-nav-item,
+[dir="rtl"] .feature-text li, 
+[dir="rtl"] .role-resps li {
+  text-align: right;
+}
+
+[dir="rtl"] .jd-logo-sub {
+  text-align: right;
+}
+
+/* Pulse Legend RTL */
+[dir="rtl"] .pulse-legend span:last-child {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+/* Chat Drawer RTL */
+[dir="rtl"] .chat-drawer {
+    right: auto;
+    left: 2rem;
+}
+
+/* ---- Sidebar ---- */
+.jd-sidebar {
+  width: 240px;
+  background-color: var(--jd-sidebar);
+  border-right: 1px solid var(--jd-card-border);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  flex-shrink: 0;
+}
+
+.jd-logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.5px;
+}
+
+.jd-logo-sub {
+  font-size: 0.7rem;
+  color: var(--jd-text-dim);
+  text-transform: uppercase;
+  margin-bottom: 2.5rem;
+}
+
+.jd-nav-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  color: var(--jd-text-dim);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.jd-nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+  color: #fff;
+}
+
+.jd-nav-item.active {
+  background-color: transparent;
+  border-color: var(--jd-gold);
+  color: #fff;
+}
+
+.jd-sidebar-spacer {
+  flex: 1;
+}
+
+.jd-lens-section {
+  margin-top: auto;
+}
+
+.jd-lens-title {
+  font-size: 0.7rem;
+  color: var(--jd-text-dim);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.jd-lens-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  color: var(--jd-text-dim);
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: 1px solid var(--jd-card-border);
+}
+
+.jd-lens-item.active {
+  border-color: var(--jd-gold);
+  color: var(--jd-gold);
+}
+
+/* ---- Main Area ---- */
+.jd-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Header */
+.jd-header {
+  height: 70px;
+  display: flex;
+  align-items: center;
+  padding: 0 2rem;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--jd-card-border);
+  background-color: var(--jd-bg);
+}
+
+.jd-page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.jd-header-roles {
+  display: flex;
+  gap: 1rem;
+}
+
+.jd-role-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--jd-text-dim);
+}
+
+.jd-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* Sub-nav tabs (Reporting Desk / Dep Desk / Risk Desk) */
+.jd-tabs-bar {
+  padding: 1rem 2rem 0;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.jd-tab-pill {
+  padding: 0.5rem 1.5rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--jd-text-dim);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.jd-tab-pill.active {
+  color: var(--jd-accent);
+  border-color: var(--jd-accent); /* Actually Gold in screenshot? Let's check. Ah, 'Dependency Desk' selected is Yellow/Gold outline */
+  border-color: var(--jd-gold);
+  color: #fff;
+}
+
+/* Content Grid */
+.jd-content-area {
+  flex: 1;
+  padding: 1.5rem 2rem;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* Main Dash vs Deep Dive */
+  gap: 1.5rem;
+}
+
+.jd-dashboard-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+
+/* ---- Cards ---- */
+.jd-card {
+  background-color: var(--jd-card-bg);
+  border: 1px solid var(--jd-card-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  position: relative;
+}
+
+.jd-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.jd-card-subtitle {
+  font-size: 0.75rem;
+  color: var(--jd-text-dim);
+  margin-bottom: 1rem;
+}
+
+/* Control Tower Layout */
+.ct-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* Portfolio Pulse */
+.pulse-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  height: 180px;
+}
+
+.pulse-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* Decision List */
+.decision-item {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--jd-card-border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.decision-header {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.decision-meta {
+  font-size: 0.75rem;
+  color: var(--jd-text-dim);
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Missing Inputs */
+.missing-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--jd-card-border);
+}
+
+.missing-dot {
+  margin-top: 4px;
+}
+
+/* Risk Signals */
+.signal-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--jd-card-border);
+  font-size: 0.9rem;
+}
+
+.signal-val.pos { color: var(--jd-gold); }
+.signal-val.neg { color: var(--jd-green); }
+
+/* ---- Dependency Graph ---- */
+.dep-graph-container {
+  height: 350px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ---- Deep Dive Panel (Right Column) ---- */
+.jd-deep-dive-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dd-card {
+  background-color: var(--jd-card-bg);
+  border: 1px solid var(--jd-card-border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.dd-header {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--jd-card-border);
+}
+
+.dd-selection-box {
+  border: 1px solid var(--jd-gold);
+  background: rgba(217, 119, 6, 0.1);
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.dd-action-btn {
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--jd-card-border);
+  border-radius: 6px;
+  color: var(--jd-text-dim);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dd-action-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+/* ---- Footer Chat ---- */
+.jd-footer-chat {
+  height: 60px;
+  background-color: var(--jd-bg);
+  border-top: 1px solid var(--jd-card-border);
+  display: flex;
+  align-items: center;
+  padding: 0 2rem;
+  gap: 1rem;
+}
+
+.chat-input-wrapper {
+  flex: 1;
+  background: var(--jd-card-bg);
+  border: 1px solid var(--jd-card-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+}
+
+.chat-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  outline: none;
+  font-size: 0.9rem;
+}
+
+.chat-send-btn {
+  background: transparent;
+  border: 1px solid var(--jd-gold);
+  color: var(--jd-gold);
+  padding: 0.25rem 1rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+}
+.toggle-switch.on { background: var(--jd-gold); }

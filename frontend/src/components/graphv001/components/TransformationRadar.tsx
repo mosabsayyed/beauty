@@ -17,10 +17,12 @@ export function TransformationRadar() {
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
           <PolarGrid stroke="rgba(255,255,255,0.1)" />
+          {/* @ts-ignore */}
           <PolarAngleAxis 
             dataKey="subject" 
             tick={{ fill: "#94a3b8", fontSize: 10, fontFamily: "Rajdhani" }}
           />
+          {/* @ts-ignore */}
           <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
           <Radar
             name="Actual"

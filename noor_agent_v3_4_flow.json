@@ -1,0 +1,210 @@
+{
+  "name": "Noor Agent v3.4 (Migrated)",
+  "description": "Migrated from Windows workflow via Gemini CLI script.",
+  "data": {
+    "nodes": [
+      {
+        "id": "ChatInput-41da0253-2877-4bba-948f-a41921a9f38f",
+        "type": "ChatInput",
+        "data": {
+          "node": {
+            "template": {
+              "input_value": {
+                "value": ""
+              }
+            }
+          },
+          "id": "ChatInput-41da0253-2877-4bba-948f-a41921a9f38f"
+        },
+        "position": {
+          "x": 0,
+          "y": 200
+        }
+      },
+      {
+        "id": "Prompt-16383c4c-85ac-4af7-851e-9ee03c1f4ecd",
+        "type": "Prompt",
+        "data": {
+          "node": {
+            "template": {
+              "template": {
+                "value": "TIER 1: LIGHTWEIGHT BOOTSTRAP (ALWAYS LOADED)\n\nYOUR ROLE\nYou are a Cognitive Digital Twin, an expert in Graph Databases, Sectoral Economics, and Organizational Transformation. Your core principle is: classify intent, then route accordingly using the 5-Step Cognitive Control Loop.\n\nYOUR IDENTITY\n- Grounded in factual data, eager to help, and vested in the success of the agency.\n- Professional, concise, and focused on delivering actionable insights.\n\n---\n\n**1. INTERACTION MODE CLASSIFICATION (Gatekeeper)**\n\nRead the user query and classify its intent into ONE mode. The classification drives the entire process.\n\n**[Requires Data - Proceeds to 5-Step Loop]**\n  *   **A (Simple Query):** Specific fact lookup, single entity retrieval.\n  *   **B (Complex Analysis):** Multi-hop reasoning, impact analysis, gap diagnosis.\n  *   **C (Continuation):** Follow-up query requiring new data or deeper analysis.\n  *   **D (Planning):** What-if scenarios, hypothetical data analysis.\n\n**[No Data - Quick Exit Path]**\n  *   **E (Clarification):** Ambiguous parameters, needs user input.\n  *   **F (Exploratory):** Brainstorming, general concept explanation.\n  *   **G (Acquaintance):** Questions about your role, identity, or functions.\n  *   **H (Learning):** Explanations of transformation concepts, ontology, or relations.\n  *   **I (Social/Emotional):** Greetings, expressing frustration/gratitude.\n  *   **J (Underspecified):** Ambiguous query, no clear path, needs clarification.\n\n---\n\n**2. MANDATORY 5-STEP COGNITIVE CONTROL LOOP (FOR MODES A, B, C, D)**\n\nIF mode in (A, B, C, D):\n  *   **STEP 0: REMEMBER:** Call `recall_memory` to retrieve relevant context.\n  *   **STEP 1: REQUIREMENTS:** LLM analyzes query + recalled_context, identifies needed elements.\n  *   **STEP 2: RECOLLECT:** Call `retrieve_instructions` to load task-specific bundles.\n  *   **STEP 3: RECALL:** Generate and execute Cypher (via `read_neo4j_cypher`).\n  *   **STEP 4: RECONCILE:** Synthesize data, diagnose gaps, calculate confidence.\n  *   **STEP 5: RETURN:** Format final JSON output.\n\nELSE (mode in E, F, G, H, I, J):\n  *   **QUICK EXIT PATH:** Generate an immediate, concise answer directly.\n  *   DO NOT call any tools or proceed to Step 0-5.\n\n---\n\n**3. CRITICAL RULES & OUTPUT FORMAT**\n\n*   **NO STREAMING:** Synchronous responses only.\n*   **NO COMMENTS IN JSON:** Strict valid JSON only.\n*   **TRUST TOOLS:** Do NOT re-query or verify tool results.\n*   **BUSINESS LANGUAGE ONLY:** Never mention technical terms like \"Node,\" \"Cypher,\" \"L3,\" \"ID,\" \"Query,\" \"Embedding.\" Use business equivalents.\n*   **HTML FORMATTING:** When generating HTML responses, use proper HTML elements (`<p>`, `<br>`, `<ul>`, `<li>`, `<table>`). AVOID raw `\\n` characters; use `<br>` or `<p>`.\n\n**OUTPUT FORMAT (ALL MODES)**\n\nUser Query: {user_query}\nDate: {date}"
+              },
+              "user_query": {
+                "value": ""
+              },
+              "date": {
+                "value": ""
+              }
+            }
+          },
+          "id": "Prompt-16383c4c-85ac-4af7-851e-9ee03c1f4ecd"
+        },
+        "position": {
+          "x": 300,
+          "y": 200
+        }
+      },
+      {
+        "id": "ToolCallingAgent-596f4aac-02a9-4586-bff6-209e8bead764",
+        "type": "ToolCallingAgent",
+        "data": {
+          "node": {
+            "template": {
+              "system_message": {
+                "value": ""
+              }
+            }
+          },
+          "id": "ToolCallingAgent-596f4aac-02a9-4586-bff6-209e8bead764"
+        },
+        "position": {
+          "x": 900,
+          "y": 200
+        }
+      },
+      {
+        "id": "CustomComponent-3d36b149-ac1a-4d52-9d8c-2a6d0c824e55",
+        "type": "CustomComponent",
+        "data": {
+          "node": {
+            "template": {
+              "code": {
+                "value": "from langflow.custom import CustomComponent\nfrom langflow.field_typing import Tool\nfrom langchain.tools import StructuredTool\nfrom pydantic import BaseModel, Field\nfrom typing import Literal, Optional\nimport json\n# Import your actual drivers/clients here if installed in the environment\n# from neo4j import GraphDatabase\n\nclass RecallMemoryComponent(CustomComponent):\n    display_name = \"Tool: Recall Memory\"\n    description = \"Retrieves semantic memory from Neo4j.\"\n\n    def build_config(self):\n        return {\n            \"neo4j_uri\": {\"display_name\": \"Neo4j URI\", \"value\": \"bolt://localhost:7687\"},\n            \"neo4j_user\": {\"display_name\": \"Neo4j User\", \"value\": \"neo4j\"},\n            \"neo4j_password\": {\"display_name\": \"Neo4j Password\", \"password\": True},\n        }\n\n    def build(\n        self,\n        neo4j_uri: str,\n        neo4j_user: str,\n        neo4j_password: str\n    ) -> Tool:\n        \n        # --- Internal Logic (The \"Brain\" of the Tool) ---\n        def recall_memory_logic(scope: str, query_summary: str, limit: int = 5):\n            \"\"\"\n            Retrieves memory using vector search. \n            (Actual DB logic goes here. For this component to work in LangFlow, \n            ensure 'neo4j' pip package is installed in your LangFlow env).\n            \"\"\"\n            # Placeholder for actual Neo4j connection & vector search\n            # In a real deployment, paste the full 'recall_memory' function \n            # from COGNITIVE_ARCHITECTURE_SPECIFICATION.md here.\n            \n            if scope in ['csuite', 'secrets']:\n                return \"Permission Error: Forbidden scope.\"\n            \n            return f\"[Mock Result] Found memory for '{query_summary}' in scope '{scope}'\"\n\n        # --- Tool Schema Definition ---\n        class RecallMemoryInput(BaseModel):\n            scope: Literal['personal', 'departmental', 'ministry'] = Field(..., description=\"Memory tier to search.\")\n            query_summary: str = Field(..., description=\"Semantic search query.\")\n            limit: int = Field(5, description=\"Max results.\")\n\n        return StructuredTool.from_function(\n            func=recall_memory_logic,\n            name=\"recall_memory\",\n            description=\"Retrieves relevant hierarchical memory using semantic search. Use for Step 0: REMEMBER.\",\n            args_schema=RecallMemoryInput\n        )"
+              }
+            }
+          },
+          "id": "CustomComponent-3d36b149-ac1a-4d52-9d8c-2a6d0c824e55"
+        },
+        "position": {
+          "x": 600,
+          "y": 0
+        }
+      },
+      {
+        "id": "CustomComponent-71be573e-f8e8-42db-ada9-e680dc91631a",
+        "type": "CustomComponent",
+        "data": {
+          "node": {
+            "template": {
+              "code": {
+                "value": "from langflow.custom import CustomComponent\nfrom langflow.field_typing import Tool\nfrom langchain.tools import StructuredTool\nfrom pydantic import BaseModel, Field\nfrom typing import Literal, List, Optional\n\nclass RetrieveInstructionsComponent(CustomComponent):\n    display_name = \"Tool: Retrieve Instructions\"\n    description = \"Fetches dynamic prompt bundles from Supabase.\"\n\n    def build_config(self):\n        return {\n            \"supabase_url\": {\"display_name\": \"Supabase URL\"},\n            \"supabase_key\": {\"display_name\": \"Supabase Key\", \"password\": True},\n        }\n\n    def build(self, supabase_url: str, supabase_key: str) -> Tool:\n        \n        def retrieve_logic(mode: Optional[str] = None, elements: Optional[List[str]] = None):\n            \"\"\"\n            Fetches instruction bundles.\n            Paste the full 'retrieve_instructions' logic from the Spec here.\n            \"\"\"\n            if elements:\n                return f\"<element name='{elements[0]}'>Mock Schema for {elements[0]}</element>\"\n            if mode:\n                return f\"Mock Instructions for Mode {mode}\"\n            return \"Error: No mode or elements provided.\"\n\n        class RetrieveInput(BaseModel):\n            mode: Optional[str] = Field(None, description=\"Interaction mode (A, B, C, D).\")\n            elements: Optional[List[str]] = Field(None, description=\"List of element tags.\")\n\n        return StructuredTool.from_function(\n            func=retrieve_logic,\n            name=\"retrieve_instructions\",\n            description=\"Dynamically loads Task-Specific Instruction Bundles. Use for Step 2: RECOLLECT.\",\n            args_schema=RetrieveInput\n        )"
+              }
+            }
+          },
+          "id": "CustomComponent-71be573e-f8e8-42db-ada9-e680dc91631a"
+        },
+        "position": {
+          "x": 600,
+          "y": 300
+        }
+      },
+      {
+        "id": "CustomComponent-b5e726e6-42e8-4369-b7f7-6d96899c57ae",
+        "type": "CustomComponent",
+        "data": {
+          "node": {
+            "template": {
+              "code": {
+                "value": "from langflow.custom import CustomComponent\nfrom langflow.field_typing import Tool\nfrom langchain.tools import StructuredTool\nfrom pydantic import BaseModel, Field\nfrom typing import Optional, Dict, Any\n\nclass ReadNeo4jComponent(CustomComponent):\n    display_name = \"Tool: Read Neo4j\"\n    description = \"Executes Cypher with strict validation.\"\n\n    def build_config(self):\n        return {\n            \"neo4j_uri\": {\"display_name\": \"Neo4j URI\", \"value\": \"bolt://localhost:7687\"},\n            \"neo4j_user\": {\"display_name\": \"Neo4j User\", \"value\": \"neo4j\"},\n            \"neo4j_password\": {\"display_name\": \"Neo4j Password\", \"password\": True},\n        }\n\n    def build(self, neo4j_uri: str, neo4j_user: str, neo4j_password: str) -> Tool:\n        \n        def cypher_logic(cypher_query: str, parameters: Optional[Dict[str, Any]] = None):\n            \"\"\"\n            Executes Cypher. \n            Paste the 'read_neo4j_cypher' logic from the Spec here \n            (including the Trap Prevention regex checks).\n            \"\"\"\n            # 1. Trap Prevention (Validation)\n            if \"SKIP\" in cypher_query.upper() or \"OFFSET\" in cypher_query.upper():\n                return \"Error: SKIP/OFFSET forbidden. Use keyset pagination.\"\n            \n            # 2. Execution (Mock for now)\n            return f\"[Mock Result] Executed: {cypher_query}\"\n\n        class CypherInput(BaseModel):\n            cypher_query: str = Field(..., description=\"Valid Cypher query.\")\n            parameters: Optional[Dict[str, Any]] = Field(None, description=\"Query parameters.\")\n\n        return StructuredTool.from_function(\n            func=cypher_logic,\n            name=\"read_neo4j_cypher\",\n            description=\"Executes validated Cypher query against Neo4j. Use for Step 3: RECALL.\",\n            args_schema=CypherInput\n        )"
+              }
+            }
+          },
+          "id": "CustomComponent-b5e726e6-42e8-4369-b7f7-6d96899c57ae"
+        },
+        "position": {
+          "x": 600,
+          "y": 600
+        }
+      },
+      {
+        "id": "GroqModel-02425852-2be4-4896-b822-0f9bbffbbc47",
+        "type": "GroqModel",
+        "data": {
+          "node": {
+            "template": {
+              "model_name": {
+                "value": "llama-3.1-70b-versatile"
+              },
+              "temperature": {
+                "value": 0.1
+              }
+            }
+          },
+          "id": "GroqModel-02425852-2be4-4896-b822-0f9bbffbbc47"
+        },
+        "position": {
+          "x": 600,
+          "y": 900
+        }
+      },
+      {
+        "id": "ChatOutput-36dc2b21-1211-4c75-9311-9a9c20d86f02",
+        "type": "ChatOutput",
+        "data": {
+          "node": {
+            "template": {
+              "input_value": {
+                "value": ""
+              }
+            }
+          },
+          "id": "ChatOutput-36dc2b21-1211-4c75-9311-9a9c20d86f02"
+        },
+        "position": {
+          "x": 1200,
+          "y": 200
+        }
+      }
+    ],
+    "edges": [
+      {
+        "source": "ChatInput-41da0253-2877-4bba-948f-a41921a9f38f",
+        "target": "Prompt-16383c4c-85ac-4af7-851e-9ee03c1f4ecd",
+        "sourceHandle": "message",
+        "targetHandle": "user_query"
+      },
+      {
+        "source": "Prompt-16383c4c-85ac-4af7-851e-9ee03c1f4ecd",
+        "target": "ToolCallingAgent-596f4aac-02a9-4586-bff6-209e8bead764",
+        "sourceHandle": "prompt",
+        "targetHandle": "system_message"
+      },
+      {
+        "source": "GroqModel-02425852-2be4-4896-b822-0f9bbffbbc47",
+        "target": "ToolCallingAgent-596f4aac-02a9-4586-bff6-209e8bead764",
+        "sourceHandle": "llm",
+        "targetHandle": "llm"
+      },
+      {
+        "source": "CustomComponent-3d36b149-ac1a-4d52-9d8c-2a6d0c824e55",
+        "target": "ToolCallingAgent-596f4aac-02a9-4586-bff6-209e8bead764",
+        "sourceHandle": "tool",
+        "targetHandle": "tools"
+      },
+      {
+        "source": "CustomComponent-71be573e-f8e8-42db-ada9-e680dc91631a",
+        "target": "ToolCallingAgent-596f4aac-02a9-4586-bff6-209e8bead764",
+        "sourceHandle": "tool",
+        "targetHandle": "tools"
+      },
+      {
+        "source": "CustomComponent-b5e726e6-42e8-4369-b7f7-6d96899c57ae",
+        "target": "ToolCallingAgent-596f4aac-02a9-4586-bff6-209e8bead764",
+        "sourceHandle": "tool",
+        "targetHandle": "tools"
+      },
+      {
+        "source": "ToolCallingAgent-596f4aac-02a9-4586-bff6-209e8bead764",
+        "target": "ChatOutput-36dc2b21-1211-4c75-9311-9a9c20d86f02",
+        "sourceHandle": "response",
+        "targetHandle": "message"
+      }
+    ],
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "zoom": 1
+    }
+  }
+}

@@ -1,0 +1,7 @@
+---
+description: Provide a concise, machine-actionable contract for coding agents working in this repository. Emphasize safety, minimal assumptions, and explicit user approval for high-impact changes.
+globs: *.*
+alwaysApply: true
+---
+
+- Provide a concise, machine-actionable contract for coding agents working in this repository. Emphasize safety, minimal assumptions, and explicit user approval for high-impact changes.

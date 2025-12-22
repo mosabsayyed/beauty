@@ -99,19 +99,7 @@ class ChatService {
         return artifact;
       });
     }
-    if (response.visualizations) {
-      response.visualizations = response.visualizations.map((artifact: any) => {
-        const type = String(artifact.type || '').toLowerCase();
-        if (type === 'html') {
-             return {
-                ...artifact,
-                artifact_type: 'HTML',
-                content: artifact.content || artifact.html || artifact.body
-            };
-        }
-        return this.adaptChartArtifact(artifact);
-      });
-    }
+    // Removed dual visualizations handling - now unified to artifacts only
     return response;
   }
 

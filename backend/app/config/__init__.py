@@ -51,4 +51,16 @@ class Settings:
     DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() == "true"
     DEBUG_PROMPTS = os.getenv("DEBUG_PROMPTS", "false").lower() == "true"
 
+    # Groq / LLM Model Selection
+    GROQ_MODEL_PRIMARY = os.getenv("GROQ_MODEL_PRIMARY", "openai/gpt-oss-20b")
+    GROQ_MODEL_FALLBACK = os.getenv("GROQ_MODEL_FALLBACK", "llama-3.3-70b-versatile")
+    GROQ_MODEL_ALT = os.getenv("GROQ_MODEL_ALT", "openai/gpt-oss-120b")
+
+    # Local LLM (optional, for offline/dev testing via Ollama, LM Studio, or compatible APIs)
+    LOCAL_LLM_ENABLED = os.getenv("LOCAL_LLM_ENABLED", "false").lower() == "true"
+    LOCAL_LLM_MODEL = os.getenv("LOCAL_LLM_MODEL", "llama3.1:8b")
+    LOCAL_LLM_BASE_URL = os.getenv("LOCAL_LLM_BASE_URL") or os.getenv("OLLAMA_URL") or "http://localhost:11434"
+    LOCAL_LLM_TIMEOUT = int(os.getenv("LOCAL_LLM_TIMEOUT", "60"))
+    LOCAL_LLM_USE_RESPONSES_API = os.getenv("LOCAL_LLM_USE_RESPONSES_API", "false").lower() == "true"
+
 settings = Settings()

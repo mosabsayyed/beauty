@@ -1,0 +1,30 @@
+/* DualLensHUD.css - V1.3 Compliant Styles */
+/* Uses theme.css variables ONLY - NO hardcoded colors */
+
+.v2-radar-title {
+    font-family: var(--component-font-heading);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--component-text-primary);
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.v2-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--component-text-muted);
+    font-size: 0.9rem;
+}
+
+.v2-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--component-text-muted);
+    font-size: 0.85rem;
+    padding: 2rem;
+    text-align: center;
+}

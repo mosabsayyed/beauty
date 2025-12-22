@@ -100,8 +100,8 @@ const StrategicInsights: React.FC<StrategicInsightsProps> = ({ data, isDark, lan
             <div className="insight-header">
                 <h3 className="insight-title" style={{ color: isDark ? '#F9FAFB' : '#1F2937' }}>{insight1?.title || t('nodeDist')}</h3>
             </div>
-            <div className="chart-container">
-                <div className="chart-absolute-fill">
+            <div className="chart-container relative w-full" style={{ height: '200px', width: '100%', position: 'relative' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 0 }}>
                         <CartesianGrid stroke={theme.borderColor} />
@@ -129,8 +129,8 @@ const StrategicInsights: React.FC<StrategicInsightsProps> = ({ data, isDark, lan
             <div className="insight-header">
                 <h3 className="insight-title" style={{ color: isDark ? '#F9FAFB' : '#1F2937' }}>{insight2?.title || t('growthTrend')}</h3>
             </div>
-            <div className="chart-container">
-                <div className="chart-absolute-fill">
+            <div className="chart-container relative w-full" style={{ height: '200px', width: '100%', position: 'relative' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }}>
                   <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={insight2Data} margin={{ top: 10, right: 10, bottom: 20, left: 10 }}>
                           <CartesianGrid stroke={theme.borderColor} vertical={false} />
@@ -153,8 +153,8 @@ const StrategicInsights: React.FC<StrategicInsightsProps> = ({ data, isDark, lan
              <div className="insight-header">
                 <h3 className="insight-title" style={{ color: isDark ? '#F9FAFB' : '#1F2937' }}>{insight3?.title || t('netImpact')}</h3>
             </div>
-            <div className="chart-container">
-                <div className="chart-absolute-fill">
+            <div className="chart-container relative w-full" style={{ height: '200px', width: '100%', position: 'relative' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={insight3Data} margin={{ top: 10, right: 10, bottom: 20, left: 10 }}>
                         <CartesianGrid stroke={theme.borderColor} vertical={false} />

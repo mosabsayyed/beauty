@@ -1,0 +1,184 @@
+Compiled with problems:
+×
+ERROR in src/components/graphv001/components/ui/sidebar.tsx:8:29
+TS2307: Cannot find module '@/hooks/use-mobile' or its corresponding type declarations.
+     6 | import { PanelLeftIcon } from "lucide-react"
+     7 |
+  >  8 | import { useIsMobile } from "@/hooks/use-mobile"
+       |                             ^^^^^^^^^^^^^^^^^^^^
+     9 | import { cn } from "../../lib/utils"
+    10 | import { Button } from "@/components/ui/button"
+    11 | import { Input } from "@/components/ui/input"
+ERROR in src/components/ui/pagination.tsx:79:19
+TS2304: Cannot find name 'translations'.
+    77 |   return (
+    78 |     <PaginationLink
+  > 79 |       aria-label={translations.go_to_previous_page}
+       |                   ^^^^^^^^^^^^
+    80 |       size="default"
+    81 |       className={cn("gap-1 px-2.5 sm:pl-2.5", className)}
+    82 |       {...props}
+ERROR in src/components/ui/pagination.tsx:85:42
+TS2304: Cannot find name 'translations'.
+    83 |     >
+    84 |       <ChevronLeftIcon />
+  > 85 |       <span className="hidden sm:block">{translations.previous}</span>
+       |                                          ^^^^^^^^^^^^
+    86 |     </PaginationLink>
+    87 |   );
+    88 | }
+ERROR in src/components/ui/pagination.tsx:96:19
+TS2304: Cannot find name 'translations'.
+    94 |   return (
+    95 |     <PaginationLink
+  > 96 |       aria-label={translations.go_to_next_page}
+       |                   ^^^^^^^^^^^^
+    97 |       size="default"
+    98 |       className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
+    99 |       {...props}
+ERROR in src/components/ui/pagination.tsx:101:42
+TS2304: Cannot find name 'translations'.
+     99 |       {...props}
+    100 |     >
+  > 101 |       <span className="hidden sm:block">{translations.next}</span>
+        |                                          ^^^^^^^^^^^^
+    102 |       <ChevronRightIcon />
+    103 |     </PaginationLink>
+    104 |   );
+ERROR in src/components/ui/pagination.tsx:119:34
+TS2304: Cannot find name 'translations'.
+    117 |     >
+    118 |       <MoreHorizontalIcon className="size-4" />
+  > 119 |       <span className="sr-only">{translations.more_pages}</span>
+        |                                  ^^^^^^^^^^^^
+    120 |     </span>
+    121 |   );
+    122 | }
+ERROR in src/components/ui/sidebar.tsx:8:29
+TS2307: Cannot find module './use-mobile' or its corresponding type declarations.
+     6 | import { PanelLeftIcon } from "lucide-react";
+     7 |
+  >  8 | import { useIsMobile } from "./use-mobile";
+       |                             ^^^^^^^^^^^^^^
+     9 | import { useLanguage } from '../../contexts/LanguageContext';
+    10 | import { cn } from "./utils";
+    11 | import { Button } from "./button";
+ERROR in src/components/ui/toast.tsx:6:20
+TS2307: Cannot find module '@/lib/utils' or its corresponding type declarations.
+    4 | import { X } from "lucide-react"
+    5 |
+  > 6 | import { cn } from "@/lib/utils"
+      |                    ^^^^^^^^^^^^^
+    7 |
+    8 | const ToastProvider = ToastPrimitives.Provider
+    9 |
+ERROR in src/data/content.ts:1:35
+TS2307: Cannot find module '../att/types' or its corresponding type declarations.
+  > 1 | import { Language, Chapter } from '../att/types';
+      |                                   ^^^^^^^^^^^^^^
+    2 |
+    3 | export const content: Record<Language, any> = {
+    4 |   en: {
+ERROR in src/lib/services/authService.test.ts:1:123
+TS2307: Cannot find module './authService' or its corresponding type declarations.
+  > 1 | import { persistSession, startGuestSession, saveGuestConversations, getGuestConversations, clearGuestConversations } from './authService';
+      |                                                                                                                           ^^^^^^^^^^^^^^^
+    2 |
+    3 | describe('authService persistSession guest behavior', () => {
+    4 |   beforeEach(() => {
+ERROR in src/lib/services/chatService.test.ts:1:29
+TS2307: Cannot find module './chatService' or its corresponding type declarations.
+  > 1 | import { chatService } from './chatService';
+      |                             ^^^^^^^^^^^^^^^
+    2 |
+    3 | describe('chatService.getConversations', () => {
+    4 |   const originalFetch = global.fetch;
+ERROR in src/pages/josoor-dashboards/ControlTower.tsx:119:25
+TS2322: Type '{ data: OutcomesData; isDark: true; language: Language; }' is not assignable to type 'IntrinsicAttributes & SectorOutcomesProps'.
+  Property 'data' does not exist on type 'IntrinsicAttributes & SectorOutcomesProps'.
+    117 |                      
+    118 |                      <SectorOutcomes 
+  > 119 |                         data={data.outcomes}
+        |                         ^^^^
+    120 |                         isDark={isDark}
+    121 |                         language={language}
+    122 |                      />
+ERROR in src/pages/josoor-dashboards/JosoorDashboardPage.tsx:61:13
+TS2345: Argument of type '{ query: string; conversation_id: number; push_to_graph_server: boolean; }' is not assignable to parameter of type 'ChatRequest'.
+  Object literal may only specify known properties, and 'push_to_graph_server' does not exist in type 'ChatRequest'.
+    59 |             query: userText,
+    60 |             conversation_id: activeConversationId || undefined,
+  > 61 |             push_to_graph_server: false 
+       |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    62 |         });
+    63 |
+    64 |         // Store active conversation ID if new
+ERROR in src/pages/josoor-dashboards/JosoorDashboardPage.tsx:71:22
+TS2339: Property 'llm_payload' does not exist on type 'ChatResponse'.
+    69 |         // Parse response content
+    70 |         let content = '';
+  > 71 |         if (response.llm_payload) {
+       |                      ^^^^^^^^^^^
+    72 |              const payload = response.llm_payload;
+    73 |              content = payload.answer || payload.message || payload.thought || JSON.stringify(payload);
+    74 |         } else {
+ERROR in src/pages/josoor-dashboards/JosoorDashboardPage.tsx:72:39
+TS2339: Property 'llm_payload' does not exist on type 'ChatResponse'.
+    70 |         let content = '';
+    71 |         if (response.llm_payload) {
+  > 72 |              const payload = response.llm_payload;
+       |                                       ^^^^^^^^^^^
+    73 |              content = payload.answer || payload.message || payload.thought || JSON.stringify(payload);
+    74 |         } else {
+    75 |             content = response.message || response.answer || JSON.stringify(response);
+ERROR in src/pages/josoor-dashboards/JosoorDashboardPage.tsx:75:52
+TS2339: Property 'answer' does not exist on type 'ChatResponse'.
+    73 |              content = payload.answer || payload.message || payload.thought || JSON.stringify(payload);
+    74 |         } else {
+  > 75 |             content = response.message || response.answer || JSON.stringify(response);
+       |                                                    ^^^^^^
+    76 |         }
+    77 |
+    78 |         setChatMessages(prev => [...prev, { role: 'assistant', text: content }]);
+ERROR in src/pages/josoor-dashboards/RiskDesk.tsx:83:29
+TS2322: Type '{ data: OutcomesData; isDark: true; language: Language; }' is not assignable to type 'IntrinsicAttributes & SectorOutcomesProps'.
+  Property 'data' does not exist on type 'IntrinsicAttributes & SectorOutcomesProps'.
+    81 |                     <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+    82 |                          <SectorOutcomes 
+  > 83 |                             data={data?.outcomes}
+       |                             ^^^^
+    84 |                             isDark={isDark}
+    85 |                             language={language}
+    86 |                          />
+ERROR in src/pages/ObservabilityPage.tsx:229:25
+TS2677: A type predicate's type must be assignable to its parameter's type.
+  Type '{ text: string; type?: string; }' is not assignable to type '{ text: string; type?: undefined; } | { text: string; type: any; }'.
+    Type '{ text: string; type?: string; }' is not assignable to type '{ text: string; type: any; }'.
+      Property 'type' is optional in type '{ text: string; type?: string; }' but required in type '{ text: string; type: any; }'.
+    227 |         return { text: JSON.stringify(item) };
+    228 |       })
+  > 229 |       .filter((x): x is { text: string; type?: string } => Boolean(x));
+        |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    230 |   }
+    231 |
+    232 |   if (typeof thought === 'string') return [{ text: thought }];
+ERROR in src/utils/canvasActions.ts:20:7
+TS2345: Argument of type '{ scale: number; useCORS: true; logging: false; backgroundColor: string; }' is not assignable to parameter of type 'Html2CanvasOptions'.
+  Object literal may only specify known properties, and 'scale' does not exist in type 'Html2CanvasOptions'.
+    18 |   try {
+    19 |     const canvas = await html2canvas(element, {
+  > 20 |       scale: 2, // Higher quality
+       |       ^^^^^^^^
+    21 |       useCORS: true,
+    22 |       logging: false,
+    23 |       backgroundColor: '#111827' // Dark background for PDF
+ERROR in src/utils/canvasActions.ts:97:7
+TS2345: Argument of type '{ scale: number; useCORS: true; logging: false; backgroundColor: string; }' is not assignable to parameter of type 'Html2CanvasOptions'.
+  Object literal may only specify known properties, and 'scale' does not exist in type 'Html2CanvasOptions'.
+     95 |   try {
+     96 |     const canvas = await html2canvas(element, {
+  >  97 |       scale: 2,
+        |       ^^^^^^^^
+     98 |       useCORS: true,
+     99 |       logging: false,
+    100 |       backgroundColor: '#111827' // Match theme

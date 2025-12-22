@@ -1,4 +1,17 @@
-import { Language, Chapter } from '../att/types';
+export type Language = 'en' | 'ar';
+
+export interface Episode {
+  type: string;
+  title: string;
+  description: string;
+  duration: string;
+}
+
+export interface Chapter {
+  id: number;
+  title: string;
+  episodes: Episode[];
+}
 
 export const content: Record<Language, any> = {
   en: {

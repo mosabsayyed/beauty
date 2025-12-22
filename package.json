@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@genkit-ai/google-genai": "^1.25.0",
+    "@openrouter/sdk": "^0.3.1",
     "genkit": "^1.25.0"
   }
 }

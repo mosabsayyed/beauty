@@ -74,6 +74,8 @@ function PaginationPrevious({
   className,
   ...props
 }: React.ComponentProps<typeof PaginationLink>) {
+  const { language } = useLanguage();
+  const translations = language === 'ar' ? ar : en;
   return (
     <PaginationLink
       aria-label={translations.go_to_previous_page}
@@ -91,6 +93,8 @@ function PaginationNext({
   className,
   ...props
 }: React.ComponentProps<typeof PaginationLink>) {
+  const { language } = useLanguage();
+  const translations = language === 'ar' ? ar : en;
   return (
     <PaginationLink
       aria-label={translations.go_to_next_page}
@@ -108,6 +112,8 @@ function PaginationEllipsis({
   className,
   ...props
 }: React.ComponentProps<"span">) {
+  const { language } = useLanguage();
+  const translations = language === 'ar' ? ar : en;
   return (
     <span
       aria-hidden

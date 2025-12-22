@@ -85,6 +85,7 @@ class ChatRequest(BaseModel):
     history: Optional[List[Dict[str, str]]] = None
     push_to_graph_server: Optional[bool] = False
     file_ids: Optional[List[str]] = None  # NEW: Accept file IDs
+    model_override: Optional[str] = None  # Allow client to request a specific model alias
 
 
 class Artifact(BaseModel):
@@ -98,7 +99,7 @@ class ChatResponse(BaseModel):
     conversation_id: int
     message: str
     answer: Optional[str] = None
-    visualization: Optional[dict] = None
+    # Removed visualization field - unified to artifacts only
     insights: List[str] = []  # Changed from List[dict] to List[str]
     artifacts: List[Artifact] = []  # Changed to list for multiple artifacts
     clarification_needed: Optional[bool] = False
@@ -198,6 +199,13 @@ async def send_message(
         persona_name = 'noor'  # Staff always uses Noor
     elif user_role == 'exec':
         persona_name = 'maestro'  # Execs always use Maestro
+
+    # Force persona to 'noor' per request to avoid Maestro path during testing/ops
+    persona_name = 'noor'
+
+    allowed_model_aliases = {"20b", "70b", "120b", "primary", "fallback", "alt", "local"}
+    if request.model_override and request.model_override.lower() not in allowed_model_aliases:
+        raise HTTPException(status_code=400, detail="Invalid model_override. Use one of: primary, fallback, alt, 20b, 70b, 120b, local")
     
     try:
         # Get or create conversation (only when authenticated)
@@ -285,7 +293,8 @@ async def send_message(
                 user_query=request.query,
                 session_id=session_id,
                 history=conversation_context,  # Note: history not conversation_history
-                user_id=user_id  # Pass authenticated user ID for memory isolation
+                user_id=user_id,  # Pass authenticated user ID for memory isolation
+                model_override=request.model_override
             )
         # v3.0 Single-Call MCP Architecture (deprecated) - now synchronous
         elif orchestrator_type == "NoorV3Orchestrator":
@@ -294,7 +303,8 @@ async def send_message(
                 user_query=request.query,
                 session_id=session_id,
                 history=conversation_context,
-                user_id=user_id  # Pass authenticated user ID for memory isolation
+                user_id=user_id,  # Pass authenticated user ID for memory isolation
+                model_override=request.model_override
             )
         else:
             # v2.x Legacy synchronous orchestrator
@@ -429,18 +439,18 @@ async def send_message(
                 
                 # Check for HTML visualization first
                 html_content = None
-                visualizations = []
+                artifacts = []  # Updated to unified artifacts field
                 
                 if isinstance(llm_payload, dict):
-                    visualizations = llm_payload.get('visualizations') or []
+                    artifacts = llm_payload.get('artifacts') or []
                 elif isinstance(llm_response, dict):
-                    visualizations = llm_response.get('visualizations') or []
+                    artifacts = llm_response.get('artifacts') or []
                     
-                for viz in visualizations:
-                    if isinstance(viz, dict):
-                        viz_type = str(viz.get('type', '')).lower()
-                        if viz_type == 'html':
-                            html_content = viz.get('content')
+                for artifact in artifacts:
+                    if isinstance(artifact, dict):
+                        artifact_type = str(artifact.get('type', '')).lower()
+                        if artifact_type == 'html':
+                            html_content = artifact.get('content')
                             break
                 
                 if html_content:
@@ -468,7 +478,7 @@ async def send_message(
                             'pushed': True,
                             'status': resp.status_code,
                             'summary_length': len(summary_text),
-                            'visualizations_count': len(visualizations),
+                            'artifacts_count': len(artifacts),  # Updated to artifacts
                             'extraction_source': 'html_viz' if html_content else 'payload_fallback'
                         }
                 else:
@@ -476,7 +486,7 @@ async def send_message(
                     response_payload['graph_server_debug'] = {
                         'pushed': False,
                         'reason': 'no_summary_text_found',
-                        'prevented_viz': [str(v.get('type')) for v in visualizations] if visualizations else [],
+                        'prevented_artifacts': [str(a.get('type')) for a in artifacts] if artifacts else [],  # Updated to artifacts
                         'llm_payload_keys': list(llm_payload.keys()) if isinstance(llm_payload, dict) else str(type(llm_payload))
                     }
 

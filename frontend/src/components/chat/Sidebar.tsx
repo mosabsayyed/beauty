@@ -38,7 +38,7 @@ interface QuickAction {
  * 
  * Each action.id maps to a handler in ChatAppPage.handleQuickAction():
  *   - 'knowledge'    → Opens TwinKnowledge component (with landing page)
- *   - 'demo'         → Opens GraphDashboard for Strategic Planning (with landing page)
+ *   - 'demo'         → Opens Investor Demo walkthrough hub
  *   - 'architecture' → Opens ProductRoadmap component (DIRECT - no landing page)
  *   - 'approach'     → Opens PlanYourJourney component (DIRECT - no landing page)
  * 

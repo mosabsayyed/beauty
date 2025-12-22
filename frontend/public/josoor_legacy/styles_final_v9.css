@@ -1,0 +1,632 @@
+/* =========================================
+   JOSOOR VISUAL BLUEPRINT V5 - STYLES
+   ========================================= */
+
+:root {
+    /* Theme Colors (From Blueprint) */
+    --bg-page: #0F172A;      /* Dark Slate 900 */
+    --bg-card: #1E293B;      /* Dark Slate 800 */
+    --bg-card-hover: #334155;
+    --border-soft: rgba(148, 163, 184, 0.1); 
+    --border-highlight: rgba(148, 163, 184, 0.3);
+
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --text-accent: #38BDF8;  /* Light Blue for interactive */
+    
+    --accent-gold: #F59E0B;
+    --accent-risk: #EF4444;
+    --accent-success: #10B981;
+
+    /* Spacing */
+    --spacing-section: 120px;
+    --spacing-gap: 2rem;
+
+    /* Typography */
+    --font-heading: 'Inter', sans-serif; /* Matching App */
+    --font-body: 'Inter', sans-serif;
+}
+
+/* Base Reset */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Layout Grid */
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    position: relative;
+}
+
+/* =========================================
+   2. HEADER (Sticky)
+   ========================================= */
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-soft);
+    padding: 1rem 0;
+}
+.header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.logo { font-weight: 800; font-size: 1.5rem; letter-spacing: -1px; color: var(--text-primary); text-decoration: none; }
+.nav-links { display: flex; gap: 2rem; }
+.nav-link { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+.nav-link:hover { color: var(--text-primary); }
+
+.header-actions { display: flex; gap: 1rem; }
+.btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+.btn-secondary { background: transparent; border: 1px solid var(--border-soft); color: var(--text-primary); }
+.btn-secondary:hover { border-color: var(--text-secondary); }
+.btn-primary { background: var(--text-primary); color: var(--bg-page); border: 1px solid var(--text-primary); }
+.btn-primary:hover { background: #e2e8f0; }
+
+
+/* =========================================
+   3. HERO SECTION
+   ========================================= */
+.hero-section {
+    padding: 6rem 0;
+    border-bottom: 1px solid var(--border-soft);
+}
+.hero-grid {
+    display: grid;
+    grid-template-columns: 5fr 7fr;
+    gap: 4rem;
+    align-items: center;
+}
+.hero-content h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+}
+.hero-subhead {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+.micro-metrics {
+    display: flex;
+    gap: 1rem;
+}
+.metric-chip {
+    background: rgba(255,255,255,0.05);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: var(--accent-success);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    display: flex; align-items: center; gap: 6px;
+}
+.metric-chip.neutral { color: var(--text-secondary); border-color: var(--border-soft); }
+
+/* Product Frame (Used Everywhere) */
+.product-frame {
+    background: #000;
+    border-radius: 12px;
+    border: 1px solid var(--border-soft);
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+    overflow: hidden;
+    position: relative;
+}
+.frame-top-bar {
+    height: 12px;
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+    display: flex; gap: 6px; align-items: center; padding-left: 10px;
+}
+.dot { width: 4px; height: 4px; border-radius: 50%; background: #475569; }
+.product-img {
+    width: 100%;
+    display: block;
+    height: auto;
+}
+
+/* Hover Pins */
+.pin {
+    position: absolute;
+    width: 24px; height: 24px;
+    background: var(--text-primary);
+    color: var(--bg-page);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px;
+    cursor: help;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    z-index: 10;
+}
+.pin:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: #000; color: #fff; padding: 6px 12px;
+    font-size: 0.75rem; border-radius: 4px; white-space: nowrap;
+}
+
+
+/* =========================================
+   4. PROBLEM TRIO
+   ========================================= */
+.problem-section { padding: 4rem 0; }
+.trio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+.problem-card {
+    background: var(--bg-card);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-soft);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.problem-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px -5px rgba(0,0,0,0.3);
+    border-color: var(--border-highlight);
+}
+.icon-box {
+    width: 48px; height: 48px;
+    background: rgba(56, 189, 248, 0.1);
+    color: var(--text-accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.5rem;
+}
+.problem-card h3 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+.problem-card p { font-size: 0.95rem; color: var(--text-secondary); }
+
+
+/* =========================================
+   5. PROOF STRIP
+   ========================================= */
+.proof-section { padding: 6rem 0; text-align: center; }
+.preview-container { margin-bottom: 3rem; max-width: 1000px; margin-left: auto; margin-right: auto; }
+.strip-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+    max-width: 1000px; margin: 0 auto;
+}
+.screen-tile {
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    position: relative;
+}
+.screen-tile.active { opacity: 1; border: 2px solid var(--text-accent); }
+.screen-tile img { width: 100%; border-radius: 8px; }
+.tile-caption {
+    position: absolute; bottom: 8px; left: 8px;
+    background: rgba(0,0,0,0.8); padding: 4px 8px;
+    font-size: 0.75rem; border-radius: 4px;
+}
+
+
+/* =========================================
+   6. CONTROL TOWER
+   ========================================= */
+.feature-section { padding: 8rem 0; }
+.split-content {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
+    align-items: center;
+}
+.feature-text ul { list-style: none; margin-top: 1.5rem; }
+.feature-text li {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+    position: relative;
+    color: var(--text-secondary);
+}
+.feature-text li::before {
+    content: "•"; color: var(--accent-gold);
+    position: absolute; left: 0; font-weight: bold;
+}
+.annotated-frame { position: relative; }
+.callout {
+    position: absolute;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid var(--border-highlight);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    display: flex; align-items: center; gap: 8px;
+}
+.callout::before { content: ""; width: 8px; height: 8px; background: var(--accent-risk); border-radius: 50%; }
+
+
+/* =========================================
+   7. TWO DESKS
+   ========================================= */
+.desks-section { padding: 8rem 0; background: #0c1220; }
+.desk-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
+    align-items: center;
+    margin-bottom: 6rem;
+}
+.desk-row.reverse { direction: rtl; } /* Quick hack for alternate layout without reordering DOM */
+.desk-row.reverse > * { direction: ltr; } 
+
+.signal-bar {
+    display: flex; gap: 4px; margin-top: 2rem;
+    background: rgba(255,255,255,0.05); padding: 4px; border-radius: 4px;
+    display: inline-flex;
+}
+.signal-pill {
+    padding: 4px 12px; font-size: 0.75rem;
+    border-radius: 4px; color: var(--text-secondary);
+}
+.signal-pill.active { background: #334155; color: #fff; font-weight: 600; }
+
+
+/* =========================================
+   8. DEEP DIVE (Split Mock)
+   ========================================= */
+.deep-dive-section { padding: 8rem 0; }
+.mock-split-container {
+    display: grid; grid-template-columns: 1fr 2fr;
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    overflow: hidden;
+    height: 500px;
+}
+.mock-left {
+    border-right: 1px solid var(--border-soft);
+    position: relative;
+    overflow: hidden;
+}
+.mock-right {
+    background: #0F172A;
+    padding: 2rem;
+    display: flex; flex-direction: column;
+}
+.selection-arrow {
+    position: absolute; top: 50%; right: -10px;
+    font-size: 2rem; color: var(--text-accent);
+    z-index: 10;
+}
+.badge-row { display: flex; gap: 1rem; margin-bottom: 2rem; }
+.badge {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
+    padding: 4px 8px; border: 1px solid var(--border-highlight); border-radius: 4px;
+    color: var(--text-secondary);
+}
+
+
+/* =========================================
+   9. AUGMENTED TEAM
+   ========================================= */
+.team-section { padding: 6rem 0; }
+.role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+/* Team Section - V9 RESTORED Images & FIXED Grid */
+.role-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 0; /* Flush image */
+    position: relative;
+    transition: transform 0.2s;
+    display: flex; flex-direction: column;
+}
+.role-card:hover { transform: translateY(-5px); border-color: var(--text-accent); }
+.role-img-container {
+    display: block; /* Restored */
+    height: 240px;
+    width: 100%;
+    overflow: hidden;
+}
+.role-img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.role-content { padding: 1.5rem; flex: 1; }
+
+.role-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; }
+.weekly-value { color: var(--accent-gold); font-size: 0.9rem; margin-bottom: 1.5rem; display: block; font-style: italic; }
+.role-resps { list-style: none; font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem; }
+.role-resps li { margin-bottom: 0.5rem; padding-left: 1rem; position: relative; }
+.role-resps li::before { content: "›"; position: absolute; left: 0; color: var(--text-secondary); }
+.artifacts-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.artifact-chip { font-size: 0.75rem; background: #334155; padding: 4px 8px; border-radius: 4px; }
+
+
+/* =========================================
+   10. IMPLEMENTATION PATH
+   ========================================= */
+.path-section { padding: 6rem 0; background: var(--bg-card); text-align: center; }
+.timeline-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;
+    margin-top: 4rem;
+    position: relative;
+}
+/* Connecting Line */
+.timeline-grid::before {
+    content: ''; position: absolute; top: 24px; left: 10%; right: 10%;
+    height: 2px; background: var(--border-highlight); z-index: 0;
+}
+.path-step { position: relative; z-index: 1; background: var(--bg-card); padding: 0 1rem; }
+.step-icon {
+    width: 48px; height: 48px; background: var(--bg-page);
+    border: 2px solid var(--text-primary); border-radius: 50%;
+    margin: 0 auto 1.5rem auto;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+}
+.doc-thumbs { display: flex; justify-content: center; gap: 8px; margin-top: 1rem; }
+.doc-thumb { width: 30px; height: 40px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
+
+
+/* =========================================
+   11. TRUST & GOVERNANCE
+   ========================================= */
+.trust-section { padding: 4rem 0; }
+.trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+.trust-card {
+    text-align: center; padding: 1.5rem;
+    border: 1px solid var(--border-soft); border-radius: 8px;
+}
+.trust-icon { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-secondary); }
+
+
+/* =========================================
+   12. FOOTER
+   ========================================= */
+.site-footer { padding: 4rem 0; border-top: 1px solid var(--border-soft); margin-top: 4rem; }
+.footer-inner { display: flex; justify-content: space-between; align-items: center; }
+.footer-links a { color: var(--text-secondary); margin-left: 2rem; text-decoration: none; font-size: 0.9rem; }
+
+
+/* Responsive */
+@media (max-width: 768px) {
+    .site-header .nav-links { display: none; } /* Simplified for prototype */
+    .hero-grid, .split-content, .desk-row, .trio-grid, .role-grid, .timeline-grid, .trust-grid, .mock-split-container {
+        grid-template-columns: 1fr;
+    }
+    .hero-content h1 { font-size: 2.5rem; }
+    .mock-split-container { height: auto; }
+}
+/* =========================================
+   JOSOOR VISUAL BLUEPRINT V7 - HERO REDESIGN
+   ========================================= */
+
+/* Hero Container - V9 CLEAN REWRITE */
+.hero-section {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: flex-start; /* Changed from center to prevent vertical centering */
+    border-bottom: 1px solid var(--border-soft);
+    padding: 0;
+    /* No fixed height - let content determine */
+}
+
+/* Background Layers */
+.hero-bg-layer {
+    position: absolute;
+    inset: 0;
+    transition: opacity 0.8s ease-in-out;
+    background-size: cover;
+    background-position: center;
+    filter: blur(1px) brightness(0.4); /* Spec 8.1: Very Light Blur */
+    transform: scale(1.05);
+    opacity: 0;
+    z-index: 0;
+}
+.hero-bg-layer.active { opacity: 1; }
+.hero-overlay {
+    position: absolute; inset: 0;
+    /* Spec 8.1: Heavy dark navy overlay + Vignette */
+    background: radial-gradient(circle at center, rgba(15,23,42, 0.4) 0%, rgba(15,23,42, 0.95) 90%);
+    z-index: 1;
+}
+
+/* V9 HERO: Stacked Layout (Headline -> Visuals -> Tabs -> TimeBack) */
+.hero-container {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    width: 100%;
+    padding: 80px 2rem 3rem 2rem; /* Reduced top padding, minimal bottom */
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* V9 Left Column (Now Top Headline Area) */
+.hero-text-col {
+    text-align: center;
+    max-width: 800px;
+}
+.hero-headline { font-size: 3rem; margin-bottom: 0.5rem; }
+.hero-outcome-line { font-size: 1.1rem; justify-content: center; border: none; padding: 0; }
+
+/* V9 Visual Row - EQUAL HEIGHT CARDS */
+.hero-visual-row {
+    display: flex;
+    gap: 2rem;
+    align-items: stretch; /* Stretch both to same height */
+    width: 100%;
+    max-width: 1200px;
+}
+
+.visual-human-card {
+    flex: 0 0 40%; /* 40% width */
+    height: 400px; /* EXPLICIT height to match product */
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border-soft);
+}
+
+.hero-human-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+}
+
+.visual-product-card {
+    flex: 0 0 calc(60% - 2rem); /* 60% width minus gap */
+    height: 400px; /* EXPLICIT height to match human */
+}
+
+/* V9 Tabs Row (Under Pics) */
+.persona-tabs {
+    display: flex; /* FIX: Was missing, causing vertical stack */
+    flex-direction: row;
+    gap: 1.5rem;
+    margin: 0;
+}
+.persona-tab {
+    display: flex; /* FIX: Was missing, critical for column layout */
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+    padding: 1rem;
+    min-width: 120px;
+    align-items: center; /* Center content */
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+.persona-tab:hover { background: rgba(51, 65, 85, 0.5); }
+.persona-tab.active { background: rgba(51, 65, 85, 0.8); border: 1px solid var(--text-accent); }
+.persona-thumb { 
+    width: 48px; 
+    height: 48px; 
+    object-fit: cover; /* FIX: Prevent squashing */
+    border-radius: 50%; /* Circle thumbs look better */
+    border: 2px solid var(--border-soft);
+}
+
+/* The Instrument Frame - FILLS PARENT HEIGHT */
+.signature-frame {
+    background: #0B1121;
+    border: 1px solid var(--border-highlight);
+    border-radius: 12px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.6);
+    position: relative;
+    overflow: hidden;
+    height: 100%; /* Fill parent .visual-product-card */
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.signature-frame:hover { transform: scale(1.02); box-shadow: 0 0 60px rgba(56, 189, 248, 0.1); }
+
+/* Crop Logic with Object Fit */
+.instrument-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* This does the cropping */
+    object-position: top left; /* Default, overridden by JS */
+    opacity: 1; /* Default visible (JS handles transition) */
+    transition: opacity 0.5s ease;
+}
+/*.instrument-img.active { opacity: 1; } Removed to rely on JS inline style */
+
+/* Internal Tab Bar (Spec 8.1) */
+.frame-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-soft);
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(8px);
+    z-index: 20;
+    position: absolute; top: 0; left: 0; right: 0;
+}
+.frame-tabs {
+    display: flex;
+    gap: 1.5rem;
+}
+.frame-tab {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    cursor: default; /* Controlled by persona, not clickable directly */
+    padding-bottom: 4px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s;
+}
+.frame-tab.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--accent-gold);
+}
+.frame-status {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Deliverables Grid (Spec 8.1) */
+.deliverables-section {
+    padding: 6rem 0;
+    background: var(--bg-body);
+}
+.deliverables-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 3rem;
+}
+.deliverable-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    padding: 1.5rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: transform 0.2s;
+}
+.deliverable-card:hover { border-color: var(--text-accent); transform: translateY(-2px); }
+.del-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+.del-title { font-weight: 700; color: var(--text-primary); }
+.del-desc { font-size: 0.9rem; color: var(--text-secondary); }
+/* Time-Back Strip - PART OF HERO FLOW */
+.time-back-strip {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0; /* Tightly connected via parent gap */
+    width: 100%;
+    max-width: 600px;
+}
+.time-tile {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    padding: 1rem;
+    flex: 1;
+}
+.time-val { font-size: 1.25rem; font-weight: 800; color: var(--text-accent); display: block; margin-bottom: 0.25rem; }
+.time-label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+
+
+/* Mobile Adjustments */
+@media (max-width: 900px) {
+    .hero-container { grid-template-columns: 1fr; padding-top: 2rem; height: auto; }
+    .hero-section { height: auto; padding-bottom: 4rem; }
+    .hero-headline { font-size: 2.5rem; }
+}

@@ -166,6 +166,10 @@ class MemoryBackfillETL:
             logger.info("=" * 70)
             logger.info(f"Backfill Complete: {stats}")
             logger.info("=" * 70)
+            
+            # Verify Memory nodes were created with valid scopes
+            if stats["created"] > 0:
+                self._verify_memory_creation()
         
         finally:
             if self.neo4j_driver:
@@ -319,6 +323,22 @@ class MemoryBackfillETL:
         return found_tags[:10]
     
     def _determine_scope(self, user_id: str, user_email: str) -> str:
+        """
+        Determine the memory scope based on user context.
+        
+        Scope model (v3.4):
+        - personal: User's private memories
+        - departmental: Shared within department/team
+        - ministry: Cross-departmental ministry-level insights
+        - secrets: Executive/confidential context (restricted)
+        
+        Currently defaults to 'personal'. To enhance:
+        - Look up user's organizational unit and role from Supabase users table
+        - Cross-reference with user profile to assign departmental/ministry scope
+        - Only assign 'secrets' for executive users (role='exec')
+        """
+        # TODO: Enhance with department/role lookup from Supabase users table
+        # For now, default to 'personal' scope
         return "personal"
     
     async def _generate_embedding(self, text: str) -> List[float]:
@@ -405,6 +425,26 @@ class MemoryBackfillETL:
                 user_id=memory.user_id,
                 tags=memory.tags,
             )
+    
+    def _verify_memory_creation(self) -> None:
+        """Quick verification that Memory nodes were created with valid scopes."""
+        try:
+            with self.neo4j_driver.session(database=self.config.neo4j_database) as session:
+                # Check node count
+                result = session.run("MATCH (m:Memory) RETURN count(m) AS c")
+                total = result.single().get("c", 0)
+                
+                # Check scope distribution
+                scopes = session.run(
+                    "MATCH (m:Memory) RETURN DISTINCT m.scope AS scope, count(m) AS c ORDER BY c DESC"
+                ).data()
+                
+                logger.info(f"Memory verification: {total} total nodes")
+                for row in scopes:
+                    logger.info(f"  - scope '{row['scope']}': {row['c']} nodes")
+                
+        except Exception as e:
+            logger.error(f"Verification failed: {e}")
 
 
 async def main():

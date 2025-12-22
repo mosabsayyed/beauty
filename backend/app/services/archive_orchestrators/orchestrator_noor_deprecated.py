@@ -38,6 +38,9 @@ from app.utils.debug_logger import log_debug
 # Import Tier 1 assembler
 from app.services.tier1_assembler import get_tier1_prompt, get_tier1_token_count
 
+# Import Admin Settings for dynamic config
+from app.services.admin_settings_service import admin_settings_service
+
 # Import tracing utilities
 from app.utils.tracing import (
     trace_operation,
@@ -230,11 +233,19 @@ class CognitiveOrchestrator:
         self.mcp_tools = [
             {
                 "type": "mcp",
-                "server_label": "mcp_router",
                 "server_url": self.mcp_router_url,
                 "require_approval": "never"  # CRITICAL: allows Groq to execute tools server-side
             }
         ]
+
+        # Local LLM settings (dynamic from admin settings)
+        dynamic_settings = admin_settings_service.merge_with_env_defaults()
+        provider_config = dynamic_settings.provider
+
+        self.local_llm_enabled = provider_config.local_llm_enabled
+        self.local_llm_model = provider_config.local_llm_model
+        self.local_llm_base_url = provider_config.local_llm_base_url
+        self.local_llm_timeout = provider_config.local_llm_timeout
     
     def execute_query(
         self,
@@ -293,12 +304,16 @@ class CognitiveOrchestrator:
                 })
                 
                 with trace_llm_call(
-                    model=self.model,
+                    model=self.local_llm_model if self.local_llm_enabled else self.model,
                     prompt=user_query,
                     persona=self.persona,
                     temperature=0.2
                 ) as llm_span:
-                    llm_response = self._call_groq_llm(messages)
+                    if self.local_llm_enabled:
+                         llm_response = self._call_local_llm(messages, self.local_llm_model)
+                    else:
+                         llm_response = self._call_groq_llm(messages)
+                    
                     if llm_span:
                         llm_span.set_attribute("llm.response_length", len(llm_response) if llm_response else 0)
                 
@@ -415,6 +430,117 @@ class CognitiveOrchestrator:
         
         return messages
     
+    def _call_local_llm(self, messages: List[Dict[str, str]], model_name: Optional[str]) -> str:
+        """Call a local LLM via /v1/responses endpoint."""
+        # Convert messages to Responses API input format
+        conversation_messages = []
+        for msg in messages:
+            role = (msg.get("role") or "user").strip()
+            content_text = msg.get("content") or ""
+            conversation_messages.append({
+                "type": "message",
+                "role": role,
+                "content": [
+                    {
+                        "type": "input_text",
+                        "text": content_text
+                    }
+                ]
+            })
+
+        # LM Studio MCP tools format for /v1/responses endpoint
+        tools = []
+        if self.persona == "noor":
+            tools = [{
+                "type": "mcp",
+                "server_label": "josoor-noor",
+                "server_url": self.mcp_router_url,
+                "allowed_tools": ["recall_memory", "retrieve_instructions", "read_neo4j_cypher"]
+            }]
+        elif self.persona == "maestro":
+            tools = [{
+                "type": "mcp",
+                "server_label": "maestro",
+                "server_url": self.mcp_router_url,
+                "allowed_tools": ["recall_memory", "retrieve_instructions", "read_neo4j_cypher"]
+            }]
+
+        endpoint_url = self.local_llm_base_url.rstrip("/") + "/v1/responses"
+
+        payload = {
+            "model": model_name or self.local_llm_model,
+            "input": conversation_messages,
+            "tools": tools,
+            "tool_choice": "auto",
+            "max_output_tokens": 8000,
+            "temperature": 0.1
+        }
+
+        headers = {"Content-Type": "application/json"}
+
+        try:
+            log_debug(2, "local_llm_request", {
+                "endpoint": endpoint_url,
+                "model": payload.get("model"),
+                "messages_count": len(conversation_messages),
+                "mcp_server_label": tools[0].get("server_label") if tools else None,
+                "mcp_server_url": tools[0].get("server_url") if tools else None
+            })
+
+            resp = requests.post(
+                endpoint_url,
+                headers=headers,
+                json=payload,
+                timeout=self.local_llm_timeout,
+            )
+            if resp.status_code != 200:
+                log_debug(2, "local_llm_error", {
+                    "status_code": resp.status_code,
+                    "response_body": resp.text[:1000],
+                    "model": payload.get("model"),
+                    "endpoint": endpoint_url,
+                })
+            resp.raise_for_status()
+            data = resp.json()
+
+            # Extract output text from Responses API format
+            text_content = ""
+            # Some providers may include aggregated output_text at the root
+            if isinstance(data, dict) and isinstance(data.get("output_text"), str):
+                text_content = data.get("output_text") or ""
+
+            output = data.get("output")
+            if isinstance(output, dict):
+                text_content = output.get("text") or ""
+            elif isinstance(output, list) and output:
+                for item in output:
+                    if not isinstance(item, dict):
+                        continue
+                    text_candidate = item.get("text") or item.get("output_text")
+                    if text_candidate:
+                        text_content = text_candidate
+                        break
+                    content_blocks = item.get("content") or []
+                    for block in content_blocks:
+                        if isinstance(block, dict):
+                            text_candidate = block.get("text") or block.get("output_text")
+                            if text_candidate:
+                                text_content = text_candidate
+                                break
+                    if text_content:
+                        break
+
+            log_debug(2, "local_llm_response", {
+                "status_code": resp.status_code,
+                "response_length": len(text_content) if text_content else 0,
+                "response_snippet": text_content[:300] if text_content else "<empty>"
+            })
+
+            return text_content if text_content else "{}"
+        except Exception as exc:
+            logger.error(f"Local LLM call failed: {exc}")
+            raise
+
     def _call_groq_llm(self, messages: List[Dict[str, str]]) -> str:
         """
         Call Groq LLM with MCP tool definitions using HTTP-based /v1/responses endpoint.

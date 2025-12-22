@@ -46,11 +46,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const appUser = await authService.fetchAppUser();
             if (appUser && mounted) {
               setUser(appUser);
-            } else if (!appUser && mounted) {
-              // Token invalid - clear and will redirect to login
-              setUser(null);
-              setToken(null);
             }
+            // If appUser fails (null), keep the local session (don't force logout)
+            // This prevents login loops when backend is restarting/unavailable
           } catch {}
         } else {
           // No token in localStorage - fallback to Supabase for OAuth flows

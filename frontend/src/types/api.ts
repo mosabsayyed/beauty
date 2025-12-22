@@ -28,6 +28,10 @@ export interface BaseArtifact {
   title: string;
   description?: string;
   content: Record<string, any>;
+  data?: any;
+  language?: string;
+  forceZen?: boolean;
+  hideNavigation?: boolean;
 }
 
 /**
@@ -39,7 +43,7 @@ export interface ChartArtifact extends BaseArtifact {
   artifact_type: 'CHART';
   content: {
     chart: {
-      type: 'bar' | 'column' | 'line' | 'area' | 'pie' | 'scatter';
+      type: 'bar' | 'column' | 'line' | 'area' | 'pie' | 'scatter' | 'combo' | 'radar' | 'bubble' | 'bullet';
     };
     title?: {
       text: string;
@@ -67,6 +71,7 @@ export interface ChartArtifact extends BaseArtifact {
     tooltip?: {
       enabled?: boolean;
     };
+    [key: string]: any;
   };
 }
 
@@ -79,6 +84,7 @@ export interface TableArtifact extends BaseArtifact {
     columns: string[];
     rows: any[][];
     total_rows: number;
+    [key: string]: any;
   };
 }
 

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOSOOR: Transformation Control Tower</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles_final_v9.css">
+</head>
+<body>
+
+    <!-- 2. HEADER -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="#" class="logo">JOSOOR</a>
+                <a href="#hero" class="nav-link" data-persona="director">Control Tower</a>
+                <a href="#hero" class="nav-link" data-persona="vice-minister">Dependency Desk</a>
+                <a href="#hero" class="nav-link" data-persona="stakeholder">Risk Desk</a>
+                <a href="#hero" class="nav-link" data-persona="strategy">Deep Dives</a>
+                <a href="#team" class="nav-link">Team Model</a>
+            <div class="header-actions">
+                <button class="btn btn-secondary">Watch Demo</button>
+                <button class="btn btn-primary">Request Invite</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 3. HERO SECTION (V9: Side-by-Side Visuals) -->
+    <section class="hero-section">
+        <div class="hero-overlay"></div>
+        
+        <div class="container hero-container">
+            <!-- 1. HEADLINE AREA (Top) -->
+            <div class="hero-text-col">
+                <h1 class="hero-headline">Detect hidden blockers across your portfolio.</h1>
+                <p class="hero-outcome-line">See the cross-cutting chains that delay Giga-Projects.</p>
+            </div>
+
+            <!-- 2. VISUAL ROW (The Two Pics) -->
+            <div class="hero-visual-row">
+                <!-- Human Pic -->
+                <div class="visual-human-card">
+                    <img id="hero-human-img" src="" class="hero-human-img" alt="Persona Context">
+                </div>
+
+                <!-- Product Pic -->
+                <div class="visual-product-card">
+                    <div class="signature-frame">
+                        <div class="frame-header">
+                            <div class="frame-tabs">
+                                <span class="frame-tab active">Control Tower</span>
+                                <span class="frame-tab">Dependency Desk</span>
+                                <span class="frame-tab">Risk Desk</span>
+                                <span class="frame-tab">Deep Dive</span>
+                            </div>
+                            <div class="frame-status">
+                                <div class="status-pill"></div>
+                                <span style="font-size: 0.8rem; color: #fff;">Overall: Green</span>
+                                <div style="font-size: 0.8rem; color: #ef4444; margin-left:10px;">⚠ Hidden Risk Detected</div>
+                            </div>
+                        </div>
+                        <img id="hero-instrument-img" src="" class="instrument-img" alt="Signature Instrument">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. TABS ROW (Bottom) -->
+            <div class="persona-tabs">
+                <!-- Injected by JS -->
+            </div>
+            
+            <!-- Time-Back Strip -->
+            <div class="time-back-strip">
+                <div class="time-tile"><span class="time-val">--</span><span class="time-label">--</span></div>
+                <div class="time-tile"><span class="time-val">--</span><span class="time-label">--</span></div>
+                <div class="time-tile"><span class="time-val">--</span><span class="time-label">--</span></div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 4. DELIVERABLES GRID (Spec 8.1) -->
+    <section class="deliverables-section">
+        <div class="container">
+            <h2 style="text-align: center;">Automated Deliverables</h2>
+            <div class="deliverables-grid">
+                <div class="deliverable-card">
+                    <div class="del-icon">📑</div>
+                    <div class="del-title">Weekly Exec Brief</div>
+                    <div class="del-desc">Generated instantly from live data.</div>
+                </div>
+                <div class="deliverable-card">
+                    <div class="del-icon">🔗</div>
+                    <div class="del-title">Blocker Chain Pack</div>
+                    <div class="del-desc">Visual evidence of cross-entity delays.</div>
+                </div>
+                <div class="deliverable-card">
+                    <div class="del-icon">🗺️</div>
+                    <div class="del-title">Dependency Map Snapshot</div>
+                    <div class="del-desc">High-level view of critical paths.</div>
+                </div>
+                <div class="deliverable-card">
+                    <div class="del-icon">📡</div>
+                    <div class="del-title">Early Warning Note</div>
+                    <div class="del-desc">Pre-emptive alerts on vendor sentiment.</div>
+                </div>
+                <div class="deliverable-card">
+                    <div class="del-icon">📦</div>
+                    <div class="del-title">Escalation Pack</div>
+                    <div class="del-desc">Ready-to-sign decisions for leadership.</div>
+                </div>
+                <div class="deliverable-card">
+                    <div class="del-icon">🧩</div>
+                    <div class="del-title">Data Gaps List</div>
+                    <div class="del-desc">Automated audit of missing agency inputs.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. REMOVED PROOF STRIP (V8 Consolidation) -->
+    <!-- 6. REMOVED CONTROL TOWER (V8 Consolidation) -->
+    <!-- 7. REMOVED DESKS (V8 Consolidation) -->
+    <!-- 8. REMOVED DEEP DIVES (V8 Consolidation) -->
+
+    <!-- 9. AUGMENTED TEAM -->
+    <section id="team" class="team-section">
+        <div class="container">
+            <h2 style="text-align: center; margin-bottom: 4rem;">Augmented PMO Team</h2>
+            <div class="role-grid">
+                <div class="role-card">
+                    <div class="role-img-container">
+                        <img src="assets/scenario_stakeholder_v2.png" alt="Stakeholder Liaison" class="role-img">
+                    </div>
+                    <div class="role-content">
+                        <div class="role-title">Stakeholder Liaison</div>
+                        <span class="weekly-value">"I save you 15hrs of meetings/week"</span>
+                        <ul class="role-resps">
+                            <li>Automated Status Collection</li>
+                            <li>Voice Note Transcription</li>
+                            <li>Stakeholder Nudging</li>
+                        </ul>
+                        <div class="artifacts-row">
+                            <span class="artifact-chip">Briefs</span>
+                            <span class="artifact-chip">Updates</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="role-card">
+                    <div class="role-img-container">
+                        <img src="assets/scenario_strategy_manager_v2.png" alt="Dependency Architect" class="role-img">
+                    </div>
+                    <div class="role-content">
+                        <div class="role-title">Dependency Architect</div>
+                        <span class="weekly-value">"I find blockers before they block"</span>
+                        <ul class="role-resps">
+                            <li>Schedule Linking</li>
+                            <li>Conflict Detection</li>
+                            <li>Path Analysis</li>
+                        </ul>
+                        <div class="artifacts-row">
+                            <span class="artifact-chip">Maps</span>
+                            <span class="artifact-chip">Critical Paths</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="role-card">
+                    <div class="role-img-container">
+                        <img src="assets/scenario_pmo_director_v4.png" alt="Risk Sentinel" class="role-img">
+                    </div>
+                    <div class="role-content">
+                        <div class="role-title">Risk Sentinel</div>
+                        <span class="weekly-value">"I watch the signals you miss"</span>
+                        <ul class="role-resps">
+                            <li>Sentiment Analysis</li>
+                            <li>Vendor Monitoring</li>
+                            <li>Escalation Triage</li>
+                        </ul>
+                        <div class="artifacts-row">
+                            <span class="artifact-chip">Risk Logs</span>
+                            <span class="artifact-chip">Heatmaps</span>
+                        </div>
+                    </div>
+                </div>
+        </div>
+    </section>
+
+    <!-- 10. IMPLEMENTATION PATH -->
+    <section class="path-section">
+        <div class="container">
+            <h2>Implementation Path</h2>
+            <div class="timeline-grid">
+                <div class="path-step">
+                    <div class="step-icon">1</div>
+                    <h3>Connect</h3>
+                    <p>Link existing reporting & data sources.</p>
+                    <div class="doc-thumbs">
+                        <div class="doc-thumb"></div><div class="doc-thumb"></div>
+                    </div>
+                </div>
+                <div class="path-step">
+                    <div class="step-icon">2</div>
+                    <h3>Activate</h3>
+                    <p>Turn on Desks & Deterministic Logic.</p>
+                    <div class="doc-thumbs">
+                        <div class="doc-thumb"></div><div class="doc-thumb"></div>
+                    </div>
+                </div>
+                <div class="path-step">
+                    <div class="step-icon">3</div>
+                    <h3>Deep Dive</h3>
+                    <p>Full Analysis & Agent Deployment.</p>
+                    <div class="doc-thumbs">
+                        <div class="doc-thumb"></div><div class="doc-thumb"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 11. TRUST & GOVERNANCE -->
+    <section class="trust-section">
+        <div class="container trust-grid">
+            <div class="trust-card">
+                <div class="trust-icon">✓</div>
+                <h4>Evidence Gating</h4>
+            </div>
+            <div class="trust-card">
+                <div class="trust-icon">🔒</div>
+                <h4>Access Control</h4>
+            </div>
+            <div class="trust-card">
+                <div class="trust-icon">📜</div>
+                <h4>Audit Trail</h4>
+            </div>
+            <div class="trust-card">
+                <div class="trust-icon">🛡️</div>
+                <h4>Data Boundaries</h4>
+            </div>
+        </div>
+    </section>
+
+    <!-- 12. FOOTER -->
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <div class="logo">JOSOOR</div>
+            <div class="footer-links">
+                <a href="#">Privacy</a>
+                <a href="#">Security</a>
+                <a href="#">Contact</a>
+            </div>
+            <button class="btn btn-primary">Request Invite</button>
+        </div>
+    </footer>
+
+    <script src="script.js?v=8.1"></script>
+</body>
+</html>

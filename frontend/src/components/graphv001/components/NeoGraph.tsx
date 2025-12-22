@@ -9,12 +9,16 @@ import { Maximize2, Minimize2 } from "lucide-react";
 interface NeoGraphProps {
   data: GraphData;
   highlightPath?: string | null;
+  highlightIds?: string[]; // NEW: Explicit ID highlighting
   showHealth?: boolean;
   isDark: boolean;
   language: string;
+  onNodeClick?: (node: any) => void;
+  nodeColor?: (node: any) => string; // NEW: Allow custom color function
 }
 
-export function NeoGraph({ data, highlightPath: _highlightPath, showHealth: _showHealth, isDark, language }: NeoGraphProps) {
+export function NeoGraph({ data, highlightPath: _highlightPath, highlightIds, showHealth: _showHealth, isDark, language, onNodeClick, nodeColor }: NeoGraphProps) {
+  console.error("CRITICAL: OLD NEOGRAPH COMPONENT IS RENDERING! CACHE ISSUE!");
   const content = {
     switchTo2D: { en: 'Switch to 2D', ar: 'تبديل إلى 2D' },
     switchTo3D: { en: 'Switch to 3D', ar: 'تبديل إلى 3D' },
@@ -49,24 +53,50 @@ export function NeoGraph({ data, highlightPath: _highlightPath, showHealth: _sho
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Color logic - theme-aware
+  // Color logic - theme-aware & highlight support
   const getNodeColor = (node: any) => {
+    if (highlightIds && highlightIds.length > 0) {
+        // If highlighting mode is active, check if this node is in the list
+        if (highlightIds.includes(node.id)) {
+            return '#EF4444'; // Highlight color (Red)
+        }
+        return isDark ? 'rgba(75, 85, 99, 0.2)' : 'rgba(209, 213, 219, 0.2)'; // Dim others
+    }
+    // Allow custom override
+    if (nodeColor) return nodeColor(node);
+    
     return node.color || (isDark ? '#9CA3AF' : '#6B7280');
   };
 
   // Deep clone data to prevent force-graph from mutating React Query cache
-  // force-graph replaces link source/target strings with node object references
   const clonedData = React.useMemo(() => {
-    if (!data) return { nodes: [], links: [] };
+    if (!data || !data.nodes || !data.links) return { nodes: [], links: [] };
     return {
       nodes: data.nodes.map(node => ({ ...node })),
       links: data.links.map(link => ({
         ...link,
-        source: typeof link.source === 'object' ? link.source.id : link.source,
-        target: typeof link.target === 'object' ? link.target.id : link.target
+        source: typeof link.source === 'object' ? (link.source.id || link.source) : link.source,
+        target: typeof link.target === 'object' ? (link.target.id || link.target) : link.target
       }))
     };
   }, [data]);
+
+  // Handle data changes - zoom to fit and tune forces
+  useEffect(() => {
+    if (graphRef.current && clonedData.nodes.length > 0) {
+      setTimeout(() => {
+        if (is3D) {
+          graphRef.current.zoomToFit(800, 100);
+          graphRef.current.d3Force('charge').strength(-550);
+          graphRef.current.d3Force('link').distance(150);
+        } else {
+          graphRef.current.zoomToFit(800, 50);
+          graphRef.current.d3Force('charge').strength(-550);
+          graphRef.current.d3Force('link').distance(150);
+        }
+      }, 300);
+    }
+  }, [clonedData, is3D]);
 
   const commonProps: any = {
     ref: graphRef,
@@ -82,6 +112,9 @@ export function NeoGraph({ data, highlightPath: _highlightPath, showHealth: _sho
     backgroundColor: "rgba(0,0,0,0)",
     onNodeHover: setHoverNode,
     enableNavigationControls: true,
+    cooldownTicks: 100,
+    d3AlphaDecay: 0.02,
+    d3VelocityDecay: 0.3,
   };
 
 
@@ -116,8 +149,16 @@ export function NeoGraph({ data, highlightPath: _highlightPath, showHealth: _sho
             graphRef.current.cameraPosition(
               { x: (node.x || 0) * distRatio, y: (node.y || 0) * distRatio, z: (node.z || 0) * distRatio },
               node,
-              3000
+              1000
             );
+            if (onNodeClick) onNodeClick(node);
+          }}
+          onBackgroundClick={() => {
+            graphRef.current.zoomToFit(1000);
+            if (onNodeClick) onNodeClick(null);
+          }}
+          onBackgroundDoubleClick={() => {
+            graphRef.current.zoomToFit(1000);
           }}
         />
       ) : (
@@ -127,6 +168,14 @@ export function NeoGraph({ data, highlightPath: _highlightPath, showHealth: _sho
             // Center on node in 2D
             graphRef.current.centerAt(node.x, node.y, 1000);
             graphRef.current.zoom(3, 1000);
+            if (onNodeClick) onNodeClick(node);
+          }}
+          onBackgroundClick={() => {
+            graphRef.current.zoomToFit(1000);
+            if (onNodeClick) onNodeClick(null);
+          }}
+          onBackgroundDoubleClick={() => {
+            graphRef.current.zoomToFit(1000);
           }}
         />
       )}
@@ -136,27 +185,36 @@ export function NeoGraph({ data, highlightPath: _highlightPath, showHealth: _sho
         <div style={{ position: 'absolute', top: '1rem', left: '1rem', pointerEvents: 'none', zIndex: 50 }}>
           <Card style={{ padding: '1rem', backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', border: '1px solid rgba(212,175,55,0.5)', color: 'white', minWidth: '200px', maxWidth: '350px', maxHeight: '400px', overflowY: 'auto' }}>
             <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.125rem', color: isDark ? '#D4AF37' : '#B8860B', marginBottom: '0.5rem' }}>
-              {hoverNode.label || hoverNode.id}
+              {hoverNode.properties?.name || hoverNode.label || hoverNode.id}
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.75rem', fontFamily: 'monospace', color: isDark ? '#cbd5e1' : '#64748b' }}>
-              {Object.entries(hoverNode)
-                .filter(([key, value]) => {
-                  // Skip internal graph properties
-                  if (['id', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'fx', 'fy', 'fz', 'index', '__indexColor', 'val', 'color', '__threeObj', '__lineObj', '__arrowObj', 'group', 'label'].includes(key)) return false;
-                  // Skip properties starting with __ (internal)
-                  if (key.startsWith('__')) return false;
-                  // Skip object/function values
-                  if (typeof value === 'object' || typeof value === 'function') return false;
-                  return true;
-                })
-                .map(([key, value]) => (
-                  <div key={key} style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
-                    <span style={{ opacity: 0.7 }}>{key}:</span>
-                    <span style={{ textAlign: 'right', wordBreak: 'break-word' }}>
-                      {value != null ? String(value) : 'N/A'}
-                    </span>
+              {(() => {
+                const nodeProps = hoverNode.properties || {};
+                const labels = hoverNode.labels || [];
+                
+                // Prioritized entries
+                const prioritized = [
+                  { key: 'Type', value: labels.join(', ') },
+                  { key: 'ID', value: nodeProps.id || hoverNode.id },
+                  { key: 'Name', value: nodeProps.name || hoverNode.label },
+                  { key: 'Year', value: nodeProps.year || nodeProps.Year || hoverNode.year },
+                ];
+
+                // Generic entries (all others)
+                const generic = Object.entries(nodeProps)
+                  .filter(([k]) => !['id', 'name', 'year', 'Year'].includes(k))
+                  .map(([k, v]) => ({ key: k, value: v }));
+
+                const allEntries = [...prioritized, ...generic]
+                  .filter(e => e.value !== undefined && e.value !== null && e.value !== '');
+
+                return allEntries.map((entry, idx) => (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '2px 0' }}>
+                    <span style={{ fontWeight: 600, textTransform: 'capitalize', marginRight: '1rem' }}>{entry.key}:</span>
+                    <span style={{ textAlign: 'right', wordBreak: 'break-all' }}>{String(entry.value)}</span>
                   </div>
-                ))}
+                ));
+              })()}
             </div>
           </Card>
         </div>

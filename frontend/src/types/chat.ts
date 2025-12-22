@@ -37,6 +37,7 @@ export interface ChatRequest {
   query: string;
   persona?: string;
   conversation_id?: number;
+  push_to_graph_server?: boolean;
 }
 
 export interface ChatResponse {
@@ -45,19 +46,14 @@ export interface ChatResponse {
   clarification_needed?: boolean;
   clarification_questions?: string[];
   clarification_context?: string;
-  artifacts?: Artifact[];
+  artifacts?: Artifact[];  // Unified schema - removed dual visualization field
   analysis?: string[];
   insights?: string[];
-  visualization?: {
-    visualizations: Array<{
-      title: string;
-      description: string;
-      image_base64: string;
-    }>;
-  };
   confidence?: number;
   data?: any;
+  answer?: string;
   metadata?: MessageMetadata;
+  llm_payload?: any;
 }
 
 export interface DebugLog {

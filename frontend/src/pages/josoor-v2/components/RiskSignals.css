@@ -1,0 +1,65 @@
+/* RiskSignals.css - V1.3 Compliant Styles */
+/* Uses theme.css variables ONLY */
+
+.v2-risk-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    max-height: 300px;
+}
+
+.v2-risk-item {
+    padding: 0.75rem;
+    border-left: 3px solid var(--component-color-danger);
+    background: rgba(239, 68, 68, 0.05);
+    border-radius: 0 4px 4px 0;
+}
+
+.v2-risk-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--component-text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.v2-risk-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.v2-risk-category {
+    color: var(--component-text-muted);
+    font-size: 0.8rem;
+}
+
+.v2-risk-band {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.v2-severity-high {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--component-color-danger);
+}
+
+.v2-severity-medium {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--component-color-warning);
+}
+
+.v2-severity-low {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--component-color-success);
+}
+
+.v2-risk-metrics {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--component-text-secondary);
+}

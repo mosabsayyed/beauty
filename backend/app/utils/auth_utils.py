@@ -66,19 +66,39 @@ async def get_current_user(token: str = Depends(oauth2_scheme), user_service: Us
             user_json = user_resp.json()
             supa_user_id = user_json.get("id")
             supa_email = user_json.get("email")
+            supa_role = (
+                (user_json.get("user_metadata") or {}).get("role")
+                or (user_json.get("app_metadata") or {}).get("role")
+                or user_json.get("role")
+            )
+            if isinstance(supa_role, str):
+                supa_role = supa_role.lower()
             if not supa_user_id:
                 raise credentials_exception
             # Try to find local user by supa id or email. If not found, create a local user record linked to supabase id
             local_user = await user_service.get_user_by_supabase_id(supa_user_id) if hasattr(user_service, 'get_user_by_supabase_id') else None
             if not local_user and supa_email:
                 local_user = await user_service.get_user_by_email(supa_email)
+            # If Supabase role is present and differs, update local role for RBAC alignment
+            if local_user and supa_role and getattr(local_user, "role", None) != supa_role:
+                try:
+                    await user_service.client.table_update("users", {"role": supa_role}, {"id": local_user.id})
+                    local_user.role = supa_role
+                except Exception:
+                    pass
             if not local_user:
                 # create a lightweight local user record mapping to supabase id
                 # If Supabase provides a `user_metadata` or `full_name`, persist it when creating local user
                 try:
                     user_metadata = user_json.get('user_metadata') or {}
                     full_name = user_metadata.get('full_name') or user_json.get('user_metadata', {}).get('full_name') if isinstance(user_json, dict) else None
-                    new_local = await user_service.create_user(email=supa_email, password=None, supabase_id=supa_user_id, full_name=full_name)
+                    new_local = await user_service.create_user(
+                        email=supa_email,
+                        password=None,
+                        supabase_id=supa_user_id,
+                        full_name=full_name,
+                        role=supa_role or "user"
+                    )
                     return new_local
                 except Exception:
                     # if creation fails, deny access

@@ -47,32 +47,28 @@ if [ -f "$PID_FILE" ]; then
   rm -f "$PID_FILE"
 fi
 
-echo "Targeted cleanup: kill any processes started from project root"
-# Find processes whose command line contains the project root and kill them gracefully
-PROJECT_PIDS=$(pgrep -af "$ROOT_DIR" | awk '{print $1}') || true
-if [ -n "$PROJECT_PIDS" ]; then
-  for p in $PROJECT_PIDS; do
-    if [ -n "$p" ]; then
-      if kill -0 "$p" 2>/dev/null; then
-        echo "Terminating project-related PID $p"
+echo "Port-based cleanup: kill processes on project ports"
+# Kill processes listening on project-specific ports: 3000, 3001, 8008, 8080, 8201, 8202, 8203
+PROJECT_PORTS=(3000 3001 8008 8080 8201 8202 8203)
+
+for port in "${PROJECT_PORTS[@]}"; do
+  echo "Checking port $port..."
+  PORT_PIDS=$(lsof -ti :$port 2>/dev/null || true)
+  if [ -n "$PORT_PIDS" ]; then
+    for p in $PORT_PIDS; do
+      if [ -n "$p" ] && kill -0 "$p" 2>/dev/null; then
+        PROC_CMD=$(ps -p "$p" -o cmd= 2>/dev/null || echo "unknown")
+        echo "Terminating PID $p on port $port: $PROC_CMD"
         kill "$p" 2>/dev/null || true
         sleep 1
         if kill -0 "$p" 2>/dev/null; then
-          echo "Force killing project-related PID $p"
+          echo "Force killing PID $p"
           kill -9 "$p" 2>/dev/null || true
         fi
       fi
-    fi
-  done
-fi
-
-echo "Fallback: ensure common dev binaries are not running"
-pkill -f mcp-neo4j-cypher 2>/dev/null || true
-pkill -f "uvicorn app.main:app" 2>/dev/null || true
-pkill -f ngrok 2>/dev/null || true
-pkill -f "npm --prefix" 2>/dev/null || true
-pkill -f "npm run dev -- --port 3001" 2>/dev/null || true
-pkill -f "node .*react-scripts" 2>/dev/null || true
+    done
+  fi
+done
 
 echo "Cleanup complete. You can inspect logs in $ROOT_DIR/logs and $ROOT_DIR/backend/logs"
 

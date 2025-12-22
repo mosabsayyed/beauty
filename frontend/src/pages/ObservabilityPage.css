@@ -747,3 +747,121 @@
     min-width: 100px;
   }
 }
+
+/* Admin settings */
+.admin-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.admin-card {
+  background: var(--component-panel-bg);
+  border: 1px solid var(--component-panel-border);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+
+.admin-field input,
+.admin-field select {
+  flex: 1;
+  background: var(--component-bg-secondary);
+  border: 1px solid var(--component-panel-border);
+  color: var(--component-text-primary);
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.admin-mcp-entry {
+  border: 1px solid var(--component-panel-border);
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 8px;
+  background: var(--component-bg-secondary);
+}
+
+.admin-mcp-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin-tools-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.admin-tool-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: var(--component-panel-bg);
+  border: 1px solid var(--component-panel-border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.admin-audit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-audit-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--component-text-muted);
+}
+
+/* Full Page Admin Override */
+.observability-full-page .observability-main {
+  grid-template-columns: 1fr;
+  height: auto;
+  min-height: calc(100vh - 80px);
+  max-width: 1600px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+
+/* Global scrollbar styling for consistency */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--component-panel-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

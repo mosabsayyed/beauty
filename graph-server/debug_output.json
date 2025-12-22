@@ -1,0 +1,471 @@
+{
+  "raw": [
+    {
+      "Axis": "Enhance Regulatory Efficiency",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 4,
+        "high": 0
+      },
+      "actual": 0,
+      "target": 10
+    },
+    {
+      "Axis": "Enhance Regulatory Efficiency",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 4,
+        "high": 0
+      },
+      "actual": 0,
+      "target": 10
+    },
+    {
+      "Axis": "Enhance Regulatory Efficiency",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 4,
+        "high": 0
+      },
+      "actual": 0,
+      "target": 10
+    },
+    {
+      "Axis": "Enhance Regulatory Efficiency",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 4,
+        "high": 0
+      },
+      "actual": 0,
+      "target": 10
+    },
+    {
+      "Axis": "Enhance Regulatory Efficiency",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 4,
+        "high": 0
+      },
+      "actual": 0,
+      "target": 10
+    },
+    {
+      "Axis": "Enhance Regulatory Efficiency",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 2,
+        "high": 0
+      },
+      "actual": 0,
+      "target": 3
+    },
+    {
+      "Axis": "Enhance Regulatory Efficiency",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 2,
+        "high": 0
+      },
+      "actual": 0,
+      "target": 3
+    },
+    {
+      "Axis": "Enhance Regulatory Efficiency",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 2,
+        "high": 0
+      },
+      "actual": 0,
+      "target": 3
+    },
+    {
+      "Axis": "Enhance Regulatory Efficiency",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 1,
+        "high": 0
+      },
+      "actual": null,
+      "target": null
+    },
+    {
+      "Axis": "Enhance Regulatory Efficiency",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 1,
+        "high": 0
+      },
+      "actual": null,
+      "target": null
+    },
+    {
+      "Axis": "Enhance Regulatory Efficiency",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 1,
+        "high": 0
+      },
+      "actual": null,
+      "target": null
+    },
+    {
+      "Axis": "Enhance Regulatory Efficiency",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 1,
+        "high": 0
+      },
+      "actual": null,
+      "target": null
+    },
+    {
+      "Axis": "Enhance Regulatory Efficiency",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 1,
+        "high": 0
+      },
+      "actual": null,
+      "target": null
+    },
+    {
+      "Axis": "Contribute to National GDP",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 4,
+        "high": 0
+      },
+      "actual": 0,
+      "target": 10
+    },
+    {
+      "Axis": "Contribute to National GDP",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 4,
+        "high": 0
+      },
+      "actual": 0,
+      "target": 10
+    },
+    {
+      "Axis": "Contribute to National GDP",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 4,
+        "high": 0
+      },
+      "actual": 0,
+      "target": 10
+    },
+    {
+      "Axis": "Contribute to National GDP",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 2,
+        "high": 0
+      },
+      "actual": 0,
+      "target": 3
+    },
+    {
+      "Axis": "Contribute to National GDP",
+      "year": {
+        "low": 2025,
+        "high": 0
+      },
+      "quarter": {
+        "low": 2,
+        "high": 0
+      },
+      "actual": 0,
+      "target": 3
+    },
+    {
+      "Axis": "Enhance Regulatory Efficiency",
+      "year": {
+        "low": 2026,
+        "high": 0
+      },
+      "quarter": {
+        "low": 4,
+        "high": 0
+      },
+      "actual": 5,
+      "target": 20
+    },
+    {
+      "Axis": "Enhance Regulatory Efficiency",
+      "year": {
+        "low": 2026,
+        "high": 0
+      },
+      "quarter": {
+        "low": 4,
+        "high": 0
+      },
+      "actual": 5,
+      "target": 20
+    }
+  ],
+  "agg": [
+    {
+      "Obj": "Enhance Regulatory Efficiency",
+      "TotalA": 260,
+      "TotalT": 785,
+      "Score": 33.12101910828025,
+      "DebugRows": [
+        {
+          "inc": true,
+          "q": {
+            "low": 4,
+            "high": 0
+          },
+          "y": {
+            "low": 2025,
+            "high": 0
+          }
+        },
+        {
+          "inc": true,
+          "q": {
+            "low": 4,
+            "high": 0
+          },
+          "y": {
+            "low": 2025,
+            "high": 0
+          }
+        },
+        {
+          "inc": true,
+          "q": {
+            "low": 4,
+            "high": 0
+          },
+          "y": {
+            "low": 2025,
+            "high": 0
+          }
+        }
+      ]
+    },
+    {
+      "Obj": "Contribute to National GDP",
+      "TotalA": 180,
+      "TotalT": 540,
+      "Score": 33.33333333333333,
+      "DebugRows": [
+        {
+          "inc": true,
+          "q": {
+            "low": 4,
+            "high": 0
+          },
+          "y": {
+            "low": 2025,
+            "high": 0
+          }
+        },
+        {
+          "inc": true,
+          "q": {
+            "low": 4,
+            "high": 0
+          },
+          "y": {
+            "low": 2025,
+            "high": 0
+          }
+        },
+        {
+          "inc": true,
+          "q": {
+            "low": 4,
+            "high": 0
+          },
+          "y": {
+            "low": 2025,
+            "high": 0
+          }
+        }
+      ]
+    },
+    {
+      "Obj": "Elevate Stakeholder Experience",
+      "TotalA": 180,
+      "TotalT": 550,
+      "Score": 32.72727272727273,
+      "DebugRows": [
+        {
+          "inc": true,
+          "q": {
+            "low": 4,
+            "high": 0
+          },
+          "y": {
+            "low": 2026,
+            "high": 0
+          }
+        },
+        {
+          "inc": true,
+          "q": {
+            "low": 4,
+            "high": 0
+          },
+          "y": {
+            "low": 2026,
+            "high": 0
+          }
+        },
+        {
+          "inc": true,
+          "q": {
+            "low": 4,
+            "high": 0
+          },
+          "y": {
+            "low": 2026,
+            "high": 0
+          }
+        }
+      ]
+    },
+    {
+      "Obj": "Drive Job Creation",
+      "TotalA": 200,
+      "TotalT": 600,
+      "Score": 33.33333333333333,
+      "DebugRows": [
+        {
+          "inc": true,
+          "q": {
+            "low": 4,
+            "high": 0
+          },
+          "y": {
+            "low": 2028,
+            "high": 0
+          }
+        },
+        {
+          "inc": true,
+          "q": {
+            "low": 4,
+            "high": 0
+          },
+          "y": {
+            "low": 2028,
+            "high": 0
+          }
+        },
+        {
+          "inc": true,
+          "q": {
+            "low": 4,
+            "high": 0
+          },
+          "y": {
+            "low": 2028,
+            "high": 0
+          }
+        }
+      ]
+    },
+    {
+      "Obj": "Enhance Economic Security",
+      "TotalA": 150,
+      "TotalT": 450,
+      "Score": 33.33333333333333,
+      "DebugRows": [
+        {
+          "inc": true,
+          "q": {
+            "low": 4,
+            "high": 0
+          },
+          "y": {
+            "low": 2025,
+            "high": 0
+          }
+        },
+        {
+          "inc": true,
+          "q": {
+            "low": 4,
+            "high": 0
+          },
+          "y": {
+            "low": 2025,
+            "high": 0
+          }
+        },
+        {
+          "inc": true,
+          "q": {
+            "low": 4,
+            "high": 0
+          },
+          "y": {
+            "low": 2025,
+            "high": 0
+          }
+        }
+      ]
+    }
+  ]
+}

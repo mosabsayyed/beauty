@@ -46,15 +46,15 @@ echo "Run mode: $MODE"
 export NOOR_MCP_ROUTER_URL="${NOOR_MCP_ROUTER_URL:-http://127.0.0.1:8201}"
 export MAESTRO_MCP_ROUTER_URL="${MAESTRO_MCP_ROUTER_URL:-http://127.0.0.1:8202}"
 
-echo "Ensuring ngrok is running to expose MCP (ports 8201 and 8202 via config)..."
-# If an ngrok process is already running, reuse it. Otherwise start with config.
+echo "Ensuring ngrok is running to expose MCP (Noor on 8201 only)..."
+# If an ngrok process is already running, reuse it. Otherwise start a single tunnel for 8201.
 EXISTING_NGROK_PID=$(pgrep -x ngrok || true)
 if [ -n "$EXISTING_NGROK_PID" ]; then
   NGROK_PID=$(echo "$EXISTING_NGROK_PID" | awk '{print $1}')
   echo "Found existing ngrok process (pid $NGROK_PID); will reuse it."
 else
-  echo "Starting ngrok with config (both Noor 8201 and Maestro 8202 tunnels)..."
-  nohup ngrok start --all --log=stdout >> "$ROOT_DIR/logs/ngrok.log" 2>&1 &
+  echo "Starting ngrok (single https tunnel -> localhost:8201 for Noor)..."
+  nohup ngrok http --log=stdout 8201 >> "$ROOT_DIR/logs/ngrok.log" 2>&1 &
   NGROK_PID=$!
   sleep 2
   if ! kill -0 "$NGROK_PID" 2>/dev/null; then
@@ -79,29 +79,31 @@ for i in $(seq 1 10); do
   fi
 done
 
-# Fetch public URL (both tunnels share same domain, load-balanced)
+# Fetch public URL for the active tunnel
 NGROK_TUNNELS=$(curl -sS --max-time 3 "$NGROK_API" || true)
 NGROK_PUBLIC_URL=$(printf "%s" "$NGROK_TUNNELS" | python3 -c "import sys,json
 try:
     d=json.load(sys.stdin)
     tunnels=d.get('tunnels',[])
-    if tunnels:
-        print(tunnels[0].get('public_url',''))
+    # Prefer the https tunnel that points to 8201
+    for t in tunnels:
+        cfg=t.get('config',{})
+        if t.get('proto')=='https' and str(cfg.get('addr','')).endswith(':8201'):
+            print(t.get('public_url',''))
+            break
 except Exception:
     pass")
 
 if [ -n "$NGROK_PUBLIC_URL" ]; then
   export NOOR_MCP_ROUTER_URL_PUBLIC="$NGROK_PUBLIC_URL/mcp/"
-  export MAESTRO_MCP_ROUTER_URL_PUBLIC="$NGROK_PUBLIC_URL/mcp/"
-  echo "ngrok public URL: $NGROK_PUBLIC_URL (load-balanced across 8201 and 8202)"
-  
-  # Override localhost defaults with public URL if still set to local
+  echo "ngrok public URL (Noor): $NGROK_PUBLIC_URL"
+  # Override localhost default with public URL if still set to local
   if [ "${NOOR_MCP_ROUTER_URL}" = "http://127.0.0.1:8201" ]; then
     export NOOR_MCP_ROUTER_URL="$NOOR_MCP_ROUTER_URL_PUBLIC"
   fi
-  if [ "${MAESTRO_MCP_ROUTER_URL}" = "http://127.0.0.1:8202" ]; then
-    export MAESTRO_MCP_ROUTER_URL="$MAESTRO_MCP_ROUTER_URL_PUBLIC"
-  fi
+  # Explicitly disable Maestro public routing in single-persona mode
+  export MAESTRO_MCP_ROUTER_URL=""
+  export MAESTRO_MCP_ROUTER_URL_PUBLIC=""
 fi
 
 echo "Checking MCP port ($MCP_PORT) binding..."

@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOSOOR: Transformation Control Tower</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles_v10.css">
+</head>
+<body>
+
+    <!-- ============================================
+         SECTION 1: STICKY HEADER
+         ============================================ -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="#" class="logo">JOSOOR</a>
+            <nav class="nav-links">
+                <a href="#proof-gallery" class="nav-link">Control Tower</a>
+                <a href="#proof-gallery" class="nav-link">Dependencies</a>
+                <a href="#proof-gallery" class="nav-link">Risks</a>
+                <a href="#team" class="nav-link">Team</a>
+                <a href="#trust" class="nav-link">Trust</a>
+            </nav>
+            <div class="header-actions">
+                <button class="btn btn-outline">Watch Demo</button>
+                <button class="btn btn-filled">Request Invite</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================
+         SECTION 2: HERO (no screenshots - designed instruments)
+         ============================================ -->
+    <section id="hero" class="hero-section">
+        <!-- Layer 1: Full-bleed persona background -->
+        <div class="hero-bg" id="hero-bg"></div>
+        <div class="hero-overlay"></div>
+
+        <div class="container hero-grid">
+            <!-- Layer 2: Left Copy Column -->
+            <div class="hero-copy">
+                <!-- Element 1: Headline -->
+                <h1 class="hero-headline" id="hero-headline">Transformation Control Tower</h1>
+                
+                <!-- Element 2: Subhead -->
+                <p class="hero-subhead" id="hero-subhead">See the chains under the green. Decisions, not dashboards.</p>
+                
+                <!-- Element 3: Persona Selector (4 pill buttons) -->
+                <div class="persona-selector">
+                    <button class="persona-btn active" data-persona="vice-minister">
+                        <img src="assets/scenario_vice_minister_v3.png" alt="Vice Minister">
+                        <span>Vice Minister</span>
+                        <div class="status-dot"></div>
+                    </button>
+                    <button class="persona-btn" data-persona="pmo-director">
+                        <img src="assets/scenario_pmo_director_v4.png" alt="PMO Director">
+                        <span>PMO Director</span>
+                        <div class="status-dot"></div>
+                    </button>
+                    <button class="persona-btn" data-persona="strategy-manager">
+                        <img src="assets/scenario_strategy_manager_v2.png" alt="Strategy Manager">
+                        <span>Strategy Manager</span>
+                        <div class="status-dot"></div>
+                    </button>
+                    <button class="persona-btn" data-persona="stakeholder">
+                        <img src="assets/scenario_stakeholder_v2.png" alt="Stakeholder">
+                        <span>Stakeholder</span>
+                        <div class="status-dot"></div>
+                    </button>
+                </div>
+                
+                <!-- Element 4: Payoff Line -->
+                <p class="hero-payoff" id="hero-payoff">See cross-entity blockage chains before they cascade.</p>
+                
+                <!-- Element 5: Micro-strip (3 chips) -->
+                <div class="micro-strip">
+                    <span class="micro-chip">Briefing time back</span>
+                    <span class="micro-chip">Follow-ups reduced</span>
+                    <span class="micro-chip">Surprises reduced</span>
+                </div>
+            </div>
+
+            <!-- Layer 3: Right Signature Instrument Frame -->
+            <div class="hero-frame-col">
+                <div class="instrument-frame">
+                    <!-- Top Strip: Contradiction Indicator -->
+                    <div class="frame-top-strip">
+                        <span class="status-chip green">Overall: Green</span>
+                        <span class="status-chip red">⚠ Hidden chain risk detected</span>
+                    </div>
+                    
+                    <!-- Main Instrument Area (70/30 split) -->
+                    <div class="instrument-main">
+                        <!-- Left 70%: Dependency Chain Graph -->
+                        <div class="chain-graph-area">
+                            <svg class="chain-graph" viewBox="0 0 400 300">
+                                <!-- Faded background nodes -->
+                                <circle cx="50" cy="50" r="8" class="node-faded"/>
+                                <circle cx="120" cy="80" r="8" class="node-faded"/>
+                                <circle cx="350" cy="200" r="8" class="node-faded"/>
+                                <circle cx="300" cy="50" r="8" class="node-faded"/>
+                                
+                                <!-- Faded background lines -->
+                                <line x1="50" y1="50" x2="120" y2="80" class="link-faded"/>
+                                <line x1="300" y1="50" x2="350" y2="200" class="link-faded"/>
+                                
+                                <!-- Highlighted chain path -->
+                                <path d="M80,250 Q120,200 160,180 T240,140 T320,100 T380,60" class="chain-highlight"/>
+                                
+                                <!-- Highlighted nodes with labels -->
+                                <g class="node-highlight" transform="translate(80,250)">
+                                    <circle r="12"/>
+                                    <text x="20" y="5" class="node-label">Ministry A</text>
+                                </g>
+                                <g class="node-highlight" transform="translate(160,180)">
+                                    <circle r="12"/>
+                                    <text x="20" y="5" class="node-label">Approval pending</text>
+                                </g>
+                                <g class="node-highlight node-critical" transform="translate(240,140)">
+                                    <circle r="14"/>
+                                    <text x="20" y="5" class="node-label">+45 days slip</text>
+                                </g>
+                                <g class="node-highlight" transform="translate(320,100)">
+                                    <circle r="12"/>
+                                    <text x="20" y="5" class="node-label">Vendor B</text>
+                                </g>
+                                
+                                <!-- Red connector from top strip -->
+                                <line x1="300" y1="0" x2="240" y2="140" class="risk-connector"/>
+                            </svg>
+                            
+                            <!-- Callout Pins -->
+                            <div class="callout-pin" style="top: 60%; left: 25%;">
+                                <span class="pin-number">1</span>
+                                <span class="pin-label">Chain highlights cross-entity fragility</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Right 30%: Stacked Mini-Panels -->
+                        <div class="mini-panels">
+                            <!-- Risk Radar -->
+                            <div class="mini-panel radar-panel">
+                                <div class="panel-title">Risk Radar</div>
+                                <svg class="radar-chart" viewBox="0 0 100 100">
+                                    <!-- Radar axes -->
+                                    <line x1="50" y1="50" x2="50" y2="10" class="radar-axis"/>
+                                    <line x1="50" y1="50" x2="88" y2="30" class="radar-axis"/>
+                                    <line x1="50" y1="50" x2="88" y2="70" class="radar-axis"/>
+                                    <line x1="50" y1="50" x2="50" y2="90" class="radar-axis"/>
+                                    <line x1="50" y1="50" x2="12" y2="70" class="radar-axis"/>
+                                    <line x1="50" y1="50" x2="12" y2="30" class="radar-axis"/>
+                                    
+                                    <!-- Green baseline (reported) -->
+                                    <polygon points="50,25 70,35 70,65 50,75 30,65 30,35" class="radar-baseline"/>
+                                    
+                                    <!-- Amber/red signal glow (hidden drift) -->
+                                    <polygon points="50,25 82,28 70,65 50,75 30,65 30,35" class="radar-drift"/>
+                                </svg>
+                                <div class="callout-pin mini" style="top: 30%; right: 5%;">
+                                    <span class="pin-number">2</span>
+                                    <span class="pin-label">Radar exposes drift under 'green'</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Decision Queue -->
+                            <div class="mini-panel queue-panel">
+                                <div class="panel-title">Decision Queue</div>
+                                <div class="queue-row">
+                                    <span class="queue-decision">Unlock vendor contract</span>
+                                    <span class="queue-owner">CFO</span>
+                                    <span class="queue-due urgent">Today</span>
+                                </div>
+                                <div class="queue-row">
+                                    <span class="queue-decision">Approve scope change</span>
+                                    <span class="queue-owner">PMO</span>
+                                    <span class="queue-due">+2d</span>
+                                </div>
+                                <div class="queue-row">
+                                    <span class="queue-decision">Resource reallocation</span>
+                                    <span class="queue-owner">Steering</span>
+                                    <span class="queue-due">+5d</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Missing Inputs -->
+                            <div class="mini-panel inputs-panel">
+                                <div class="panel-title">Missing Inputs</div>
+                                <div class="input-row">
+                                    <span class="input-source">Ministry of Finance</span>
+                                    <span class="input-last">last seen 12d ago</span>
+                                </div>
+                                <div class="input-row">
+                                    <span class="input-source">Vendor Alpha</span>
+                                    <span class="input-last">last seen 8d ago</span>
+                                </div>
+                                <div class="callout-pin mini" style="bottom: 5%; right: 5%;">
+                                    <span class="pin-number">3</span>
+                                    <span class="pin-label">Decision pack is ready now</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Layer 4: Time-Back Strip (inside hero) -->
+                <div class="time-back-strip">
+                    <div class="time-tile">
+                        <div class="time-gauge"></div>
+                        <span class="time-label">Briefing prep</span>
+                        <span class="time-baseline">baseline set in pilot</span>
+                    </div>
+                    <div class="time-tile">
+                        <div class="time-gauge"></div>
+                        <span class="time-label">Follow-up load</span>
+                        <span class="time-baseline">baseline set in pilot</span>
+                    </div>
+                    <div class="time-tile">
+                        <div class="time-gauge"></div>
+                        <span class="time-label">Stalls avoided</span>
+                        <span class="time-baseline">baseline set in pilot</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SECTION 3: PROOF GALLERY (screenshots appear HERE ONLY)
+         ============================================ -->
+    <section id="proof-gallery" class="proof-section">
+        <div class="container">
+            <h2 class="section-title">See it in action</h2>
+            
+            <!-- Frame 1: Dependency Desk -->
+            <div class="proof-frame">
+                <div class="proof-text">
+                    <h3>Dependency Desk</h3>
+                    <ul>
+                        <li>Cross-cutting chain visibility across entities</li>
+                        <li>Owner chain clarity for every blocker</li>
+                    </ul>
+                </div>
+                <div class="proof-screenshot">
+                    <div class="screenshot-wrapper">
+                        <img src="assets/josoor_dependency_desk_v2.png" alt="Dependency Desk">
+                        <div class="screenshot-pin" style="top: 30%; left: 40%;">
+                            <span class="pin-dot"></span>
+                            <span class="pin-text">Chain graph region</span>
+                        </div>
+                        <div class="screenshot-pin" style="top: 50%; left: 60%;">
+                            <span class="pin-dot"></span>
+                            <span class="pin-text">Highlighted critical path</span>
+                        </div>
+                        <div class="screenshot-pin" style="top: 70%; left: 25%;">
+                            <span class="pin-dot"></span>
+                            <span class="pin-text">Owner chain details</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Frame 2: Risk Desk -->
+            <div class="proof-frame reverse">
+                <div class="proof-text">
+                    <h3>Risk Desk</h3>
+                    <ul>
+                        <li>Weak signals detected before escalation</li>
+                        <li>Early warning on hidden risks under green</li>
+                    </ul>
+                </div>
+                <div class="proof-screenshot">
+                    <div class="screenshot-wrapper">
+                        <img src="assets/josoor_risk_desk_v2.png" alt="Risk Desk">
+                        <div class="screenshot-pin" style="top: 25%; left: 50%;">
+                            <span class="pin-dot"></span>
+                            <span class="pin-text">Radar / weak signal view</span>
+                        </div>
+                        <div class="screenshot-pin" style="top: 45%; left: 70%;">
+                            <span class="pin-dot"></span>
+                            <span class="pin-text">Hidden risk under green</span>
+                        </div>
+                        <div class="screenshot-pin" style="top: 65%; left: 30%;">
+                            <span class="pin-dot"></span>
+                            <span class="pin-text">Top risks queue</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Frame 3: Deep Dive -->
+            <div class="proof-frame">
+                <div class="proof-text">
+                    <h3>Deep Dive</h3>
+                    <ul>
+                        <li>Explain why blocked with evidence trace</li>
+                        <li>Impact trace and generated actions</li>
+                    </ul>
+                </div>
+                <div class="proof-screenshot">
+                    <div class="screenshot-wrapper">
+                        <img src="assets/josoor_deep_dive_details_v2.png" alt="Deep Dive">
+                        <div class="screenshot-pin" style="top: 20%; left: 35%;">
+                            <span class="pin-dot"></span>
+                            <span class="pin-text">Bound to selection</span>
+                        </div>
+                        <div class="screenshot-pin" style="top: 50%; left: 55%;">
+                            <span class="pin-dot"></span>
+                            <span class="pin-text">Evidence disclosure</span>
+                        </div>
+                        <div class="screenshot-pin" style="top: 75%; left: 40%;">
+                            <span class="pin-dot"></span>
+                            <span class="pin-text">Impact trace</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Frame 4: Control Tower -->
+            <div class="proof-frame reverse">
+                <div class="proof-text">
+                    <h3>Control Tower</h3>
+                    <ul>
+                        <li>Single steering surface for the portfolio</li>
+                        <li>What changed since last snapshot</li>
+                    </ul>
+                </div>
+                <div class="proof-screenshot">
+                    <div class="screenshot-wrapper">
+                        <img src="assets/josoor_control_tower_overview_v2.png" alt="Control Tower">
+                        <div class="screenshot-pin" style="top: 30%; left: 45%;">
+                            <span class="pin-dot"></span>
+                            <span class="pin-text">Changes since last snapshot</span>
+                        </div>
+                        <div class="screenshot-pin" style="top: 55%; left: 65%;">
+                            <span class="pin-dot"></span>
+                            <span class="pin-text">Decision queue</span>
+                        </div>
+                        <div class="screenshot-pin" style="top: 70%; left: 30%;">
+                            <span class="pin-dot"></span>
+                            <span class="pin-text">Portfolio pulse</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SECTION 4: MIXED TEAM MODEL (org diagram)
+         ============================================ -->
+    <section id="team" class="team-section">
+        <div class="container">
+            <h2 class="section-title">Blended Execution Team</h2>
+            <p class="section-subtitle">One blended execution team: Humans + digital specialists producing decision-ready outputs.</p>
+            
+            <div class="org-diagram">
+                <!-- Sponsor Layer -->
+                <div class="org-layer sponsor-layer">
+                    <div class="org-node human-node">
+                        <div class="node-icon">👤</div>
+                        <span>Vice Minister / Sponsor</span>
+                    </div>
+                    <div class="org-connector horizontal"></div>
+                    <div class="org-node human-node">
+                        <div class="node-icon">👥</div>
+                        <span>Steering Committee</span>
+                    </div>
+                </div>
+                
+                <!-- Connector Lines -->
+                <div class="org-connector vertical"></div>
+                
+                <!-- Platform Anchor -->
+                <div class="org-layer platform-layer">
+                    <div class="org-node platform-node">
+                        <div class="node-icon">🏛️</div>
+                        <span>Josoor Control Tower</span>
+                    </div>
+                </div>
+                
+                <div class="org-connector vertical"></div>
+                
+                <!-- Leadership Layer -->
+                <div class="org-layer leadership-layer">
+                    <div class="org-node human-node">
+                        <div class="node-icon">👤</div>
+                        <span>TMO Lead</span>
+                    </div>
+                    <div class="org-connector horizontal"></div>
+                    <div class="org-node human-node">
+                        <div class="node-icon">👤</div>
+                        <span>PMO Director</span>
+                    </div>
+                </div>
+                
+                <div class="org-connector vertical triple"></div>
+                
+                <!-- Three Blended Pods -->
+                <div class="org-layer pods-layer">
+                    <!-- Pod A: Reporting -->
+                    <div class="org-pod">
+                        <div class="pod-header">Reporting Pod</div>
+                        <div class="pod-humans">
+                            <div class="pod-role human">
+                                <span class="role-icon">👤</span>
+                                <span>Reporting Lead</span>
+                            </div>
+                            <div class="pod-role human">
+                                <span class="role-icon">👤</span>
+                                <span>Comms Coordinator</span>
+                            </div>
+                        </div>
+                        <div class="pod-agent">
+                            <div class="pod-role agent">
+                                <span class="role-icon">◉</span>
+                                <span>Reporting Specialist</span>
+                                <span class="agent-badge">Agent</span>
+                            </div>
+                        </div>
+                        <div class="pod-outputs">
+                            <span class="output-chip">Weekly Brief</span>
+                            <span class="output-chip">Missing Inputs List</span>
+                            <span class="output-chip">Escalation Pack</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Pod B: Dependency -->
+                    <div class="org-pod">
+                        <div class="pod-header">Dependency Pod</div>
+                        <div class="pod-humans">
+                            <div class="pod-role human">
+                                <span class="role-icon">👤</span>
+                                <span>Planning Lead</span>
+                            </div>
+                            <div class="pod-role human">
+                                <span class="role-icon">👤</span>
+                                <span>Portfolio Analyst</span>
+                            </div>
+                        </div>
+                        <div class="pod-agent">
+                            <div class="pod-role agent">
+                                <span class="role-icon">◉</span>
+                                <span>Dependency Specialist</span>
+                                <span class="agent-badge">Agent</span>
+                            </div>
+                        </div>
+                        <div class="pod-outputs">
+                            <span class="output-chip">Chain Map</span>
+                            <span class="output-chip">Owner Chain</span>
+                            <span class="output-chip">Unblock Plan</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Pod C: Risk -->
+                    <div class="org-pod">
+                        <div class="pod-header">Risk Pod</div>
+                        <div class="pod-humans">
+                            <div class="pod-role human">
+                                <span class="role-icon">👤</span>
+                                <span>Risk Manager</span>
+                            </div>
+                            <div class="pod-role human">
+                                <span class="role-icon">👤</span>
+                                <span>Assurance Lead</span>
+                            </div>
+                        </div>
+                        <div class="pod-agent">
+                            <div class="pod-role agent">
+                                <span class="role-icon">◉</span>
+                                <span>Risk Sentinel</span>
+                                <span class="agent-badge">Agent</span>
+                            </div>
+                        </div>
+                        <div class="pod-outputs">
+                            <span class="output-chip">Hidden Risk Alerts</span>
+                            <span class="output-chip">Leading Signals</span>
+                            <span class="output-chip">Mitigation Actions</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="org-connector vertical"></div>
+                
+                <!-- Stakeholder Layer -->
+                <div class="org-layer stakeholder-layer">
+                    <div class="stakeholder-row">
+                        <div class="stakeholder-node">Org Unit</div>
+                        <div class="stakeholder-node">Program A</div>
+                        <div class="stakeholder-node">Program B</div>
+                        <div class="stakeholder-node">Vendor X</div>
+                        <div class="stakeholder-node">Vendor Y</div>
+                        <div class="stakeholder-node">Ministry</div>
+                    </div>
+                    <div class="flow-labels">
+                        <span class="flow-in">↑ updates / evidence</span>
+                        <span class="flow-out">↓ nudges / escalations / decision packs</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SECTION 5: WEEKLY OUTPUTS (2x3 grid)
+         ============================================ -->
+    <section id="outputs" class="outputs-section">
+        <div class="container">
+            <h2 class="section-title">Weekly Outputs</h2>
+            
+            <div class="outputs-grid">
+                <div class="output-tile">
+                    <div class="output-icon">📑</div>
+                    <h4>Executive Brief</h4>
+                    <p>What changed, why it matters, decisions required</p>
+                </div>
+                <div class="output-tile">
+                    <div class="output-icon">📋</div>
+                    <h4>Decision Queue</h4>
+                    <p>Top decisions, owners, due dates</p>
+                </div>
+                <div class="output-tile">
+                    <div class="output-icon">🔗</div>
+                    <h4>Dependency Chain Pack</h4>
+                    <p>Critical chains + owner sequence</p>
+                </div>
+                <div class="output-tile">
+                    <div class="output-icon">⚠️</div>
+                    <h4>Hidden Risk Alerts</h4>
+                    <p>Weak signals under green + triggers</p>
+                </div>
+                <div class="output-tile">
+                    <div class="output-icon">📭</div>
+                    <h4>Missing Inputs List</h4>
+                    <p>Who hasn't reported, last seen, impact</p>
+                </div>
+                <div class="output-tile">
+                    <div class="output-icon">📤</div>
+                    <h4>Escalation Pack</h4>
+                    <p>Prepared messages + evidence + ask</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SECTION 6: IMPLEMENTATION PATH (3 steps)
+         ============================================ -->
+    <section id="path" class="path-section">
+        <div class="container">
+            <h2 class="section-title">Implementation Path</h2>
+            
+            <div class="path-grid">
+                <div class="path-step">
+                    <div class="step-number">1</div>
+                    <h3>Connect</h3>
+                    <div class="step-icons">
+                        <span class="step-icon">🔌</span>
+                        <span class="step-icon">📊</span>
+                        <span class="step-icon">🔗</span>
+                    </div>
+                    <ul>
+                        <li>Link existing status reports</li>
+                        <li>Connect initiative data sources</li>
+                    </ul>
+                    <div class="step-badge">First briefing pack in week 2</div>
+                </div>
+                
+                <div class="path-step">
+                    <div class="step-number">2</div>
+                    <h3>Activate Desks</h3>
+                    <div class="step-icons">
+                        <span class="step-icon">🔗</span>
+                        <span class="step-icon">📡</span>
+                        <span class="step-icon">🏛️</span>
+                    </div>
+                    <ul>
+                        <li>Turn on dependency mapping</li>
+                        <li>Enable risk signal detection</li>
+                    </ul>
+                    <div class="step-badge">Chain visibility in week 4</div>
+                </div>
+                
+                <div class="path-step">
+                    <div class="step-number">3</div>
+                    <h3>Enable Deep Dives</h3>
+                    <div class="step-icons">
+                        <span class="step-icon">🔍</span>
+                        <span class="step-icon">→</span>
+                        <span class="step-icon">📋</span>
+                    </div>
+                    <ul>
+                        <li>Selection-driven explanations</li>
+                        <li>Evidence-bound analysis</li>
+                    </ul>
+                    <div class="step-badge">Full analysis in week 6</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SECTION 7: TRUST (4 structured cards)
+         ============================================ -->
+    <section id="trust" class="trust-section">
+        <div class="container">
+            <h2 class="section-title">Trust & Governance</h2>
+            
+            <div class="trust-grid">
+                <!-- Card 1: Evidence Gating -->
+                <div class="trust-card">
+                    <div class="trust-icon">✓</div>
+                    <h4>Evidence Gating</h4>
+                    <p class="trust-promise">No grounded claim without linked evidence.</p>
+                    <div class="trust-preview">
+                        <div class="preview-row">Evidence: 3 links</div>
+                        <div class="preview-row warning">Missing data: 2 items</div>
+                    </div>
+                    <p class="trust-prevents">Prevents confident conclusions from empty inputs.</p>
+                </div>
+                
+                <!-- Card 2: Audit Trail -->
+                <div class="trust-card">
+                    <div class="trust-icon">📜</div>
+                    <h4>Audit Trail</h4>
+                    <p class="trust-promise">Every brief and escalation is traceable.</p>
+                    <div class="trust-preview">
+                        <div class="preview-log">09:14 • PMO Dir • Brief generated</div>
+                        <div class="preview-log">09:15 • Agent • Chain mapped</div>
+                        <div class="preview-log">09:18 • System • Escalation sent</div>
+                    </div>
+                    <p class="trust-prevents">Prevents 'where did this come from?' disputes.</p>
+                </div>
+                
+                <!-- Card 3: Access Control -->
+                <div class="trust-card">
+                    <div class="trust-icon">🔒</div>
+                    <h4>Access Control</h4>
+                    <p class="trust-promise">Roles see only what they are allowed to.</p>
+                    <div class="trust-preview">
+                        <div class="preview-role">PMO Director</div>
+                        <div class="preview-scopes">
+                            <span class="scope-chip">Portfolio A</span>
+                            <span class="scope-chip">Program 7</span>
+                        </div>
+                    </div>
+                    <p class="trust-prevents">Prevents overexposure of sensitive initiatives.</p>
+                </div>
+                
+                <!-- Card 4: Data Boundaries -->
+                <div class="trust-card">
+                    <div class="trust-icon">🛡️</div>
+                    <h4>Data Boundaries</h4>
+                    <p class="trust-promise">Analysis stays within connected data.</p>
+                    <div class="trust-preview">
+                        <div class="preview-label">Sources in scope:</div>
+                        <div class="preview-sources">
+                            <span class="source-chip">PMO Reports</span>
+                            <span class="source-chip">Vendor Updates</span>
+                            <span class="source-chip">Finance Data</span>
+                        </div>
+                    </div>
+                    <p class="trust-prevents">Prevents analysis drifting beyond agreed scope.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SECTION 8: FOOTER
+         ============================================ -->
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <div class="footer-brand">
+                <span class="logo">JOSOOR</span>
+                <span class="footer-tagline">Invite-only beta</span>
+            </div>
+            <nav class="footer-links">
+                <a href="#">Privacy</a>
+                <a href="#">Security</a>
+                <a href="#">Contact</a>
+            </nav>
+            <button class="btn btn-filled">Request Invite</button>
+        </div>
+    </footer>
+
+    <script src="script_v10.js"></script>
+</body>
+</html>

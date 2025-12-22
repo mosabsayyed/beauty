@@ -14,13 +14,13 @@ interface ArchitectureAnimationProps {
 
 export default function ArchitectureAnimation({
   isEnabled = true,
-}: ArchitectureAnimationProps): JSX.Element {
-  const [animatingComponentId, setAnimatingComponentId] = useState<string | undefined>();
+}: ArchitectureAnimationProps): React.ReactElement {
+  const [, setAnimatingComponentId] = useState<string | undefined>();
   const [pathStrokeDashoffset, setPathStrokeDashoffset] = useState(0);
   const svgRef = useRef<SVGSVGElement>(null);
   const cardPositionsRef = useRef<Map<string, CardPosition>>(new Map());
   const animationTimeRef = useRef(0);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
 
   // Calculate card positions in the DOM
   const updateCardPositions = () => {
@@ -66,7 +66,7 @@ export default function ArchitectureAnimation({
       }
 
       const elapsed = (timestamp - animationTimeRef.current) % ANIMATION_CYCLE_TIME;
-      const progress = elapsed / ANIMATION_CYCLE_TIME;
+      // Removed unused progress variable
 
       // Update card positions periodically
       if (Math.floor(elapsed) % 500 === 0) {
@@ -106,7 +106,7 @@ export default function ArchitectureAnimation({
 
   // Render SVG paths for animation flow
   const renderPaths = () => {
-    const paths: JSX.Element[] = [];
+    const paths: React.ReactElement[] = [];
 
     for (let i = 0; i < ANIMATION_FLOW.length - 1; i++) {
       const currentNode = ANIMATION_FLOW[i];

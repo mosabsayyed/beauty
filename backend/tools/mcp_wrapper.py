@@ -3,6 +3,7 @@ import json
 import asyncio
 import os
 import logging
+from datetime import datetime, date
 
 # Add backend directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -13,6 +14,18 @@ from app.utils.debug_logger import init_debug_logger
 # Configure logging to stderr so stdout is clean for JSON
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 logger = logging.getLogger("mcp_wrapper")
+
+# Custom JSON encoder to handle Neo4j types and datetime objects
+class Neo4jJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        # Handle datetime objects
+        if isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        # Handle Neo4j DateTime, Date, Time objects
+        if hasattr(obj, 'isoformat'):
+            return obj.isoformat()
+        # Handle other types by converting to string
+        return str(obj)
 
 async def main():
     try:
@@ -67,8 +80,8 @@ async def main():
         else:
             raise ValueError(f"Unknown tool: {tool_name}")
 
-        # Output result as JSON to stdout
-        print(json.dumps(result))
+        # Output result as JSON to stdout using custom encoder
+        print(json.dumps(result, cls=Neo4jJSONEncoder))
 
     except Exception as e:
         logger.error(f"Error executing tool: {e}", exc_info=True)

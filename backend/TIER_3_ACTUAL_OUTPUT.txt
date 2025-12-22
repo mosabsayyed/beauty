@@ -1,0 +1,205 @@
+===================================================================
+TIER 3: Actual Output as LLM Receives It (All Active Elements)
+Source: MCP Router → mcp_wrapper.py → mcp_service.retrieve_instructions(mode, tier="elements", elements=[...])
+Database Query: instruction_elements WHERE bundle='tier3' AND status='active' AND element IN (...)
+Total Elements: 39 active elements
+Total Length: 23375 characters
+Note: LLM must explicitly request element names; no "list all" feature
+===================================================================
+
+<element name="2.0_21_business_chain_Tactical_to_Strategy">
+Business Chain: Tactical_to_Strategy
+
+Path: EntityChangeAdoption → EntityProject → Ops Layers → EntityCapability → SectorPerformance|SectorPolicyTool → SectorObjective
+Story: Describes the feedback loop where project execution informs higher-level strategy and policy decisions.
+</element>
+
+<element name="2.0_01_EntityProject">
+EntityProject Node
+
+Properties:
+id (string): Unique identifier
+name (string): Project name
+year (integer): Fiscal year
+quarter (integer): 1/2/3/4 (stored as integer, NOT string)
+level (string): L1=Portfolio, L2=Program, L3=Project
+budget (number): Budget amount
+progress_percentage (number): 0-100
+status (string): Active/Planned/Closed
+start_date (date): Project start date
+end_date (date): Project end date
+
+Key Relationships:
+[:CLOSE_GAPS]->(EntityOrgUnit|EntityProcess|EntityITSystem)
+[:CONTRIBUTES_TO]->(SectorObjective)
+[:ADOPTION_RISKS]->(EntityChangeAdoption)
+
+Level Meaning:
+L1: Portfolio (collection of Programs)
+L2: Program (collection of Projects)
+L3: Project (Output/Milestone/Deliverable)
+</element>
+
+<element name="2.0_10_SectorAdminRecord">
+SectorAdminRecord Node
+
+Properties:
+id (string): Unique identifier
+name (string): Administrative record name
+year (integer): Fiscal year
+quarter (string): Q1/Q2/Q3/Q4
+level (string): L1/L2/L3
+
+Key Relationships:
+<-[:REFERS_TO]-(SectorPolicyTool)
+[:APPLIED_ON]->(SectorBusiness)
+[:APPLIED_ON]->(SectorGovEntity)
+[:APPLIED_ON]->(SectorCitizen)
+
+Level Meaning:
+L1: Record Category
+L2: Record Type
+L3: Specific Record
+</element>
+
+<element name="2.0_11_SectorBusiness">
+SectorBusiness Node
+
+Properties:
+id (string): Unique identifier
+name (string): Business entity name
+year (integer): Fiscal year
+quarter (string): Q1/Q2/Q3/Q4
+level (string): L1/L2/L3
+
+Key Relationships:
+<-[:APPLIED_ON]-(SectorAdminRecord)
+[:TRIGGERS_EVENT]->(SectorDataTransaction)
+
+Level Meaning:
+L1: Business Sector
+L2: Business Category
+L3: Specific Business
+</element>
+
+<element name="2.0_12_SectorGovEntity">
+SectorGovEntity Node
+
+Properties:
+id (string): Unique identifier
+name (string): Government entity name
+year (integer): Fiscal year
+quarter (string): Q1/Q2/Q3/Q4
+level (string): L1/L2/L3
+
+Key Relationships:
+<-[:APPLIED_ON]-(SectorAdminRecord)
+[:TRIGGERS_EVENT]->(SectorDataTransaction)
+
+Level Meaning:
+L1: Ministry/Department
+L2: Agency/Division
+L3: Specific Office
+</element>
+
+<element name="2.0_13_SectorCitizen">
+SectorCitizen Node
+
+Properties:
+id (string): Unique identifier
+name (string): Citizen segment name
+year (integer): Fiscal year
+quarter (string): Q1/Q2/Q3/Q4
+level (string): L1/L2/L3
+
+Key Relationships:
+<-[:APPLIED_ON]-(SectorAdminRecord)
+[:TRIGGERS_EVENT]->(SectorDataTransaction)
+
+Level Meaning:
+L1: Population Segment
+L2: Demographic Group
+L3: Specific Cohort
+</element>
+
+<element name="2.0_14_SectorDataTransaction">
+SectorDataTransaction Node
+
+Properties:
+id (string): Unique identifier
+name (string): Transaction name
+year (integer): Fiscal year
+quarter (string): Q1/Q2/Q3/Q4
+level (string): L1/L2/L3
+
+Key Relationships:
+<-[:TRIGGERS_EVENT]-(SectorBusiness|SectorGovEntity|SectorCitizen)
+[:MEASURED_BY]->(SectorPerformance)
+
+Level Meaning:
+L1: Transaction Category
+L2: Transaction Type
+L3: Specific Transaction
+</element>
+
+<element name="2.0_15_EntityVendor">
+EntityVendor Node
+
+Properties:
+id (string): Unique identifier
+name (string): Vendor name
+year (integer): Fiscal year
+quarter (string): Q1/Q2/Q3/Q4
+level (string): L1/L2/L3
+
+Key Relationships:
+<-[:DEPENDS_ON]-(EntityITSystem)
+
+Level Meaning:
+L1: Vendor Category
+L2: Vendor Type
+L3: Specific Vendor
+</element>
+
+<element name="2.0_16_EntityCultureHealth">
+EntityCultureHealth Node
+
+Properties:
+id (string): Unique identifier
+name (string): Culture health indicator name
+year (integer): Fiscal year
+quarter (string): Q1/Q2/Q3/Q4
+level (string): L1/L2/L3
+
+Key Relationships:
+[:MONITORS_FOR]->(EntityOrgUnit)
+
+Level Meaning:
+L1: Culture Domain
+L2: Culture Area
+L3: Specific Health Indicator
+</element>
+
+<element name="2.0_17_EntityChangeAdoption">
+EntityChangeAdoption Node
+
+Properties:
+id (string): Unique identifier
+name (string): Change adoption metric name
+year (integer): Fiscal year
+quarter (string): Q1/Q2/Q3/Q4
+level (string): L1/L2/L3
+
+Key Relationships:
+<-[:ADOPTION_RISKS]-(EntityProject)
+
+Level Meaning:
+L1: Adoption Domain
+L2: Adoption Area
+L3: Specific Adoption Metric
+</element>
+
+[Remaining 30 elements truncated for file length; includes node schemas for EntityCapability, EntityRisk, EntityProcess, EntityITSystem, EntityOrgUnit, SectorObjective, SectorPerformance, SectorPolicyTool, business chains, Cypher patterns, tool execution rules, etc. - total 23375 chars]
+
+Full element list (39 total):
+['2.0_21_business_chain_Tactical_to_Strategy', '2.0_01_EntityProject', '2.0_10_SectorAdminRecord', '2.0_11_SectorBusiness', '2.0_12_SectorGovEntity', '2.0_13_SectorCitizen', '2.0_14_SectorDataTransaction', '2.0_15_EntityVendor', '2.0_16_EntityCultureHealth', '2.0_17_EntityChangeAdoption', '2.0_02_EntityCapability', '2.0_03_EntityRisk', '2.0_04_EntityProcess', '2.0_05_EntityITSystem', '2.0_06_EntityOrgUnit', '2.0_07_SectorObjective', '2.0_08_SectorPerformance', '2.0_09_SectorPolicyTool', '2.0_18_business_chain_SectorOps', '2.0_19_business_chain_Strategy_to_Tactics_Priority_Capabilities', '2.0_20_business_chain_Strategy_to_Tactics_Capabilities_Targets', '2.0_22_business_chain_Risk_Build_Mode', '2.0_23_business_chain_Risk_Operate_Mode', '2.0_24_business_chain_Internal_Efficiency', '3.0_01_cypher_optimized_retrieval', '3.0_02_cypher_keyset_pagination', '3.0_03_cypher_semantic_search', '3.0_04_cypher_impact_analysis', '3.0_05_cypher_chain_traversal', '3.1_tool_execution_rules', '3.2_constraint_efficiency', '3.3_constraint_keyset_pagination', '3.4_constraint_temporal_filtering', '3.5_constraint_level_integrity', '3.6_constraint_embedding_exclusion', '3.7_mode_quick_exit', '3.8_mode_clarification', '3.9_mode_gap_diagnosis', '3.10_mode_report_structure']

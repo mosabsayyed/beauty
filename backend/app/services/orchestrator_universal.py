@@ -1,23 +1,11 @@
-"""
-Unified v3.4 Single-Call MCP Orchestrator
+"""Unified v3.4 Single-Call MCP Orchestrator with persona-aware MCP tools.
 
-MULTI-PERSONA ARCHITECTURE:
-This orchestrator serves BOTH Noor and Maestro personas through a single codebase.
-Persona is passed as a parameter to __init__ and determines:
-  1. MCP Router URL (Noor: port 8201, Maestro: port 8202)
-  2. Tier 1 content assembly (different memory scopes)
-  3. Fallback messages (persona-specific)
+Multi-persona architecture:
+- Noor (staff): MCP router on 8201; memory scopes personal/departmental/ministry.
+- Maestro (executive): MCP router on 8202; memory scopes personal/departmental/ministry/secrets.
 
-Architecture:
-- LLM autonomously executes Steps 0-5 using MCP tools
-- Orchestrator: Infrastructure layer only (dumb pipe)
-- Model: openai/gpt-oss-120b (Groq)
-- Tooling: MCP with server-side execution (require_approval: never)
-- Tier 1: Loaded from database (atomic elements assembled with persona placeholders)
-
-Personas:
-- Noor: Staff-facing, routers on 8201, memory scopes: personal/departmental/ministry
-- Maestro: Executive-facing, routers on 8202, memory scopes: personal/departmental/ministry/secrets
+This orchestrator is an infrastructure layer: single LLM call (Responses API) with server-side MCP tools,
+Tier 1 prompt fetched from the database, and JSON parsing/guards applied in code.
 """
 
 import os
@@ -27,47 +15,29 @@ import ast
 import logging
 from datetime import datetime
 from typing import Dict, List, Any, Optional
-import requests  # Use requests for Groq /v1/responses endpoint
 
-# Deterministic backend diagnostics (used only as a safety net)
+import requests
+
+from app.config import settings
 from app.db.neo4j_client import neo4j_client
+from app.utils.debug_logger import log_debug
+from app.services.tier1_assembler import get_tier1_prompt, get_tier1_token_count
+from app.services.admin_settings_service import admin_settings_service
 
-# Configure logging
 logger = logging.getLogger(__name__)
 
-# Import debug logger (same as zero-shot)
-from app.utils.debug_logger import log_debug
-
-# Import Tier 1 assembler
-from app.services.tier1_assembler import get_tier1_prompt, get_tier1_token_count
-
-# ==============================================================================
-# TIER 1 PROMPT (LOADED FROM DATABASE)
-# ==============================================================================
-# Tier 1 is now assembled from atomic elements in instruction_elements table
-# This replaces the hardcoded COGNITIVE_CONT_BUNDLE
 
 def load_tier1_bundle(persona: str) -> str:
-    """
-    Load Tier 1 prompt from database (Step 0 + Step 5)
-    
-    Args:
-        persona: Either "noor" or "maestro"
-    
-    Returns:
-        Assembled prompt with persona-specific content (~1,200 tokens)
-    """
+    """Load Tier 1 prompt from database (Step 0 + Step 5)."""
     try:
         prompt = get_tier1_prompt(persona=persona, use_cache=True)
         token_info = get_tier1_token_count(persona=persona)
-        
         log_debug(2, "tier1_loaded", {
             "persona": persona,
             "source": "database",
-            "element_count": token_info["element_count"],
-            "total_tokens": token_info["total_tokens"]
+            "element_count": token_info.get("element_count"),
+            "total_tokens": token_info.get("total_tokens"),
         })
-        
         return prompt
     except Exception as e:
         log_debug(1, "tier1_load_failed", {"error": str(e), "persona": persona})
@@ -75,81 +45,119 @@ def load_tier1_bundle(persona: str) -> str:
 
 
 class CognitiveOrchestrator:
-    """
-    v3.4 Unified Single-Call MCP Orchestrator (Multi-Persona)
-    
-    HANDLES BOTH NOOR AND MAESTRO PERSONAS
-    Persona is determined by initialization parameter, which controls:
-      - MCP router URL (port 8201 vs 8202)
-      - Tier 1 content (different memory scopes)
-      - Fallback messages
-    
-    Responsibilities:
-    1. Input validation & authentication
-    2. Fast-path greeting detection (Step 0 pre-filter)
-    3. Load Tier 1 from database with persona-specific placeholders
-    4. Build prompt with datetoday and persona injection
-    5. Call Groq LLM with MCP tools (ONE call)
-    6. Parse & validate JSON response
-    7. Auto-recovery if invalid JSON
-    8. Apply business language translation
-    9. Log metrics
-    10. Return
-    
-    What it does NOT do:
-    - Does NOT retrieve bundles (LLM calls retrieve_instructions)
-    - Does NOT call MCPs directly (LLM calls them)
-    - Does NOT classify mode (LLM does it)
-    - Does NOT decide which bundles to load (LLM does it)
-    """
-    
+    """v3.4 Unified Single-Call MCP Orchestrator (Multi-Persona)."""
+
     def __init__(self, persona: str = "noor"):
-        """
-        Initialize orchestrator for specified persona
-        
-        Args:
-            persona: Either "noor" (staff) or "maestro" (executive)
-        """
+        """Initialize orchestrator for the specified persona."""
         self.persona = persona.lower()
-        
+
         if self.persona not in ["noor", "maestro"]:
             raise ValueError(f"Invalid persona: {persona}. Must be 'noor' or 'maestro'")
-        
-        # Groq API Configuration
-        self.groq_api_key = os.getenv("GROQ_API_KEY")
-        if not self.groq_api_key:
-            raise ValueError("GROQ_API_KEY environment variable not set")
-        
-        self.model = "openai/gpt-oss-120b"
-        self.groq_endpoint = "https://api.groq.com/openai/v1/responses"
-        
-        # MCP Router URL - persona-specific
+
+        self.api_endpoint = os.getenv("OPENROUTER_API_ENDPOINT", "https://openrouter.ai/api/v1/responses")
+        self.openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
+
+        # Model configuration (env-driven with OpenRouter-friendly defaults)
+        self.model_primary = os.getenv("OPENROUTER_MODEL_PRIMARY", "google/gemma-3-27b-it")
+        self.model_fallback = os.getenv("OPENROUTER_MODEL_FALLBACK", "google/gemini-2.5-flash")
+        self.model_alt = os.getenv("OPENROUTER_MODEL_ALT", "mistralai/devstral-2512:free")
+        self.model = self.model_primary
+
+        # Persona-specific MCP router URLs
         if self.persona == "noor":
             self.mcp_router_url = os.getenv("NOOR_MCP_ROUTER_URL")
             if not self.mcp_router_url:
                 raise ValueError("NOOR_MCP_ROUTER_URL environment variable not set (e.g., http://127.0.0.1:8201)")
-        else:  # maestro
+        else:
             self.mcp_router_url = os.getenv("MAESTRO_MCP_ROUTER_URL")
             if not self.mcp_router_url:
                 raise ValueError("MAESTRO_MCP_ROUTER_URL environment variable not set (e.g., http://127.0.0.1:8202)")
-        
-        # MCP tool definition (passed to Groq API)
-        # Single MCP server definition - Groq executes tools server-side via this URL
-        self.mcp_tools = [
-            {
-                "type": "mcp",
-                "server_label": "mcp_router",
-                "server_url": self.mcp_router_url,
-                "require_approval": "never"  # CRITICAL: allows Groq to execute tools server-side
-            }
-        ]
+
+        # Local LLM settings (cached from admin settings at init time - NO per-request DB calls)
+        # Load admin settings ONCE at init, then cache it for all requests
+        self._admin_settings_cached = admin_settings_service.merge_with_env_defaults()
+        provider_config = self._admin_settings_cached.provider
+
+        self.local_llm_enabled = provider_config.local_llm_enabled
+        self.local_llm_model = provider_config.local_llm_model
+        self.local_llm_base_url = provider_config.local_llm_base_url
+        self.local_llm_timeout = provider_config.local_llm_timeout
+
+        # Pre-build MCP endpoint lookup map at init (O(1) lookup later, not O(n) loop)
+        mcp_config = self._admin_settings_cached.mcp
+        self._mcp_endpoint_map = {}
+        if mcp_config and mcp_config.endpoints:
+            for endpoint in mcp_config.endpoints:
+                self._mcp_endpoint_map[endpoint.label] = endpoint.url
+
+        # Cache Tier-1 prompt at init time (NO per-request DB call)
+        # This is loaded ONCE when orchestrator starts, not on every execute_query() call
+        try:
+            self._tier1_prompt_cached = load_tier1_bundle(persona=self.persona)
+            self._tier1_loaded_at = datetime.now()
+            logger.info(f"[INIT] Tier-1 prompt cached for persona '{persona}' at {self._tier1_loaded_at}")
+        except Exception as e:
+            logger.error(f"[INIT] Failed to cache Tier-1 prompt for persona '{persona}': {e}")
+            self._tier1_prompt_cached = f"You are {persona.capitalize()}. Respond: 'System instructions unavailable.'"
+
+        # Track response IDs for stateful LM Studio conversations
+        self._response_id_cache: Dict[str, str] = {}
+
+        # Model alias map
+        self._model_alias_map = {
+            "primary": self.model_primary,
+            "fallback": self.model_fallback,
+            "alt": self.model_alt,
+        }
+        if self.local_llm_enabled:
+            self._model_alias_map["local"] = self.local_llm_model
     
+    def _resolve_model_choice(self, model_override: Optional[str]) -> Dict[str, Any]:
+        """Resolve which model to use based on override and env configuration."""
+        override_key = (model_override or "").strip().lower()
+        synonyms = {
+            "primary": "primary",
+            "fallback": "fallback",
+            "alt": "alt",
+            "local": "local",
+            "gemma": "primary",
+            "flash": "fallback",
+            "devstral": "alt",
+        }
+
+        alias = synonyms.get(override_key) if override_key else None
+        if alias not in self._model_alias_map:
+            # If no valid override, check if local LLM is enabled globally.
+            # If enabled, it becomes the default "primary" choice.
+            if self.local_llm_enabled:
+                alias = "local"
+            else:
+                alias = "primary"
+
+        # If local was requested (or defaulted) but strictly not enabled, fall back to primary
+        use_local = alias == "local" and self.local_llm_enabled
+        if alias == "local" and not self.local_llm_enabled:
+            alias = "primary"
+            use_local = False
+
+        model_name = self._model_alias_map.get(alias, self.model_primary)
+
+        if not use_local and not self.openrouter_api_key:
+            raise ValueError("OPENROUTER_API_KEY environment variable not set for OpenRouter request")
+
+        return {
+            "model_name": model_name,
+            "alias": alias,
+            "use_local": use_local,
+        }
+
     def execute_query(
         self,
         user_query: str,
         session_id: str,
         history: Optional[List[Dict[str, str]]] = None,
-        user_id: Optional[str] = None
+        user_id: Optional[str] = None,
+        model_override: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Main orchestration method.
@@ -175,6 +183,10 @@ class CognitiveOrchestrator:
             if greeting_response:
                 logger.info(f"[{session_id}] Fast-path greeting triggered")
                 return greeting_response
+
+            # 2b. Resolve model selection (env-driven with optional override)
+            model_choice = self._resolve_model_choice(model_override)
+            self.model = model_choice["model_name"]
             
             # 3. Load cognitive_cont bundle with datetoday injection
             cognitive_prompt = self._build_cognitive_prompt()
@@ -182,15 +194,17 @@ class CognitiveOrchestrator:
             # 4. Build full prompt with history
             messages = self._build_messages(cognitive_prompt, user_query, history or [])
             
-            # 5. Call Groq LLM with MCP tools (LLM does Steps 0-5 autonomously)
-            logger.info(f"[{session_id}] Calling Groq LLM with MCP tools...")
+            # 5. Call OpenRouter LLM with MCP tools (single Responses API call)
+            logger.info(f"[{session_id}] Calling OpenRouter LLM with MCP tools...")
             log_debug(2, "llm_request", {
                 "session_id": session_id,
                 "query": user_query,
                 "history_length": len(history) if history else 0,
-                "model": self.model
+                "model": self.model,
+                "model_alias": model_choice.get("alias"),
+                "use_local_llm": model_choice.get("use_local", False)
             })
-            llm_response = self._call_groq_llm(messages)
+            llm_response = self._call_llm(messages, model_choice)
             
             # Log raw LLM response for debugging
             log_debug(2, "llm_raw_response", {
@@ -203,18 +217,34 @@ class CognitiveOrchestrator:
             # 6. Parse & validate JSON
             parsed_response = self._parse_llm_output(llm_response)
             
-            # Log parsed response
+            # Track parse success for logging separation
+            parse_success = self._is_valid_json_response(parsed_response)
+            
+            # Log parsed response with parse success indicator
             log_debug(2, "llm_parsed_response", {
                 "session_id": session_id,
+                "parse_success": parse_success,
                 "has_answer": bool(parsed_response.get("answer")),
-                "has_visualizations": bool(parsed_response.get("visualizations")),
+                "has_artifacts": bool(parsed_response.get("artifacts")),  # Updated to artifacts
                 "confidence": parsed_response.get("confidence", 0)
             })
             
             # 7. Auto-recovery if invalid JSON
-            if not self._is_valid_json_response(parsed_response):
+            if not parse_success:
                 logger.warning(f"[{session_id}] Invalid JSON detected, attempting auto-recovery...")
                 parsed_response = self._auto_recover(messages, llm_response)
+                # Mark that fallback execution occurred
+                parsed_response["fallback_executed"] = True
+                parsed_response["original_parse_failed"] = True
+                
+                # Log fallback execution result separately
+                log_debug(2, "agent_result_from_fallback", {
+                    "session_id": session_id,
+                    "fallback_success": self._is_valid_json_response(parsed_response),
+                    "has_answer": bool(parsed_response.get("answer")),
+                    "has_artifacts": bool(parsed_response.get("artifacts")),
+                    "confidence": parsed_response.get("confidence", 0)
+                })
 
             # 7b. Deterministic safety net for empty results
             parsed_response = self._apply_empty_result_guard(user_query, parsed_response)
@@ -261,11 +291,10 @@ class CognitiveOrchestrator:
     def _apply_empty_result_guard(self, user_query: str, response: Dict[str, Any]) -> Dict[str, Any]:
         """Safety net to prevent false "no data" outputs when data exists.
 
-        This runs ONLY when:
-        - The model returned an empty result set (0 rows)
-        - The user intent looks like a list/report request
-        - The query mentions a year + quarter
-        - The query is about projects (EntityProject)
+        This runs when:
+        - The model returned an empty result set (0 rows), OR
+        - The model returned a suspiciously low count (e.g., 0 for a temporal query), OR
+        - Visualization counts don't match query_results counts
 
         If Neo4j shows data exists for the requested year/quarter, the guard will
         fetch the correct rows and attach them to the response.
@@ -273,7 +302,45 @@ class CognitiveOrchestrator:
         try:
             data = response.get("data") if isinstance(response, dict) else None
             query_results = (data or {}).get("query_results") if isinstance(data, dict) else None
-            if query_results:
+            
+            # Enhanced validation: check for suspicious results
+            needs_validation = False
+            
+            # Case 1: Empty results
+            if not query_results:
+                needs_validation = True
+            # Case 2: Results exist but contain suspicious zeros
+            elif isinstance(query_results, list) and len(query_results) > 0:
+                first_result = query_results[0] if isinstance(query_results[0], dict) else {}
+                # Check common count field names
+                count_fields = ['projectCount', 'project_count', 'count', 'count_projects', 'total', 'total_projects']
+                for field in count_fields:
+                    if field in first_result:
+                        count_val = first_result.get(field)
+                        # If count is 0 or None for a temporal query, validate against Neo4j
+                        if count_val is None or (isinstance(count_val, (int, float)) and count_val == 0):
+                            needs_validation = True
+                            break
+            
+            # Case 3: Check visualization data for count=0
+            if not needs_validation:
+                visualizations = response.get("visualizations", [])
+                if isinstance(visualizations, list):
+                    for viz in visualizations:
+                        if isinstance(viz, dict) and "data" in viz:
+                            viz_data = viz.get("data", [])
+                            if isinstance(viz_data, list) and len(viz_data) > 0:
+                                first_viz = viz_data[0]
+                                if isinstance(first_viz, dict):
+                                    # Check for "Project Count" = 0 or similar
+                                    for key, value in first_viz.items():
+                                        if "count" in key.lower() and isinstance(value, (int, float)) and value == 0:
+                                            needs_validation = True
+                                            break
+                        if needs_validation:
+                            break
+            
+            if not needs_validation:
                 return response
 
             # Ensure top-level fields exist for downstream evidence gating.
@@ -439,45 +506,46 @@ class CognitiveOrchestrator:
         keywords = ["report", "list", "show", "generate", "status", "table", "summary"]
         return any(k in query_lower for k in keywords)
 
-    def _extract_year_and_quarter(self, query_lower: str) -> tuple[Optional[int], Optional[str]]:
+    def _extract_year_and_quarter(self, query_lower: str) -> tuple[Optional[int], Optional[int]]:
         year_match = re.search(r"\b(20\d{2})\b", query_lower)
         quarter_match = re.search(r"\bq([1-4])\b", query_lower)
 
         year = int(year_match.group(1)) if year_match else None
-        quarter = f"Q{quarter_match.group(1)}" if quarter_match else None
+        quarter = int(quarter_match.group(1)) if quarter_match else None
         return year, quarter
     
     def _build_cognitive_prompt(self) -> str:
         """
-        Build Tier 1 prompt (Step 0 + Step 5) from database with persona and datetoday injection.
+        Build Tier 1 prompt (Step 0 + Step 5) using cached data with datetoday injection.
         
-        Returns assembled Tier 1 prompt with dynamic date and persona.
+        Uses cached Tier-1 from init (no per-request DB calls).
+        Returns assembled Tier 1 prompt with dynamic date and user context prepended.
         """
         today = datetime.now().strftime("%B %d, %Y")
-        tier1_prompt = load_tier1_bundle(persona=self.persona)
+        # Load Tier-1 fresh from DB (no cached prompt)
+        tier1_prompt = get_tier1_prompt(persona=self.persona, use_cache=False)
 
-        # Guard against models emitting phantom tool calls (e.g., json/JSON) which Groq rejects
-        # when the tool is not declared in request.tools.
-        tool_guard = (
-            "\n\n"
-            "TOOLING CONTRACT (MANDATORY)\n"
-            "- You may ONLY call tools that are explicitly provided in the request 'tools' list.\n"
-            "- Do NOT invent or call any other tool names (including 'json' or 'JSON').\n"
-            "- When returning the final response, emit the required JSON as plain message text (not as a tool call).\n"
-        )
+        # Replace date placeholders (support both <datetoday> and <date_today>)
+        tier1_with_runtime = tier1_prompt.replace("<datetoday>", today).replace("<date_today>", today)
 
-        # Inject user_id context for memory isolation if authenticated
-        user_context = ""
+        # Build authenticated user info block
+        user_info_block = None
         if hasattr(self, '_current_user_id') and self._current_user_id:
-            user_context = (
-                "\n\n"
+            user_info_block = (
                 f"AUTHENTICATED USER CONTEXT\n"
                 f"- Current user_id: {self._current_user_id}\n"
                 f"- When calling recall_memory with scope='personal', ALWAYS pass user_id={self._current_user_id} to ensure proper memory isolation.\n"
-                f"- Personal memories MUST be filtered by the authenticated user's ID to prevent cross-user data leakage.\n"
+                f"- Personal memories MUST be filtered by the authenticated user's ID to prevent cross-user data leakage.\n\n"
             )
 
-        return tier1_prompt.replace("<datetoday>", today) + tool_guard + user_context
+        # Replace <user_auth_info> placeholder when present, else prepend for back-compat
+        if user_info_block:
+            if "<user_auth_info>" in tier1_with_runtime:
+                tier1_with_runtime = tier1_with_runtime.replace("<user_auth_info>", user_info_block)
+            else:
+                tier1_with_runtime = user_info_block + tier1_with_runtime
+
+        return tier1_with_runtime
     
     def _build_messages(
         self,
@@ -528,8 +596,11 @@ class CognitiveOrchestrator:
             max_chars = 2400 if role == "assistant" else 1400
             return {"role": role, "content": (raw[: max_chars - 1] + "…") if len(raw) > max_chars else raw}
         
-        # Add compacted conversation history
-        for turn in history:
+        # Add compacted conversation history (limit to last 10 turns to prevent context overflow)
+        MAX_HISTORY_TURNS = 10
+        recent_history = history[-MAX_HISTORY_TURNS:] if len(history) > MAX_HISTORY_TURNS else history
+        
+        for turn in recent_history:
             compacted = _compact_history_turn(turn)
             if compacted:
                 messages.append(compacted)
@@ -539,227 +610,335 @@ class CognitiveOrchestrator:
         
         return messages
     
-    def _call_groq_llm(self, messages: List[Dict[str, str]]) -> str:
-        """
-        Call Groq LLM with MCP tool definitions using HTTP-based /v1/responses endpoint.
-        
-        This endpoint allows server-side tool execution - Groq calls the MCP router,
-        not the client.
-        
-        Returns raw LLM output (text-based JSON).
-        """
-        def _messages_to_input(msgs: List[Dict[str, str]]) -> str:
-            """Convert role-tagged messages to a single input string.
+    def _call_llm(self, messages: List[Dict[str, str]], model_choice: Dict[str, Any]) -> str:
+        """Route to OpenRouter or local LLM based on resolved model choice."""
+        if model_choice.get("use_local"):
+            return self._call_local_llm(messages, model_choice.get("model_name"))
+        return self._call_openrouter_llm(messages, model_choice.get("model_name"))
 
-            Note: Groq /v1/responses supports `input` as a string; we keep this
-            representation for backward compatibility with the current system.
-            """
-            prompt_parts: List[str] = []
-            for msg in msgs:
-                role = (msg.get("role", "user") or "user").upper()
-                content = msg.get("content", "") or ""
-                if role == "SYSTEM":
-                    prompt_parts.insert(0, content)
-                else:
-                    prompt_parts.append(f"<{role}>\n{content}\n</{role}>")
-            return "\n\n".join(prompt_parts)
 
-        def _is_groq_tool_validation_400(body: str) -> bool:
-            text = (body or "").lower()
-            return (
-                "tool call validation failed" in text
-                or "failed to parse tool call arguments as json" in text
-                or "attempted to call tool 'json'" in text
-            )
-
-        def _slim_messages_for_retry(msgs: List[Dict[str, str]]) -> List[Dict[str, str]]:
-            """Retry with minimal context to reduce hallucinated tool calls.
-
-            Keeps:
-            - system prompt
-            - last 2 non-system turns
-            - final user question
-            """
-            if not msgs:
-                return msgs
-            system = [msgs[0]] if msgs[0].get("role") == "system" else []
-            non_system = [m for m in msgs if m.get("role") != "system"]
-            tail = non_system[-3:] if len(non_system) >= 3 else non_system
-            # Ensure final turn is user
-            if tail and tail[-1].get("role") != "user":
-                # If last isn't user, append the most recent user turn if present
-                last_user = next((m for m in reversed(non_system) if m.get("role") == "user"), None)
-                if last_user and last_user not in tail:
-                    tail.append(last_user)
-            return system + tail
-
-        full_input = _messages_to_input(messages)
+    def _call_local_llm(self, messages: List[Dict[str, str]], model_name: Optional[str]) -> str:
+        """Call a local LLM via /v1/responses endpoint."""
+        # Separate system prompt and format conversation for Responses API
+        system_instructions = []
+        conversation_messages = []
         
-        request_payload = {
-            "model": self.model,
-            "input": full_input,  # Groq /v1/responses uses "input" not "messages"
-            "tools": self.mcp_tools,  # MCP server contract format
-            "temperature": 0.1,
-            "tool_choice": "auto",
-            "stream": False  # Required for proper tool handling
-        }
-        
-        headers = {
-            "Authorization": f"Bearer {self.groq_api_key}",
-            "Content-Type": "application/json"
-        }
-        
-        try:
-            response = requests.post(
-                self.groq_endpoint,
-                headers=headers,
-                json=request_payload,
-                timeout=120
-            )
+        for msg in messages:
+            role = (msg.get("role") or "user").strip().lower()
+            content_text = msg.get("content") or ""
             
-            # CRITICAL: Log error details BEFORE raise_for_status()
-            if response.status_code != 200:
-                error_details = {
-                    "status_code": response.status_code,
-                    "response_body": response.text[:2000],
-                    "request_model": request_payload.get("model"),
-                    "input_length": len(request_payload.get("input", "")),
-                    "tools": request_payload.get("tools"),
-                }
-                logger.error(f"Groq API error {response.status_code}: {response.text[:500]}")
-                # Use standard log_debug pattern (same as zero-shot)
-                log_debug(2, "groq_api_error", error_details)
-
-                # Targeted retry: Groq 400s caused by tool validation / malformed tool-call JSON.
-                if response.status_code == 400 and _is_groq_tool_validation_400(response.text):
-                    retry_messages = _slim_messages_for_retry(messages)
-                    retry_input = _messages_to_input(retry_messages)
-                    retry_payload = dict(request_payload)
-                    retry_payload["input"] = retry_input
-                    retry_payload["temperature"] = 0.0
-                    log_debug(2, "groq_api_retry", {
-                        "reason": "tool_validation_or_bad_tool_args_json",
-                        "original_input_length": len(request_payload.get("input", "")),
-                        "retry_input_length": len(retry_input),
-                    })
-                    retry_resp = requests.post(
-                        self.groq_endpoint,
-                        headers=headers,
-                        json=retry_payload,
-                        timeout=120,
-                    )
-                    if retry_resp.status_code != 200:
-                        log_debug(2, "groq_api_retry_error", {
-                            "status_code": retry_resp.status_code,
-                            "response_body": retry_resp.text[:2000],
-                            "retry_input_length": len(retry_payload.get("input", "")),
-                        })
-                    retry_resp.raise_for_status()
-                    result = retry_resp.json()
-                    output_text = ""
-                    if isinstance(result, dict) and "output" in result:
-                        output_array = result.get("output", [])
-                        if isinstance(output_array, list):
-                            for item in output_array:
-                                if item.get("type") == "message" and item.get("role") == "assistant":
-                                    content = item.get("content", [])
-                                    if content and isinstance(content, list):
-                                        for content_item in content:
-                                            if content_item.get("type") == "output_text":
-                                                output_text = content_item.get("text", "")
-                                                break
-                                    if output_text:
-                                        break
-                    return output_text if output_text else "{}"
-            
-            response.raise_for_status()
-            
-            result = response.json()
-            
-            # =================================================================
-            # LOG FULL GROQ RESPONSE FOR OBSERVABILITY
-            # This captures tool calls, reasoning, and all intermediate steps
-            # =================================================================
-            if isinstance(result, dict) and "output" in result:
-                output_array = result.get("output", [])
-                
-                # Extract and log all tool calls and reasoning steps
-                tool_calls = []
-                reasoning_steps = []
-                mcp_operations = []
-                
-                for item in output_array:
-                    item_type = item.get("type", "unknown")
-                    
-                    # Log MCP tool discovery
-                    if item_type == "mcp_list_tools":
-                        mcp_operations.append({
-                            "operation": "list_tools",
-                            "server": item.get("server_label"),
-                            "tools": [t.get("name") for t in item.get("tools", [])][:20]  # First 20 tool names
-                        })
-                    
-                    # Log MCP tool calls
-                    elif item_type == "mcp_call":
-                        tool_calls.append({
-                            "tool": item.get("name"),
-                            "server": item.get("server_label"),
-                            "arguments": item.get("arguments", {})
-                        })
-                    
-                    # Log MCP tool results
-                    elif item_type == "mcp_call_result":
-                        # Truncate large results for logging
-                        result_content = item.get("content", [])
-                        truncated = str(result_content)[:1000] if result_content else ""
-                        mcp_operations.append({
-                            "operation": "call_result",
-                            "call_id": item.get("call_id"),
-                            "result_preview": truncated
-                        })
-                    
-                    # Log reasoning/thinking
-                    elif item_type == "reasoning":
-                        reasoning_steps.append({
-                            "thought": item.get("content", "")[:500]
-                        })
-                
-                # Log the full trace
-                log_debug(2, "groq_full_trace", {
-                    "tool_calls_count": len(tool_calls),
-                    "tool_calls": tool_calls,
-                    "mcp_operations": mcp_operations,
-                    "reasoning_steps": reasoning_steps,
-                    "output_items_count": len(output_array),
-                    "output_types": [item.get("type") for item in output_array]
+            if role == "system":
+                system_instructions.append(content_text)
+            else:
+                # Use simple string content to avoid schema issues with 'input' union
+                conversation_messages.append({
+                    "role": role,
+                    "content": content_text
                 })
-            
-            # Extract content from Groq's /v1/responses format
-            # The response has an 'output' array with multiple items (mcp_list_tools, reasoning, message, etc.)
-            # We need to extract the text from the 'message' item with role='assistant'
-            output_text = ""
-            
-            if isinstance(result, dict) and "output" in result:
-                output_array = result.get("output", [])
-                if isinstance(output_array, list):
-                    for item in output_array:
-                        if item.get("type") == "message" and item.get("role") == "assistant":
-                            content = item.get("content", [])
-                            if content and isinstance(content, list):
-                                for content_item in content:
-                                    if content_item.get("type") == "output_text":
-                                        output_text = content_item.get("text", "")
-                                        break
-                            if output_text:
+
+        # LM Studio MCP tools format for /v1/responses endpoint
+        tools = []
+        
+        # Use cached MCP config and endpoint map (loaded at init, not per-request)
+        # This eliminates per-request DB calls and config loops
+        mcp_config = self._admin_settings_cached.mcp
+        
+        # 1. Find binding label for current persona
+        binding_label = mcp_config.persona_bindings.get(self.persona) if mcp_config else None
+        
+        # 2. Find endpoint URL using pre-built O(1) map (no loop, no DB call)
+        resolved_router_url = self.mcp_router_url # Default fallback
+        if binding_label and binding_label in self._mcp_endpoint_map:
+            resolved_router_url = self._mcp_endpoint_map[binding_label]
+        
+        # Use a list of standard tools (or fetch from endpoint config if we were fully generic)
+        allowed_tools = ["recall_memory", "retrieve_instructions", "read_neo4j_cypher"]
+        
+        tools = [{
+            "type": "mcp",
+            "server_label": binding_label or f"{self.persona}-router",
+            "server_url": resolved_router_url,
+            "allowed_tools": allowed_tools
+        }]
+
+        endpoint_url = self.local_llm_base_url.rstrip("/") + "/v1/responses"
+
+        payload = {
+            "model": model_name or self.local_llm_model,
+            "input": conversation_messages,
+            "instructions": "\n\n".join(system_instructions),
+            "tools": tools,
+            "tool_choice": "auto",
+            "max_output_tokens": 8000,
+            "temperature": 0.1
+        }
+
+        headers = {"Content-Type": "application/json"}
+
+        try:
+            log_debug(2, "local_llm_request", {
+                "endpoint": endpoint_url,
+                "model": payload.get("model"),
+                "messages_count": len(conversation_messages),
+                "mcp_server_label": tools[0].get("server_label") if tools else None,
+                "mcp_server_url": tools[0].get("server_url") if tools else None
+            })
+
+            resp = requests.post(
+                endpoint_url,
+                headers=headers,
+                json=payload,
+                timeout=self.local_llm_timeout,
+            )
+            if resp.status_code != 200:
+                log_debug(2, "local_llm_error", {
+                    "status_code": resp.status_code,
+                    "response_body": resp.text[:1000],
+                    "model": payload.get("model"),
+                    "endpoint": endpoint_url,
+                })
+            resp.raise_for_status()
+            data = resp.json()
+
+            # Extract output text from Responses API format
+            text_content = ""
+            # Some providers may include aggregated output_text at the root
+            if isinstance(data, dict) and isinstance(data.get("output_text"), str):
+                text_content = data.get("output_text") or ""
+
+            output = data.get("output")
+            if isinstance(output, dict):
+                text_content = output.get("text") or ""
+            elif isinstance(output, list) and output:
+                for item in output:
+                    if not isinstance(item, dict):
+                        continue
+                    text_candidate = item.get("text") or item.get("output_text")
+                    if text_candidate:
+                        text_content = text_candidate
+                        break
+                    content_blocks = item.get("content") or []
+                    for block in content_blocks:
+                        if isinstance(block, dict):
+                            text_candidate = block.get("text") or block.get("output_text")
+                            if text_candidate:
+                                text_content = text_candidate
                                 break
-            
-            return output_text if output_text else "{}"
-            
+                    if text_content:
+                        break
+
+            log_debug(2, "local_llm_response", {
+                "status_code": resp.status_code,
+                "response_length": len(text_content) if text_content else 0,
+                "response_snippet": text_content[:300] if text_content else "<empty>"
+            })
+
+            return text_content if text_content else "{}"
+        except Exception as exc:
+            logger.error(f"Local LLM call failed: {exc}")
+            raise
+
+    def _call_openrouter_llm(self, messages: List[Dict[str, str]], model_name: Optional[str] = None) -> str:
+        """Call OpenRouter Responses API with MCP tool definitions."""
+        if not self.openrouter_api_key:
+            raise ValueError("OPENROUTER_API_KEY is required for OpenRouter requests")
+        # Normalize endpoint to Responses API when an env mistakenly points to completions
+        api_endpoint = (self.api_endpoint or "").strip()
+        if "/chat/completions" in api_endpoint or api_endpoint.endswith("/completions"):
+            log_debug(2, "openrouter_endpoint_normalized", {
+                "from": api_endpoint,
+                "to": "https://openrouter.ai/api/v1/responses"
+            })
+            api_endpoint = "https://openrouter.ai/api/v1/responses"
+
+        # Convert messages to Responses API input format
+        input_messages = []
+        for msg in messages:
+            role = (msg.get("role") or "user").strip()
+            content_text = msg.get("content") or ""
+            input_messages.append({
+                "type": "message",
+                "role": role,
+                "content": [
+                    {
+                        "type": "input_text",
+                        "text": content_text
+                    }
+                ]
+            })
+
+        # OpenRouter Responses API tool calling uses OpenAI function format.
+        # Define our tools so the model can request function calls; we will execute them server-side.
+        tools = [
+            {
+                "type": "function",
+                "name": "recall_memory",
+                "description": "Search personal/departmental/ministry memory by summary",
+                "strict": None,
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "scope": {"type": "string", "description": "personal | departmental | ministry"},
+                        "query_summary": {"type": "string"},
+                        "limit": {"type": "integer"},
+                        "user_id": {"type": "string"}
+                    },
+                    "required": ["scope", "query_summary"]
+                }
+            },
+            {
+                "type": "function",
+                "name": "retrieve_instructions",
+                "description": "Load instruction bundles by mode/tier/elements",
+                "strict": None,
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "mode": {"type": "string"},
+                        "tier": {"type": "string"},
+                        "elements": {"type": "array", "items": {"type": "string"}}
+                    },
+                    "required": ["mode"]
+                }
+            },
+            {
+                "type": "function",
+                "name": "read_neo4j_cypher",
+                "description": "Execute read-only Cypher query with optional params",
+                "strict": None,
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {"type": "string"},
+                        "params": {"type": "object"}
+                    },
+                    "required": ["query"]
+                }
+            }
+        ]
+
+        request_payload = {
+            "model": model_name or self.model,
+            "input": input_messages,
+            "tools": tools,
+            "tool_choice": "auto",
+            "max_output_tokens": 8000,
+            "temperature": 0.1,
+        }
+
+        headers = {
+            "Authorization": f"Bearer {self.openrouter_api_key}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+
+        referer = os.getenv("OPENROUTER_REFERER")
+        if referer:
+            headers["HTTP-Referer"] = referer
+
+        app_name = os.getenv("OPENROUTER_APP_NAME")
+        if app_name:
+            headers["X-Title"] = app_name
+
+        try:
+            # Attempt request, optionally retry once with alt model if policy blocks current model
+            chosen_model = request_payload.get("model")
+            attempted_alt = False
+            while True:
+                # Log outbound request metadata (safe fields only)
+                log_debug(2, "openrouter_request", {
+                    "endpoint": api_endpoint if 'api_endpoint' in locals() else self.api_endpoint,
+                    "model": chosen_model,
+                    "messages_count": len(input_messages),
+                    "tools": [t.get("name") for t in tools if isinstance(t, dict)],
+                    "has_referer": bool(headers.get("HTTP-Referer")),
+                    "has_title": bool(headers.get("X-Title")),
+                })
+
+                # Send
+                request_payload["model"] = chosen_model
+                response = requests.post(
+                    api_endpoint if 'api_endpoint' in locals() else self.api_endpoint,
+                    headers=headers,
+                    json=request_payload,
+                    timeout=300,
+                )
+
+                if response.status_code != 200:
+                    body_snippet = response.text[:2000]
+                    error_details = {
+                        "status_code": response.status_code,
+                        "response_body": body_snippet,
+                        "request_model": chosen_model,
+                        "messages_count": len(input_messages),
+                    }
+                    logger.error(f"OpenRouter API error {response.status_code}: {body_snippet[:500]}")
+                    log_debug(2, "openrouter_api_error", error_details)
+
+                    # Auto-fallback on OpenRouter policy blocks to alt model (single retry)
+                    if not attempted_alt and chosen_model != self.model_alt and response.status_code in (403, 404) and ("data policy" in body_snippet.lower() or "no endpoints found" in body_snippet.lower()):
+                        chosen_model = self.model_alt
+                        attempted_alt = True
+                        log_debug(2, "openrouter_retry_model", {"new_model": chosen_model})
+                        continue
+
+                # Raise if still not ok
+                response.raise_for_status()
+                break
+            result = response.json()
+
+            log_debug(2, "openrouter_full_response", {
+                "model": result.get("model"),
+                "usage": result.get("usage"),
+                "output_type": type(result.get("output")).__name__,
+            })
+
+            # Extract output text (Responses API shape)
+            text_content = ""
+            # Some providers may include aggregated output_text at the root
+            if isinstance(result, dict) and isinstance(result.get("output_text"), str):
+                text_content = result.get("output_text") or ""
+            output = result.get("output")
+            if isinstance(output, dict):
+                text_content = output.get("text") or ""
+            elif isinstance(output, list) and output:
+                for item in output:
+                    if not isinstance(item, dict):
+                        continue
+                    text_candidate = item.get("text") or item.get("output_text")
+                    if text_candidate:
+                        text_content = text_candidate
+                        break
+                    content_blocks = item.get("content") or []
+                    for block in content_blocks:
+                        if isinstance(block, dict):
+                            text_candidate = block.get("text") or block.get("output_text")
+                            if text_candidate:
+                                text_content = text_candidate
+                                break
+                    if text_content:
+                        break
+
+            # Fallback: OpenAI-style choices (if Responses format absent)
+            if not text_content:
+                choices = result.get("choices") or []
+                if choices:
+                    message = (choices[0].get("message") or {}) if isinstance(choices[0], dict) else {}
+                    text_content = message.get("content") or ""
+                    tool_calls = message.get("tool_calls")
+                    if tool_calls:
+                        log_debug(2, "openrouter_tool_calls", {
+                            "tool_count": len(tool_calls),
+                            "tools": [tc.get("function", {}).get("name") for tc in tool_calls if isinstance(tc, dict)],
+                        })
+
+            return text_content if text_content else "{}"
+
         except requests.RequestException as e:
-            logger.error(f"Groq API request error: {e}")
+            logger.error(f"OpenRouter API request error: {e}")
             raise
         except Exception as e:
-            logger.error(f"Error calling Groq LLM: {e}")
+            logger.error(f"Error calling OpenRouter API: {e}")
             raise
     
     
@@ -779,7 +958,7 @@ class CognitiveOrchestrator:
             "answer": "",
             "memory_process": {},
             "analysis": [],
-            "visualizations": [],
+            "artifacts": [],  # Unified schema - replaces visualizations
             "data": {"query_results": [], "summary_stats": {}},
             "cypher_executed": None,
             "confidence": 0.0,
@@ -905,7 +1084,7 @@ class CognitiveOrchestrator:
         
         # Safety net: Ensure answer is never empty
         if not result.get("answer"):
-            if result.get("visualizations"):
+            if result.get("artifacts"):  # Updated to unified artifacts field
                 result["answer"] = "I have generated the requested visualizations."
             else:
                 result["answer"] = "Processed."
@@ -938,9 +1117,9 @@ class CognitiveOrchestrator:
                 "content": clean_html
             }
             
-            if "visualizations" not in result:
-                result["visualizations"] = []
-            result["visualizations"].append(html_artifact)
+            if "artifacts" not in result:  # Updated to unified artifacts field
+                result["artifacts"] = []
+            result["artifacts"].append(html_artifact)
             result["answer"] = "I have generated the HTML report for you. Please view it below."
         
         return result
@@ -982,7 +1161,7 @@ Please return a valid JSON response following the <response_template> structure.
         ]
         
         # Retry LLM call
-        recovered_output = self._call_groq_llm(recovery_messages)
+        recovered_output = self._call_openrouter_llm(recovery_messages, self.model)
         return self._parse_llm_output(recovered_output)
     
     def _apply_business_language(self, response: Dict[str, Any]) -> Dict[str, Any]:
@@ -1078,4 +1257,8 @@ def create_maestro_orchestrator() -> CognitiveOrchestrator:
     return CognitiveOrchestrator(persona="maestro")
 
 # Class alias for backward compatibility with imports
+NoorOrchestrator = CognitiveOrchestrator
+
+
+# Alias for backward compatibility
 NoorOrchestrator = CognitiveOrchestrator

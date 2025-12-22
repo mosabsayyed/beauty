@@ -21,7 +21,7 @@ export const generatePDF = async (artifact: any): Promise<Blob | null> => {
       useCORS: true,
       logging: false,
       backgroundColor: '#111827' // Dark background for PDF
-    });
+    } as any);
 
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({
@@ -98,7 +98,7 @@ export const printArtifact = async () => {
       useCORS: true,
       logging: false,
       backgroundColor: '#111827' // Match theme
-    });
+    } as any);
 
     const imgData = canvas.toDataURL('image/png');
     const printWindow = window.open('', '_blank');

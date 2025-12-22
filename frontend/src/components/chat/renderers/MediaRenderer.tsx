@@ -35,20 +35,23 @@ export function MediaRenderer({ url, type, title }: MediaRendererProps) {
     );
   }
 
+  const Player = ReactPlayer as any;
+  
   return (
     <div className="media-renderer renderer-panel media-video">
       {title && (
         <h3 style={{ color: 'var(--component-text-primary)', marginBottom: 16 }}>{title}</h3>
       )}
-      <div className="relative pt-[56.25%] overflow-hidden w-full max-w-[1000px] media-player">
-        {/* @ts-ignore */}
-        <ReactPlayer
-          url={url}
-          controls
-          width="100%"
-          height="100%"
-          className="absolute top-0 left-0"
-        />
+      <div className="w-full rounded-lg overflow-hidden border border-gray-200 bg-black">
+        <div className="aspect-video relative">
+          <Player
+            url={url}
+            controls
+            width="100%"
+            height="100%"
+            className="absolute top-0 left-0"
+          />
+        </div>
       </div>
     </div>
   );

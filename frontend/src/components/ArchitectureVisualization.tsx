@@ -1,7 +1,7 @@
 import React from 'react';
 import './ArchitectureVisualization.css';
 
-export default function ArchitectureVisualization(): JSX.Element {
+export default function ArchitectureVisualization(): React.ReactElement {
   return (
     <div className="arch-wrapper">
       <table className="arch-table">

@@ -11,7 +11,7 @@ export default function ArchitectureCard({
   component,
   isAnimating = false,
   layerId,
-}: ArchitectureCardProps): JSX.Element {
+}: ArchitectureCardProps): React.ReactElement {
   return (
     <div
       className={`arch-card ${

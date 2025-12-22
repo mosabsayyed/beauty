@@ -88,13 +88,14 @@ const INITIAL_EDGES = [
 ].map(edge => ({ ...edge, neoRelType: edge.neoRelType || null }));
 
 interface BusinessChainsProps {
+  chainId?: string;
   selectedYear?: string;
   selectedQuarter?: string;
   isDark: boolean;
   language: string;
 }
 
-const BusinessChains: React.FC<BusinessChainsProps> = ({ selectedYear, selectedQuarter, isDark, language }) => {
+const BusinessChains: React.FC<BusinessChainsProps> = ({ chainId, selectedYear, selectedQuarter, isDark, language }) => {
   // Theme-aware STYLES object
   const STYLES = {
     node: {
@@ -271,6 +272,57 @@ const BusinessChains: React.FC<BusinessChainsProps> = ({ selectedYear, selectedQ
     },
     staleTime: Infinity,
   });
+
+  // Fetch specific chain path if chainId is provided
+  const { data: chainData } = useQuery({
+    queryKey: ['businessChainPath', chainId, selectedYear, selectedQuarter],
+    enabled: !!chainId,
+    queryFn: async () => {
+      const yearVal = (selectedYear === 'all' || !selectedYear) ? 2025 : selectedYear;
+      
+      const url = `/api/business-chain/${chainId}?year=${yearVal}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch chain path');
+      return response.json();
+    }
+  });
+
+  // Extract nodes and rels that are part of the active chain for highlighting
+  const activeChainNodes = new Set<string>();
+  const activeChainRels = new Set<string>();
+  
+  if (chainData) {
+    // 1. New Flat Format Support (GraphOntology standard)
+    if (chainData.nodes && Array.isArray(chainData.nodes)) {
+        chainData.nodes.forEach((n: any) => {
+            if (n.labels && Array.isArray(n.labels) && n.labels.length > 0) {
+                 activeChainNodes.add(n.labels[0]);
+            }
+        });
+    }
+    if (chainData.links && Array.isArray(chainData.links)) {
+        chainData.links.forEach((l: any) => {
+            if (l.type) activeChainRels.add(l.type);
+        });
+    }
+
+    // 2. Legacy Path Format Support (Fallback)
+    if (chainData.results && Array.isArray(chainData.results)) {
+        chainData.results.forEach((path: any) => {
+        // Neo4j path format handling
+        if (path.nodes) {
+            path.nodes.forEach((n: any) => {
+            if (n.labels && n.labels[0]) activeChainNodes.add(n.labels[0]);
+            });
+        }
+        if (path.relationships) {
+            path.relationships.forEach((r: any) => {
+            if (r.type) activeChainRels.add(r.type);
+            });
+        }
+        });
+    }
+  }
 
   // Debug logging
   useEffect(() => {
@@ -577,17 +629,27 @@ const BusinessChains: React.FC<BusinessChainsProps> = ({ selectedYear, selectedQ
               const offsetY = edge.labelOffset?.y || -14;
 
               // Determine color, pattern, and animation based on relationship count
-              // Rules: Red solid (0), Yellow small dashes slow (1-99), Green long dash fast (100+)
+              // If part of active chain, use special highlighting
+              const isChainActive = chainId && edge.neoRelType && activeChainRels.has(edge.neoRelType) && 
+                                   start.neoLabel && activeChainNodes.has(start.neoLabel) &&
+                                   end.neoLabel && activeChainNodes.has(end.neoLabel);
+
               let edgeColor: string;
               let strokeDasharray: string;
               let animationDuration: string;
+              let strokeWidth = "2";
               
-              if (relCount === undefined || relCount === 0) {
+              if (isChainActive) {
+                // Highlighted Active Chain: Gold/Glow, Fast animation
+                edgeColor = '#FFD700';
+                strokeDasharray = '10,5';
+                animationDuration = '1.2s';
+                strokeWidth = "3.5";
+              } else if (relCount === undefined || relCount === 0) {
                 // Red: Solid line, no animation
                 edgeColor = '#EF4444';
                 strokeDasharray = '0'; // Solid
                 animationDuration = '0s'; // No animation
-                console.warn(`Broken relationship: ${edge.neoRelType} from ${start.neoLabel} to ${end.neoLabel}`);
               } else if (relCount < 100) {
                 // Yellow: Small dashes, Slow animation
                 edgeColor = '#EAB308'; // Yellow-500
@@ -602,22 +664,17 @@ const BusinessChains: React.FC<BusinessChainsProps> = ({ selectedYear, selectedQ
 
               return (
                 <g key={i} style={{ color: edgeColor }}>
-                  <path d={path} stroke={edgeColor} strokeWidth="2" fill="none" 
+                  <path d={path} stroke={edgeColor} strokeWidth={strokeWidth} fill="none" 
                     strokeDasharray={strokeDasharray}
                     markerEnd={edge.arrow === 'both' || edge.arrow === 'end' ? `url(#arrow-end)` : ''}
                     markerStart={edge.arrow === 'both' ? `url(#arrow-both-start)` : ''}
                     strokeLinecap="round" strokeLinejoin="round" 
                     id={`path-${i}`} />
                   
-                  {relCount !== undefined && relCount > 0 && (
+                  {(isChainActive || (relCount !== undefined && relCount > 0)) && (
                     <>
-                      <circle r="3" fill={edgeColor}>
+                      <circle r={isChainActive ? "4" : "3"} fill={edgeColor}>
                         <animateMotion dur={animationDuration} repeatCount="indefinite">
-                          <mpath href={`#path-${i}`} />
-                        </animateMotion>
-                      </circle>
-                      <circle r="3" fill={edgeColor}>
-                        <animateMotion dur={animationDuration} repeatCount="indefinite" begin={`${parseFloat(animationDuration) / 2}s`}>
                           <mpath href={`#path-${i}`} />
                         </animateMotion>
                       </circle>
@@ -626,7 +683,7 @@ const BusinessChains: React.FC<BusinessChainsProps> = ({ selectedYear, selectedQ
                   
                   {fullLabel && (
                     <g transform={`translate(${mx - labelWidth/2 + offsetX}, ${my + offsetY + 4})`}>
-                      <rect width={labelWidth} height="20" rx="4" fill={isDark ? 'rgba(31, 41, 55, 0.85)' : 'rgba(255, 255, 255, 0.85)'} stroke={edgeColor} strokeWidth="1" />
+                      <rect width={labelWidth} height="20" rx="4" fill={isDark ? 'rgba(31, 41, 55, 0.85)' : 'rgba(255, 255, 255, 0.85)'} stroke={edgeColor} strokeWidth={isChainActive ? "2" : "1"} />
                       <text x={labelWidth/2} y="14" fill={isDark ? '#F9FAFB' : '#1F2937'} fontSize="11" textAnchor="middle" fontWeight="600">{fullLabel}</text>
                     </g>
                   )}
@@ -635,6 +692,7 @@ const BusinessChains: React.FC<BusinessChainsProps> = ({ selectedYear, selectedQ
             })}
             {nodes.map(node => {
               const count = node.neoLabel && countsData?.nodeCounts?.[node.neoLabel];
+              const isNodeActive = chainId && node.neoLabel && activeChainNodes.has(node.neoLabel);
               const r = node.r || 50;
               return (
                 <g key={`svg-${node.id}`}>
@@ -645,11 +703,18 @@ const BusinessChains: React.FC<BusinessChainsProps> = ({ selectedYear, selectedQ
                       <stop offset="100%" stopColor={node.type === 'white' ? '#E5E7EB' : node.type === 'dark' ? '#1F2937' : '#111827'} />
                     </radialGradient>
                   </defs>
+                  
+                  {isNodeActive && (
+                    <circle cx={node.x} cy={node.y} r={r + 6} fill="none" stroke="#FFD700" strokeWidth="2" strokeDasharray="4,2">
+                      <animateTransform attributeName="transform" type="rotate" from={`0 ${node.x} ${node.y}`} to={`360 ${node.x} ${node.y}`} dur="10s" repeatCount="indefinite" />
+                    </circle>
+                  )}
+
                   <circle cx={node.x} cy={node.y} r={r} 
                     fill={`url(#gradient-${node.id})`}
-                    stroke={node.type === 'dark' ? (isDark ? '#FFD700' : '#D97706') : node.type === 'light' ? (isDark ? '#10B981' : '#059669') : (isDark ? '#9CA3AF' : '#6B7280')} 
-                    strokeWidth="3"
-                    filter="drop-shadow(0 4px 6px rgba(0,0,0,0.3))"/>
+                    stroke={isNodeActive ? '#FFD700' : (node.type === 'dark' ? (isDark ? '#FFD700' : '#D97706') : node.type === 'light' ? (isDark ? '#10B981' : '#059669') : (isDark ? '#9CA3AF' : '#6B7280'))} 
+                    strokeWidth={isNodeActive ? "5" : "3"}
+                    filter={isNodeActive ? "drop-shadow(0 0 12px rgba(255, 215, 0, 0.6))" : "drop-shadow(0 4px 6px rgba(0,0,0,0.3))"}/>
                   <text x={node.x} y={count !== undefined ? node.y - 5 : node.y + 5} textAnchor="middle" 
                     fill={node.type === 'white' ? '#111827' : (isDark ? '#F9FAFB' : '#1F2937')} 
                     fontWeight="700" fontSize="13" fontFamily="'Inter', sans-serif">{node.label}</text>
@@ -666,6 +731,7 @@ const BusinessChains: React.FC<BusinessChainsProps> = ({ selectedYear, selectedQ
           {nodes.map(node => {
             const count = node.neoLabel && countsData?.nodeCounts?.[node.neoLabel];
             const levelData = node.neoLabel && countsData?.levelBreakdown?.[node.neoLabel];
+            const isNodeActive = chainId && node.neoLabel && activeChainNodes.has(node.neoLabel);
             const r = node.r || 50;
             const diameter = r * 2;
             
@@ -689,8 +755,8 @@ const BusinessChains: React.FC<BusinessChainsProps> = ({ selectedYear, selectedQ
                     : node.type === 'dark'
                     ? (isDark ? 'radial-gradient(circle at 35% 35%, #374151, #1F2937)' : 'radial-gradient(circle at 35% 35%, #FFFFFF, #F3F4F6)')
                     : (isDark ? 'radial-gradient(circle at 35% 35%, #1F2937, #111827)' : 'radial-gradient(circle at 35% 35%, #F3F4F6, #E5E7EB)'),
-                  border: `3px solid ${node.type === 'dark' ? (isDark ? '#FFD700' : '#D97706') : node.type === 'light' ? (isDark ? '#10B981' : '#059669') : (isDark ? '#9CA3AF' : '#6B7280')}`,
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.1)',
+                  border: `3px solid ${isNodeActive ? '#FFD700' : (node.type === 'dark' ? (isDark ? '#FFD700' : '#D97706') : node.type === 'light' ? (isDark ? '#10B981' : '#059669') : (isDark ? '#9CA3AF' : '#6B7280'))}`,
+                  boxShadow: isNodeActive ? '0 0 20px rgba(255, 215, 0, 0.4), inset 0 2px 4px rgba(255,255,255,0.1)' : '0 4px 6px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.1)',
                 }}>
                 <span style={{ textAlign: 'center', fontSize: '0.75rem', lineHeight: 1.25, pointerEvents: 'none', padding: '0 0.5rem', fontWeight: node.type === 'dark' ? 700 : node.type === 'white' ? 600 : 500, letterSpacing: node.type === 'dark' ? '0.025em' : 'normal', color: node.type === 'white' ? '#111827' : (isDark ? '#F9FAFB' : '#111827') }}>
                   {node.label}

@@ -14,12 +14,14 @@
 
 ## Memory ETL
 - 2025-12-08: Nightly ETL now reprocesses conversations when `updated_at` or message hash changes; merges on `source_session`, updates embedding/content, and tracks message_count/hash + source_updated_at_ts to keep growing threads fresh.
+- 2025-12-17: ETL scripts aligned with 4-scope model: `backend/scripts/nightly_memory_etl.py` and `backend/scripts/backfill_memory_etl.py` updated to use (personal/departmental/ministry/secrets) and added verification routine to log scope distribution after each run. Removed legacy `global` scope references and updated docstrings.
 
 ## Memory Scopes Implementation Status
 - **Database:** ✅ Neo4j contains 4 scopes (personal, departmental, ministry, secrets)
 - **Noor Service:** ✅ mcp_service.py enforces personal/departmental/ministry only; blocks secrets
 - **Maestro Service:** ✅ mcp_service_maestro.py allows all 4 scopes (personal/departmental/ministry/secrets)
 - **Bootstrap Prompt:** ✅ cognitive_bootstrap_prompt_v3.3.md updated with explicit scope=X parameter in all recall_memory calls
+- **ETL Scripts:** ✅ nightly_memory_etl.py and backfill_memory_etl.py use 4-scope model with TODO for department/role lookup
 
 ## Instruction Elements v3.4
 - 2025-12-12: Cleaned `v3.4_instruction_elements_CORRECTED.sql` to remove aggregates and gap-type relationships (graph_schema, direct_relationships, business_chains, visualization_schema, AUTOMATION, AUTOMATION_GAPS, KNOWLEDGE_GAPS, ROLE_GAPS, GAPS_SCOPE). Target table shape is 56 elements: 17 nodes, 23 relationships, 7 business chains, 9 chart types, 3 query patterns.
@@ -33,3 +35,21 @@
 	- Step 5 (Return) elements (visualizations/chart types): `5.0_3_<base>`
 	- Applied via `backend/renumber_tier3_by_usage.py --apply`
 - 2025-12-13: Backward-compat: `retrieve_instructions(..., tier="elements")` resolves requested names by base-name, supporting legacy (`EntityProject`), old numeric (`3.2_EntityProject`), and step-prefixed (`2.0_3_EntityProject`).
+
+## Components (2025-12-15)
+- Backend Chains API: `/api/v1/chains/{chain_key}?id=X&year=Y` in `backend/app/api/routes/chains.py` using the 7 verified Cypher chains (sector_ops, strategy_to_tactics_priority/targets, tactical_to_strategy, risk_build_mode, risk_operate_mode, internal_efficiency). Registered in `backend/app/main.py`.
+- Backend model selection: `orchestrator_universal` supports env-driven model aliases (primary/fallback/alt) with optional local LLM (Ollama-compatible) via `LOCAL_LLM_ENABLED`. Targeted switching is done in `backend/.env` via `GROQ_MODEL_PRIMARY|GROQ_MODEL_FALLBACK|GROQ_MODEL_ALT` (no code edits).
+- Backend tracing/telemetry: OpenTelemetry tracing can be disabled via `OTEL_ENABLED=false` in `backend/.env` (prevents OTLP exporter retry spam).
+- Frontend quick actions: `QuickChainsPanel` renders three deterministic chain buttons with ID/year inputs; uses `chainsService` calling `/api/v1/chains/*`. Mounted on Chat welcome screen.
+- Frontend observability: `ReasoningPanel` in `frontend/src/pages/ObservabilityPage.tsx` normalizes `step.thought` (array/object/string) before rendering to avoid runtime crashes when traces contain non-array `thought`.
+- Tier 2 schema enforcement (2025-12-15 CSV-BASED): Root cause identified in log 378 - LLM guessing `MATCH (p:Project)` instead of `EntityProject` due to non-mandatory schema preload in Tier 2 Step 2. **APPROACH CHANGED to CSV-based workflow:** Source of truth is now `docs/instruction_elements_latest.csv` (rows 361/362 for Step 2/Step 3). Required fix: Add "MANDATORY SCHEMA PRELOAD" to Step 2 and explicit label rules to Step 3. SQL files (`backend/TIER2_ATOMIC_ELEMENTS.sql`, `backend/sql/v3.4_instruction_elements*.sql`) deprecated in favor of CSV→database workflow. Full analysis in `TIER2_CSV_DB_COMPARISON.md`.
+- 2025-12-17: DATA_ARCHITECTURE.md now documents the 7 deterministic business chains (keys, start labels, path summaries, and endpoints) under the Neo4j section.
+- 2025-12-17: `backend/app/services/orchestrator_universal.py` cleaned and shifted to OpenRouter Responses API (`/api/v1/responses`) with `input` message array and `tools/tool_choice` schema; auto-recovery now reuses the OpenRouter call path. Default models now target OpenRouter-friendly defaults (`google/gemma-3-27b-it`, `google/gemini-2.5-flash`, `mistralai/devstral-2512:free`).
+
+## Investor Demo UI (2025-12-15)
+- Frontend investor walkthrough hub: `frontend/src/components/content/InvestorDemoHub.tsx` shows the full system visually via existing screenshots under `frontend/public/att/landing-screenshots/*` and includes exactly one live DB-backed proof using the Chains API sample+execute flow.
+- Sidebar quick action `id='demo'` now opens the Investor Demo hub (instead of jumping straight into a single dashboard).
+- Chat welcome screen no longer foregrounds deterministic chains; the live proof is presented inside the investor demo context.
+
+## Implementation Notes (2025-12-15)
+- Smoke test: backend stack up via `./sb.sh --fg` (backend pid 40422); chains endpoint hit `GET /api/v1/chains/sector_ops?id=OBJ-TEST&year=2025` returned 200 with count=0 (expected with dummy id). Backend health confirmed.

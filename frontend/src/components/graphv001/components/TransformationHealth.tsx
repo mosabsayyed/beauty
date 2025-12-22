@@ -301,7 +301,7 @@ const TransformationHealth: React.FC<TransformationHealthProps> = ({
           padding: '1rem',
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
         }}>
-          <div className="chart-container radar-height">
+          <div className="chart-container radar-height relative w-full" style={{ height: '300px', position: 'relative' }}>
             {isLoading ? (
                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                   <RefreshCw className="animate-spin" size={24} color={theme.muted} />
@@ -311,15 +311,17 @@ const TransformationHealth: React.FC<TransformationHealthProps> = ({
                   {t('error')}
                </div>
             ) : (
-              <div className="chart-absolute-fill">
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }}>
                   <ResponsiveContainer width="100%" height="100%">
                       <RadarChart cx="50%" cy="45%" outerRadius="80%" data={chartData}>
                           <PolarGrid stroke={theme.borderColor} />
+                          {/* @ts-ignore */}
                           <PolarAngleAxis 
                               dataKey="name" 
                               tick={{ fill: theme.muted, fontSize: 11 }} 
                               tickFormatter={(val) => val}
                           />
+                          {/* @ts-ignore */}
                           <PolarRadiusAxis angle={90} domain={[0, 105]} axisLine={false} tick={false} />
                           <Radar 
                               name="Actual" 
