@@ -1,6 +1,7 @@
 # 🚀 JOSOOR - Coding Agent Entry Point
 
 > **READ THIS FIRST:** This file is the single entry point for any coding agent working on this codebase.  
+NEVER START/STOP/RESTART THE SERVERS WITHOUT THE USERS APPROVAL
 > **Last Updated:** December 2025
 
 ---
@@ -11,6 +12,7 @@
 |---------------|-------|
 | **Backend Architecture** | [`/docs/BACKEND_ARCHITECTURE.md`](docs/BACKEND_ARCHITECTURE.md) |
 | **Frontend Architecture** | [`/docs/FRONTEND_ARCHITECTURE.md`](docs/FRONTEND_ARCHITECTURE.md) |
+| **Data Architecture** | [`/docs/DATA_ARCHITECTURE.md`](docs/DATA_ARCHITECTURE.md) |
 | **Dev Server Ports** | See [Servers & Ports](#servers--ports) below |
 | **Start Dev Environment** | See [Run Commands](#run-commands) below |
 
@@ -41,6 +43,9 @@
 | `POST /api/v1/auth/guest` | Create guest session |
 | `GET /api/v1/debug/traces` | Observability traces |
 | `GET /api/v1/dashboard/*` | Dashboard analytics |
+| `POST /api/v1/control-tower/*` | Control Tower dashboards (health, outcomes, investments) |
+| `GET /api/v1/chains/*` | Business chain queries (strategy→tactics paths) |
+| `GET /api/v1/admin/settings` | Admin settings (LLM provider, MCP config) |
 
 ### Graph Server Proxy Routes (via Vite → port 3001)
 
@@ -49,6 +54,9 @@ The frontend proxies these routes to the graph server, NOT the backend:
 - `/api/dashboard/*` → Graph server  
 - `/api/graph/*` → Graph server
 - `/api/business-chain/*` → Graph server
+- `/api/control-tower/*` → Graph server
+- `/api/dependency/*` → Graph server
+- `/api/domain-graph/*` → Graph server
 - `/api/debug/*` → Graph server (some routes)
 
 ---
@@ -127,6 +135,19 @@ Comprehensive reference covering:
 - i18n (English/Arabic, RTL support)
 - Environment variables
 
+### Data (`/docs/DATA_ARCHITECTURE.md`)
+
+Comprehensive reference covering:
+- Dual-database architecture (Supabase + Neo4j)
+- Supabase schema (users, conversations, messages, instructions, memory)
+- Neo4j graph schema (nodes, relationships, properties)
+- Memory & embedding system (OpenAI embeddings, semantic search)
+- Data access patterns (CRUD, queries, hybrid operations)
+- Cross-database operations
+- Query examples (PostgreSQL + Cypher)
+- Best practices (indexing, batching, caching)
+- Data migration patterns
+
 ---
 
 ## 🔑 Key Facts
@@ -135,8 +156,9 @@ Comprehensive reference covering:
 - **Framework:** FastAPI (Python)
 - **Port:** 8008
 - **Databases:** Supabase (PostgreSQL REST) + Neo4j (graph)
-- **LLM:** Groq API (`openai/gpt-oss-120b`)
+- **LLM Provider:** OpenRouter (remote) with optional local LM Studio/Ollama fallback
 - **Personas:** Noor (staff, port 8201) / Maestro (exec, port 8202)
+ - **Models:** Configurable primary/fallback/alt via admin settings
 
 ### Frontend
 - **Framework:** React 19 + TypeScript
@@ -199,6 +221,27 @@ chatmodule/
 
 ---
 
+## 🤖 LLM Provider Architecture
+
+JOSOOR supports dual-mode LLM connectivity for flexibility in development and deployment.
+
+### Remote LLM (OpenRouter)
+- Endpoint: https://openrouter.ai/api/v1/responses
+- Configure: `OPENROUTER_API_KEY`, `OPENROUTER_MODEL_PRIMARY`, `OPENROUTER_MODEL_FALLBACK`, `OPENROUTER_MODEL_ALT`
+- Use: Default in production; broad model choice (Gemma, Gemini, Mistral, etc.)
+
+### Local LLM (LM Studio / Ollama)
+- Enable: `LOCAL_LLM_ENABLED=true`
+- Configure: `LOCAL_LLM_BASE_URL` (e.g., LM Studio `http://127.0.0.1:1234`), `LOCAL_LLM_MODEL`, `LOCAL_LLM_TIMEOUT`
+- Use: Offline/dev testing, cost control; any OpenAI-compatible local server
+
+### Selection Logic
+- Admin API: `/api/v1/admin/settings` can set provider and models at runtime
+- Default: If local is enabled, it’s preferred; else OpenRouter primary
+- Per-request: Chat orchestrator accepts a `model_override` (e.g., `local|primary|fallback|alt`)
+
+See details in Backend Architecture → LLM Provider Abstraction.
+
 ## 🔍 Distributed Tracing
 
 JOSOOR now includes comprehensive OpenTelemetry tracing for monitoring:
@@ -224,7 +267,7 @@ JOSOOR now includes comprehensive OpenTelemetry tracing for monitoring:
 
 **When you start a task:**
 
-1. **Read this file first** to understand the system
+1. **Read the Coding Agent Contract.md** to understand how to conduct yourself
 2. **Check the architecture doc** for the layer you're working on:
    - Backend work → `/docs/BACKEND_ARCHITECTURE.md`
    - Frontend work → `/docs/FRONTEND_ARCHITECTURE.md`

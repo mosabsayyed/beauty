@@ -121,17 +121,20 @@ app = FastAPI(
 | `/api/v1/files` | `files.router` | File management |
 | `/api/v1/dashboard` | `dashboard.router` | Dashboard data |
 | `/api` | `neo4j_routes.router` | Neo4j graph API |
+| `/api/v1/chains` | `chains.router` | Business chain queries |
+| `/api/v1/control-tower` | `control_tower.router` | Control Tower dashboards |
+| `/api/v1/admin` | `admin_settings.router` | Admin settings (LLM/MCP) |
 
 ### CORS Configuration
 
 ```python
 # Environment variable: BACKEND_ALLOW_ORIGINS (comma-separated)
-# Default origins (if not set):
+# Default origins (if not set) include local dev and graph server:
 allow_origins = [
     "http://localhost:5173",
     "http://localhost:3000",
     "http://127.0.0.1:5173",
-    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
 ]
 ```
 
@@ -722,6 +725,35 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
 ```
 
 ---
+
+## LLM Provider Abstraction
+
+JOSOOR supports remote and local LLMs with runtime selection.
+
+### Remote (OpenRouter)
+- Endpoint: `https://openrouter.ai/api/v1/responses`
+- Env: `OPENROUTER_API_KEY`, `OPENROUTER_MODEL_PRIMARY`, `OPENROUTER_MODEL_FALLBACK`, `OPENROUTER_MODEL_ALT`
+- Default for production; broad model catalog (Gemma, Gemini, Mistral, etc.)
+
+### Local (LM Studio / Ollama / OpenAI-compatible)
+- Enable: `LOCAL_LLM_ENABLED=true`
+- Env: `LOCAL_LLM_BASE_URL` (e.g., `http://127.0.0.1:1234` for LM Studio), `LOCAL_LLM_MODEL`, `LOCAL_LLM_TIMEOUT`
+- Use for offline/dev testing; cost control
+
+### Admin Settings
+- API: `/api/v1/admin/settings` (GET/PUT)
+- Model & provider settings are persisted and merged with env defaults
+- Shapes: see `AdminSettings`, `ProviderConfig`, `MCPConfig` in [app/services/admin_settings_service.py](../backend/app/services/admin_settings_service.py)
+
+### Orchestrator Selection Logic
+- File: [app/services/orchestrator_universal.py](../backend/app/services/orchestrator_universal.py)
+- `_resolve_model_choice(model_override)`: picks `local|primary|fallback|alt`
+- If local is enabled, it’s preferred by default; otherwise uses OpenRouter primary
+- `execute_query(..., model_override=...)` allows per-request switching
+- Persona-specific MCP router URLs are resolved at init
+
+### Tracing
+- Tracing initializes in app lifespan; spans include LLM requests and MCP tool calls
 
 ## MCP Router Integration
 

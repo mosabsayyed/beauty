@@ -125,10 +125,16 @@ export default defineConfig({
     port: 3000,
     open: true,
     proxy: {
+      // Backend (FastAPI)
+      '/api/v1': 'http://localhost:8008',
+      // Graph server (proxied via Vite)
       '/api/neo4j': 'http://localhost:3001',
       '/api/dashboard': 'http://localhost:3001',
       '/api/graph': 'http://localhost:3001',
       '/api/business-chain': 'http://localhost:3001',
+      '/api/control-tower': 'http://localhost:3001',
+      '/api/dependency': 'http://localhost:3001',
+      '/api/domain-graph': 'http://localhost:3001',
       '/api/debug': 'http://localhost:3001'
     }
   },
@@ -227,6 +233,7 @@ export default function App() {
 | `/landing` | `LandingPage` | Public |
 | `/login` | `LoginPage` | Public |
 | `/chat` | `ChatAppPage` | Protected |
+| `/josoor-v2` | `JosoorV2Page` | Protected |
 | `/architecture` | `ArchitecturePage` | Public |
 | `/canvas-test` | `CanvasTestPage` | Public |
 | `/founder-letter` | `FounderLetterPage` | Public |
@@ -450,6 +457,13 @@ Radix UI components wrapped for the design system:
 | ... | (40+ total) |
 
 ### Graph Components (`/src/components/graphv001/`)
+### Josoor V2 Pages (`/src/pages/josoor-v2/`)
+
+| Component | Purpose |
+|-----------|---------|
+| `JosoorV2Page.tsx` | Dashboard shell with Control Tower, Dependency Desk, Risk Desk |
+| `components/` | Subcomponents for V2 desks |
+| `josoor-v2.css` | Page styles |
 
 | Component | Purpose |
 |-----------|---------|
