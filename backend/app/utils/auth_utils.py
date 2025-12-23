@@ -58,12 +58,44 @@ async def get_current_user(token: str = Depends(oauth2_scheme), user_service: Us
         # Attempt Supabase validation
         if not SUPABASE_URL:
             raise credentials_exception
+        # Attempt Supabase validation
+        if not SUPABASE_URL:
+            raise credentials_exception
         try:
-            headers = {"Authorization": f"Bearer {token}", "apikey": settings.SUPABASE_ANON_KEY}
-            user_resp = requests.get(f"{SUPABASE_URL}/auth/v1/user", headers=headers, timeout=5)
-            if user_resp.status_code != 200:
+            # Use curl via subprocess for robustness against SSL/Socket issues (same as SupabaseClient)
+            import subprocess
+            import json
+            
+            cmd = [
+                "curl", "-sS",
+                "-H", f"Authorization: Bearer {token}",
+                "-H", f"apikey: {settings.SUPABASE_ANON_KEY}",
+                f"{SUPABASE_URL}/auth/v1/user"
+            ]
+            
+            # Simple sync call is fine here as this fallback path is rare compared to local JWT
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode != 0:
                 raise credentials_exception
-            user_json = user_resp.json()
+                
+            # Check for HTTP error in output or empty
+            if not result.stdout.strip():
+                 raise credentials_exception
+
+            # Supabase Auth returns JSON. If error, typically has "code" or "error_code"
+            # But we can just check if we got a user object
+            try:
+                user_json = json.loads(result.stdout)
+            except:
+                raise credentials_exception
+                
+            # If 401/403, usually comes as json with error
+            if "code" in user_json and (isinstance(user_json["code"], int) and user_json["code"] >= 400):
+                 raise credentials_exception
+            if "error_code" in user_json:
+                 raise credentials_exception
+
             supa_user_id = user_json.get("id")
             supa_email = user_json.get("email")
             supa_role = (
@@ -120,11 +152,29 @@ def verify_token(token: str, credentials_exception):
         # Try Supabase validation as fallback
         if not SUPABASE_URL:
             raise credentials_exception
-        headers = {"Authorization": f"Bearer {token}"}
-        user_resp = requests.get(f"{SUPABASE_URL}/auth/v1/user", headers=headers, timeout=5)
-        if user_resp.status_code != 200:
-            raise credentials_exception
-        return user_resp.json()
+        import subprocess
+        import json
+        cmd = [
+            "curl", "-sS",
+            "-H", f"Authorization: Bearer {token}",
+            "-H", f"apikey: {settings.SUPABASE_ANON_KEY}",
+            f"{SUPABASE_URL}/auth/v1/user"
+        ]
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0 or not result.stdout.strip():
+                 raise credentials_exception
+            
+            user_json = json.loads(result.stdout)
+             # If 401/403, usually comes as json with error
+            if "code" in user_json and (isinstance(user_json["code"], int) and user_json["code"] >= 400):
+                 raise credentials_exception
+            if "error_code" in user_json:
+                 raise credentials_exception
+                 
+            return user_json
+        except:
+             raise credentials_exception
 
 
 async def get_optional_user(token: Optional[str] = Depends(oauth2_scheme_optional), user_service: UserService = Depends(lambda: user_service)) -> Optional[User]:
