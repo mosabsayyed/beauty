@@ -38,6 +38,8 @@ node_modules/
 *.env
 .env.*
 backend/.env
+graph-server/.env
+.blackboxcli/
 
 # Jupyter
 .ipynb_checkpoints/

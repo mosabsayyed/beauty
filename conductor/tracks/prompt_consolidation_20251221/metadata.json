@@ -1,0 +1,8 @@
+{
+  "track_id": "prompt_consolidation_20251221",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2025-12-21T12:00:00Z",
+  "updated_at": "2025-12-21T12:00:00Z",
+  "description": "Consolidate and hard-code v3.4 Cognitive Architecture prompt bundles into the FastAPI backend"
+}
