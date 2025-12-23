@@ -3,7 +3,7 @@
 ## Phase 1: Core Prompt Service Implementation
 Goal: Create a reliable, hard-coded source for all cognitive prompts.
 
-- [ ] Task: Write Failing Tests for `StaticPromptService` (TDD)
+- [x] Task: Write Failing Tests for `StaticPromptService` (TDD) [4aae67f]
 - [ ] Task: Implement `StaticPromptService` with unified v3.4 bundles (extracted from Spec)
 - [ ] Task: Conductor - User Manual Verification 'Core Prompt Service Implementation' (Protocol in workflow.md)
 
