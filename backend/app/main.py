@@ -6,32 +6,25 @@ from contextlib import asynccontextmanager
 from app.api.v1 import health, setup
 from app.api.routes import chat, debug, embeddings, sync, auth, files, dashboard, neo4j_routes, chains, control_tower, admin_settings
 from app.db.supabase_client import supabase_client
-from app.db.neo4j_client import neo4j_client
-from app.utils.tracing import init_tracing, is_tracing_enabled
 import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Initialize tracing
-    init_tracing(app)
-    if is_tracing_enabled():
-        print("🔍 OpenTelemetry tracing enabled")
+    # init_tracing(app)
+    # if is_tracing_enabled():
+    #     print("🔍 OpenTelemetry tracing enabled")
     
     await supabase_client.connect()
     print("✅ Supabase connected successfully via REST API")
     
-    if neo4j_client.connect():
-        print("✅ Neo4j connected successfully")
-    else:
-        print("⚠️  Neo4j not available (graph features will be disabled)")
+    # Neo4j is handled by graph server on port 3001
+    print("ℹ️  Neo4j queries routed to graph server (port 3001)")
     
     yield
     
     await supabase_client.disconnect()
     print("👋 Supabase disconnected")
-    
-    neo4j_client.disconnect()
-    print("👋 Neo4j disconnected")
 
 app = FastAPI(
     title="JOSOOR - Transformation Analytics Platform",

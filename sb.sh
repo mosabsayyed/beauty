@@ -311,9 +311,12 @@ else
       exit 1
     fi
   else
-    # foreground mode: run backend on-screen and tee logs to file
+    # foreground mode: run backend with proper signal handling
     echo "Running backend on-screen (foreground). Logs will also be written to $ROOT_DIR/logs/backend_start.log"
-    exec "$ROOT_DIR/backend/run_groq_server.sh" 2>&1 | tee "$ROOT_DIR/logs/backend_start.log"
+    # Trap SIGINT/SIGTERM and kill uvicorn
+    trap 'echo "Stopping backend..."; pkill -P $$ 2>/dev/null; pkill -f "uvicorn app.main:app" 2>/dev/null; exit 0' INT TERM
+    "$ROOT_DIR/backend/run_groq_server.sh" 2>&1 | tee "$ROOT_DIR/logs/backend_start.log" &
+    wait $!
   fi
 fi
 
