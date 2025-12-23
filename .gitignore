@@ -179,3 +179,11 @@ serviceAccountKey.json
 
 # Yarn v2 PnP
 .pnp.*
+
+# Local Backups
+local_backups/
+
+# Env files
+.env
+backend/.env
+

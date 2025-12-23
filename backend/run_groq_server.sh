@@ -14,4 +14,4 @@ if [ -f "$ROOT_DIR/.venv/bin/activate" ]; then
 	source "$ROOT_DIR/.venv/bin/activate"
 fi
 
-uvicorn app.main:app --host 0.0.0.0 --port 8008 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8008
