@@ -11,21 +11,23 @@ def test_get_tier1_prompt_noor():
     assert "TIER 1: LIGHTWEIGHT BOOTSTRAP" in prompt
     assert "Noor agent attempted forbidden scope" not in prompt # Should not have Python code, just instructions
     # Check for Noor specific constraints
-    assert "Noor has READ-ONLY access" in prompt or "forbidden from 'csuite' or 'secrets'" in prompt
+    assert "You have READ-ONLY access to:" in prompt
+    assert "FORBIDDEN from accessing: `secrets`, `csuite`" in prompt
 
 def test_get_tier1_prompt_maestro():
     service = StaticPromptService()
     prompt = service.get_tier1_prompt("maestro")
     assert "TIER 1: LIGHTWEIGHT BOOTSTRAP" in prompt
     # Maestro should have broader access
-    assert "Maestro Agent: Has R/W access" in prompt or "access to all scopes" in prompt
+    assert "READ/WRITE access to ALL scopes" in prompt
 
 def test_get_tier1_prompt_invalid_persona():
     service = StaticPromptService()
-    # Should default to Noor or raise error? Let's assume default to Noor or handle gracefully
-    # For this strict implementation, let's say it defaults to Noor
+    # Should default to Noor or handle gracefully
     prompt = service.get_tier1_prompt("invalid_persona")
     assert "TIER 1: LIGHTWEIGHT BOOTSTRAP" in prompt
+    # Default is Noor
+    assert "FORBIDDEN from accessing: `secrets`, `csuite`" in prompt
 
 def test_get_tier2_bundle_mode_a():
     service = StaticPromptService()
