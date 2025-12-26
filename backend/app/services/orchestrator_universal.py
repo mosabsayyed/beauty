@@ -73,22 +73,11 @@ class CognitiveOrchestrator:
             if not self.mcp_router_url:
                 raise ValueError("MAESTRO_MCP_ROUTER_URL environment variable not set (e.g., http://127.0.0.1:8202)")
 
-        # Local LLM settings (cached from admin settings at init time - NO per-request DB calls)
-        # Load admin settings ONCE at init, then cache it for all requests
-        self._admin_settings_cached = admin_settings_service.merge_with_env_defaults()
-        provider_config = self._admin_settings_cached.provider
+        # Track response IDs for stateful LM Studio conversations
+        self._response_id_cache: Dict[str, str] = {}
 
-        self.local_llm_enabled = provider_config.local_llm_enabled
-        self.local_llm_model = provider_config.local_llm_model
-        self.local_llm_base_url = provider_config.local_llm_base_url
-        self.local_llm_timeout = provider_config.local_llm_timeout
-
-        # Pre-build MCP endpoint lookup map at init (O(1) lookup later, not O(n) loop)
-        mcp_config = self._admin_settings_cached.mcp
-        self._mcp_endpoint_map = {}
-        if mcp_config and mcp_config.endpoints:
-            for endpoint in mcp_config.endpoints:
-                self._mcp_endpoint_map[endpoint.label] = endpoint.url
+        # Refresh cached settings from admin UI
+        self._refresh_cached_settings()
 
         # Cache Tier-1 prompt at init time (NO per-request DB call)
         # This is loaded ONCE when orchestrator starts, not on every execute_query() call
@@ -100,10 +89,24 @@ class CognitiveOrchestrator:
             logger.error(f"[INIT] Failed to cache Tier-1 prompt for persona '{persona}': {e}")
             self._tier1_prompt_cached = f"You are {persona.capitalize()}. Respond: 'System instructions unavailable.'"
 
-        # Track response IDs for stateful LM Studio conversations
-        self._response_id_cache: Dict[str, str] = {}
+    def _refresh_cached_settings(self):
+        """Reload admin settings to pick up changes from the UI without restart."""
+        self._admin_settings_cached = admin_settings_service.merge_with_env_defaults()
+        provider_config = self._admin_settings_cached.provider
+        mcp_config = self._admin_settings_cached.mcp
 
-        # Model alias map
+        self.local_llm_enabled = provider_config.local_llm_enabled
+        self.local_llm_model = provider_config.local_llm_model
+        self.local_llm_base_url = provider_config.local_llm_base_url
+        self.local_llm_timeout = provider_config.local_llm_timeout
+
+        # Re-build MCP endpoint lookup map
+        self._mcp_endpoint_map = {}
+        if mcp_config and mcp_config.endpoints:
+            for endpoint in mcp_config.endpoints:
+                self._mcp_endpoint_map[endpoint.label] = endpoint.url
+
+        # Re-build model alias map
         self._model_alias_map = {
             "primary": self.model_primary,
             "fallback": self.model_fallback,
@@ -111,6 +114,7 @@ class CognitiveOrchestrator:
         }
         if self.local_llm_enabled:
             self._model_alias_map["local"] = self.local_llm_model
+
     
     def _resolve_model_choice(self, model_override: Optional[str]) -> Dict[str, Any]:
         """Resolve which model to use based on override and env configuration."""
@@ -171,8 +175,12 @@ class CognitiveOrchestrator:
         Returns:
             Parsed JSON response from LLM
         """
+        # 0. Reload settings to pick up UI changes (O(1) JSON load)
+        self._refresh_cached_settings()
+
         # Store user_id for use in prompt building
         self._current_user_id = user_id
+
         try:
             # 1. Input validation
             if not user_query or not user_query.strip():

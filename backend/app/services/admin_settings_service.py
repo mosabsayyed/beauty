@@ -130,7 +130,7 @@ class AdminSettingsService:
 
         provider_dict = settings.provider.dict()
         for key, val in env_defaults.items():
-            if provider_dict.get(key) in [None, "", 0]:
+            if provider_dict.get(key) is None or provider_dict.get(key) == "":
                 provider_dict[key] = val
         settings.provider = ProviderConfig(**provider_dict)
         return settings

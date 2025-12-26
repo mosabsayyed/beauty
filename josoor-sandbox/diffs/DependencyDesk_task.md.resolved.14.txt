@@ -1,0 +1,9 @@
+    - [ ] Integrate panel into [DependencyDesk.tsx](file:///home/mosab/projects/chatmodule/frontend/src/pages/josoor-dashboards/DependencyDesk.tsx).
+    - [ ] Implement submission logic and success feedback.
+
+- [/] Structural Fidelity Refactoring
+    - [x] Refactor `sector_ops` query (strict objective circle).
+    - [x] Refactor `strategy_to_tactics` (priority/target hops).
+    - [x] Refactor `tactical_to_strategy` (adoption chain).
+    - [x] Refactor `risk` chains (INFORMS logic).
+    - [x] Refactor `internal_efficiency` (upstream culture nodes).

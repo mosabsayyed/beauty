@@ -27,9 +27,9 @@ export default function Header() {
   }, []);
 
   const t = {
-    betaText: language === 'en' 
-      ? 'Invite-only beta for KSA public sector entities.' 
-      : 'نسخة تجريبية للمدعوين فقط للقطاع العام في المملكة العربية السعودية.',
+    betaText: language === 'en'
+      ? 'Welcome to JOSOOR - Agentic Enterprise Platform - Invite Only for Public Sector'
+      : 'مرحباً بك في جسور - منصة المؤسسات الوكيلة - دعوة فقط للقطاع العام',
     founder: language === 'en' ? 'Founder Letter' : 'رسالة المؤسس',
     contact: language === 'en' ? 'Contact Us' : 'اتصل بنا',
     login: language === 'en' ? 'Beta Login' : 'تسجيل الدخول',

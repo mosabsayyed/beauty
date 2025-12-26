@@ -177,7 +177,35 @@ export const DependencyDesk: React.FC<DependencyDeskProps> = ({ quarter, year })
     <div className="v2-dashboard-container" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', minHeight: 0, paddingBottom: '2rem' }}>
       
       {/* KPI STRIP */}
-      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        {/* ANALYZE GAPS BUTTON (Restored) */}
+        <button 
+            onClick={() => {
+                const challengedNodes = graphData.nodes.filter((n: any) => n.val === 30).map((n: any) => n.id);
+                setActiveKpiFilter({
+                    title: 'Gap Analysis',
+                    affected_ids: challengedNodes,
+                    status: 'warning'
+                });
+            }}
+            className="v2-btn"
+            style={{ 
+                background: 'var(--accent-gold)', 
+                color: '#000', 
+                fontWeight: 'bold', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem',
+                height: '40px',
+                padding: '0 1rem',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+            }}
+        >
+            <span>⚠️</span> Analyze Gaps
+        </button>
+
         {kpisLoading ? (
             [1,2,3].map(i => <div key={i} className="v2-panel v2-loading-skeleton" style={{ height: '40px', width: '200px', background: 'var(--component-panel-bg-alt)' }} />)
         ) : kpisError ? (

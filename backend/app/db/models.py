@@ -95,3 +95,21 @@ class Message(Base):
             "metadata": self.extra_metadata,
             "created_at": self.created_at.isoformat()
         }
+
+class GapRecommendation(Base):
+    """Model for storing recommended operational links linked to a specific user."""
+    __tablename__ = 'gap_recommendations'
+    
+    id = Column(Integer, primary_key=True)
+    recommender_id = Column(Integer, ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    source_id = Column(String(100), nullable=False)
+    target_id = Column(String(100), nullable=False)
+    relationship_type = Column(String(100), nullable=False)
+    chain_key = Column(String(100))
+    year = Column(Integer)
+    status = Column(String(50), default='pending')  # 'pending', 'approved', 'rejected'
+    extra_metadata = Column(JSON)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    recommender = relationship("User")

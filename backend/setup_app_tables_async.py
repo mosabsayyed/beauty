@@ -73,10 +73,28 @@ async def setup_tables():
             );
         """)
         
+        # Create gap_recommendations table
+        print("Creating gap_recommendations table...")
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS gap_recommendations (
+                id SERIAL PRIMARY KEY,
+                recommender_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                source_id VARCHAR(100) NOT NULL,
+                target_id VARCHAR(100) NOT NULL,
+                relationship_type VARCHAR(100) NOT NULL,
+                chain_key VARCHAR(100),
+                year INTEGER,
+                status VARCHAR(50) DEFAULT 'pending',
+                metadata JSONB,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            );
+        """)
+        
         # Create indexes
         print("Creating indexes...")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON conversations(user_id);")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON messages(conversation_id);")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_gap_recs_recommender_id ON gap_recommendations(recommender_id);")
         
         # Insert default persona
         print("Inserting default transformation analyst persona...")

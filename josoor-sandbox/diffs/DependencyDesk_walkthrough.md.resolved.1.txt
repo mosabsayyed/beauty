@@ -1,0 +1,24 @@
+### [frontend/src/pages/josoor-v2/components/DependencyDesk.tsx](file:///home/mosab/projects/chatmodule/frontend/src/pages/josoor-v2/components/DependencyDesk.tsx)
+Modified the layout structure to enable full vertical expansion of the graph and side panels:
+
+- **Main Container**: Set to `height: '100%'` and `overflow: 'hidden'` (was `minHeight: 0`, `paddingBottom: '2rem'`).
+- **KPI Strip**: Added `flexShrink: 0` to prevent it from collapsing.
+- **Content Grid**: Changed from static block to `flex: 1`, with `minHeight: 0` and `overflow: 'hidden'` to fill remaining vertical space.
+- **Graph & Side Panels**: Removed fixed `550px` height constraint. Set `height: '100%'` and `minHeight: 0` to allow them to stretch within the flex container.
+
+```tsx
+// Outer Container
+<div className="v2-dashboard-container" style={{ ..., height: '100%', overflow: 'hidden' }}>
+
+// Content Grid
+<div style={{ ..., flex: 1, minHeight: 0, overflow: 'hidden' }}>
+
+// Graph Panel
+<div className="v2-panel" style={{ ..., height: '100%', minHeight: 0 }}>
+```
+
+## Verification
+
+The browser subagent navigated to the V2 Dependency Desk (`/josoor-v2?desk=dependency-desk`) and confirmed that the "Cross-Cutting Dependency Map" area now extends to fill the available vertical space below the KPI strip, providing a much larger view of the graph.
+
+![V2 Dependency Desk View](/root/.gemini/antigravity/brain/4149ddbc-e9c2-46b7-bf8c-33e6e0c527a8/v2_dependency_desk_view_1766540908353.png)

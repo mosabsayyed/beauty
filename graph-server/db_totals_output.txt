@@ -1,0 +1,30 @@
+[dotenv@17.2.3] injecting env (5) from .env -- tip: ⚙️  override existing env vars with { override: true }
+/home/mosab/projects/chatmodule/graph-server/node_modules/neo4j-driver-core/lib/result.js:101
+    var error = new Error('');
+                ^
+Neo4jError: Failed to connect to server. Please ensure that your database is listening on the correct host and port and that you have compatible encryption settings both on Neo4j server and driver. Note that the default encryption setting has changed in Neo4j 4.0. Caused by: Failed to establish connection in 30000ms
+
+    at captureStacktrace (/home/mosab/projects/chatmodule/graph-server/node_modules/neo4j-driver-core/lib/result.js:101:17)
+    at Result.GenericResult (/home/mosab/projects/chatmodule/graph-server/node_modules/neo4j-driver-core/lib/result.js:141:23)
+    at new Result (/home/mosab/projects/chatmodule/graph-server/node_modules/neo4j-driver-core/lib/result.js:711:42)
+    at Session._run (/home/mosab/projects/chatmodule/graph-server/node_modules/neo4j-driver-core/lib/session.js:224:16)
+    at Session.run (/home/mosab/projects/chatmodule/graph-server/node_modules/neo4j-driver-core/lib/session.js:188:27)
+    at run (file:///home/mosab/projects/chatmodule/graph-server/check_db_totals.ts:13:34)
+    at file:///home/mosab/projects/chatmodule/graph-server/check_db_totals.ts:35:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:691:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  constructor: [Function: Neo4jError] {
+    isRetriable: [Function (anonymous)],
+    isRetryable: [Function (anonymous)]
+  },
+  cause: undefined,
+  gqlStatus: '50N42',
+  gqlStatusDescription: 'error: general processing exception - unexpected error. Failed to connect to server. Please ensure that your database is listening on the correct host and port and that you have compatible encryption settings both on Neo4j server and driver. Note that the default encryption setting has changed in Neo4j 4.0. Caused by: Failed to establish connection in 30000ms',
+  diagnosticRecord: { OPERATION: '', OPERATION_CODE: '0', CURRENT_SCHEMA: '/' },
+  classification: 'UNKNOWN',
+  rawClassification: undefined,
+  code: 'ServiceUnavailable',
+  retriable: true,
+  retryable: true
+}

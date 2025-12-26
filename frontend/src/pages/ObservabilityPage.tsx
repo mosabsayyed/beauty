@@ -585,8 +585,7 @@ function AdminSettingsPanel({
   }
 
   return (
-    <div className="observability-main" style={{ gap: '16px' }}>
-      <div className="detail-panel" style={{ width: '100%', padding: '16px' }}>
+      <div className="admin-settings-container">
         <div className="observability-header-left" style={{ marginBottom: '12px' }}>
           <SettingsIcon className="observability-header-icon" />
           <div>
@@ -806,7 +805,6 @@ function AdminSettingsPanel({
           </div>
         )}
       </div>
-    </div>
   );
 }
 
@@ -960,9 +958,9 @@ export function ObservabilityDashboard({
         </div>
         <button 
           className="observability-back-btn"
-          onClick={() => window.location.href = isAdminOnly ? '/josoor-v2' : '/chat'}
+          onClick={() => window.location.href = '/josoor-v2'}
         >
-          {isAdminOnly ? 'Back to Dashboard' : 'Back to Chat'}
+          Back to Dashboard
         </button>
       </header>
       )}
@@ -991,26 +989,24 @@ export function ObservabilityDashboard({
         </div>
       )}
 
-      {!isAdminOnly && (
-        <div className="tab-switcher" style={{ display: 'flex', gap: '12px', margin: '12px 0' }}>
-          <button
-            className={`tab-trigger ${activeTab === 'traces' ? 'active' : ''}`}
-            onClick={() => setActiveTab('traces')}
-          >
-            <Layers className="icon-sm" />
-            Traces
-          </button>
-          <button
-            className={`tab-trigger ${activeTab === 'admin-settings' ? 'active' : ''}`}
-            onClick={() => setActiveTab('admin-settings')}
-          >
-            <SettingsIcon className="icon-sm" />
-            Admin Settings
-          </button>
-        </div>
-      )}
+      <div className="tab-switcher" style={{ display: 'flex', gap: '12px', margin: '12px 24px' }}>
+        <button
+          className={`tab-trigger ${activeTab === 'traces' ? 'active' : ''}`}
+          onClick={() => setActiveTab('traces')}
+        >
+          <Layers className="icon-sm" />
+          System Observability
+        </button>
+        <button
+          className={`tab-trigger ${activeTab === 'admin-settings' ? 'active' : ''}`}
+          onClick={() => setActiveTab('admin-settings')}
+        >
+          <SettingsIcon className="icon-sm" />
+          Admin Settings
+        </button>
+      </div>
 
-      {activeTab === 'traces' && !isAdminOnly && (
+      {activeTab === 'traces' && (
         <div className="observability-main" style={!showHeader ? { height: 'calc(100% - 40px)' } : {}}>
           {/* Left Panel - Trace List */}
           <TraceList

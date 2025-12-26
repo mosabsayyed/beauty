@@ -10,10 +10,10 @@ They are designed to help the LLM and developers retrieve high-value insights wi
 ## 1. SectorOps (Operational Feedback Loop)
 
 **Description:**
-Traces the full operational feedback loop: from a high-level strategic **Objective**, through **Policy Tools** and **Administrative Records**, down to **Stakeholders** (Businesses/Citizens), capturing their **Data Transactions**, and finally measuring the outcome via **Performance** indicators which aggregate back to the original Objective.
+Traces the full operational feedback loop: from a high-level strategic **Objective**, through **Policy Tools** and **Administrative Records**, down to the **Stakeholder Layer** (Citizens/Businesses/GovEntities), capturing their **Data Transactions**, and finally measuring the outcome via **Performance** indicators which aggregate back to the original Objective.
 
 **Traversal Path:**
-`Objective` -> `Policy` -> `AdminRecord` -> `Stakeholder` -> `DataTransaction` -> `Performance` -> `Objective`
+`Objective` -> `Policy` -> `AdminRecord` -> `Stakeholder Layer (Citizen|Business|GovEntity)` -> `DataTransaction` -> `Performance` -> `Objective`
 
 **Inputs:**
 *   `$id` (string): ID of the starting `SectorObjective`.
@@ -23,7 +23,7 @@ Traces the full operational feedback loop: from a high-level strategic **Objecti
 Returns the full path, allowing access to:
 *   `obj.name` (Strategic Goal)
 *   `tool.name` (Policy used)
-*   `stakeholder.name` (Entity impacted)
+*   `stakeholder.name` (Citizen/Business/GovEntity impacted)
 *   `txn.volume` / `txn.type` (Real-world activity)
 *   `perf.value` (KPI result)
 

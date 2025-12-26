@@ -11,6 +11,12 @@ GRAPH_SERVER_DIR="$ROOT_DIR/graph-server" # Added/changed this line based on ins
 LOG_DIR="$FRONTEND_DIR/logs" # This line remains as it was, assuming LOG_DIR refers to frontend logs
 mkdir -p "$LOG_DIR"
 
+# Cleanup existing processes on ports 3000 (frontend) and 3001 (graph server)
+echo "Cleaning up ports 3000 and 3001..."
+fuser -k -n tcp 3000 >/dev/null 2>&1 || true
+fuser -k -n tcp 3001 >/dev/null 2>&1 || true
+sleep 1
+
 # Start Graph Server Sidecar
 GRAPH_SERVER_DIR="$ROOT_DIR/graph-server"
 GRAPH_LOG_DIR="$ROOT_DIR/logs"
@@ -58,4 +64,5 @@ if [ "$MODE" = "bg" ]; then
 else
   echo "Running frontend on-screen (foreground). Press Ctrl-C to stop. Logs are written to $LOG_DIR/frontend.log"
   npm --prefix "$FRONTEND_DIR" start 2>&1 | tee "$LOG_DIR/frontend.log"
+exit $?
 fi

@@ -1,0 +1,1 @@
+- **Frontend ([DependencyDesk.tsx](file:///home/mosab/projects/chatmodule/frontend/src/pages/josoor-dashboards/DependencyDesk.tsx))**: Replaced "Broken Links" card with an on-demand button; updated `useQuery` orchestration to pass the analysis flag.

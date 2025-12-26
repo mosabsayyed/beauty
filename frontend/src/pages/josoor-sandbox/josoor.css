@@ -1,0 +1,480 @@
+/* JOSOOR V2 Control Tower Styles */
+/* V1.3 Compliant - Uses theme.css variables ONLY */
+/* NO hardcoded colors - all colors from var(--component-*) */
+
+/* ======================================== */
+/* LAYOUT REQUIREMENTS (from screenshot)   */
+/* ======================================== */
+
+/* L-1: Page Background */
+.josoor-v2-page {
+    background: var(--component-bg-primary);
+    min-height: 100vh;
+}
+
+/* L-4: Main Content */
+.v2-control-tower {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    padding-bottom: 2rem;
+}
+
+/* ======================================== */
+/* W0 DUAL-LENS HUD (L-13 through L-17)    */
+/* ======================================== */
+
+/* L-13: Three-Column Grid */
+.v2-hud-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.8fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* L-14: Panel Height (~320px) */
+.v2-radar-panel, .v2-trend-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 320px;
+}
+
+.v2-trend-container {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 1rem;
+}
+
+/* L-15: Radar Centered with padding */
+.v2-radar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0 0.5rem;
+}
+
+/* L-16: Panel Title */
+.v2-radar-title {
+    font-family: var(--component-font-heading);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--component-text-primary);
+    margin: 0;
+}
+
+/* Chart container with explicit height for Recharts */
+.v2-radar-container {
+    flex: 1;
+    width: 100%;
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ======================================== */
+/* W1 HEALTH GRID (L-18 through L-21)      */
+/* ======================================== */
+
+/* L-18: Section Title */
+.v2-section-title {
+    font-family: var(--component-font-heading);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--component-text-primary);
+    margin: 0 0 0.5rem 0;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--component-panel-border);
+}
+
+/* L-19: Card Grid (4 columns x 2 rows) */
+.v2-health-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+}
+
+/* L-20: Card Height (~120px) */
+.v2-kpi-card {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 120px;
+}
+
+.v2-kpi-title {
+    font-size: 0.75rem;
+    color: var(--component-text-muted);
+    text-transform: uppercase;
+}
+
+.v2-kpi-value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.v2-kpi-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--component-text-primary);
+}
+
+/* L-21: Progress Bar (Gold fill) */
+.v2-progress-track {
+    width: 100%;
+    height: 4px;
+    background: var(--component-panel-border);
+    margin-top: auto;
+    position: relative;
+    border-radius: 2px;
+}
+
+.v2-progress-fill {
+    height: 100%;
+    background: var(--component-text-accent);
+    border-radius: 2px;
+}
+
+/* ======================================== */
+/* W2/W3/W4 LOWER DECK (L-22 through L-25) */
+/* ======================================== */
+
+/* L-22: Three-Column Grid */
+.v2-lower-deck {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 1rem;
+    align-items: stretch;
+}
+
+/* L-23: Equal Heights */
+.v2-list-panel {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+/* L-24: Scrollable Content */
+.v2-list-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    flex: 1;
+    max-height: 300px;
+}
+
+.v2-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px solid var(--component-panel-border);
+    background: rgba(0,0,0,0.2);
+    border-radius: 4px;
+}
+
+.v2-list-item-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--component-text-primary);
+}
+
+.v2-list-item-meta {
+    font-size: 0.75rem;
+    color: var(--component-text-muted);
+    margin-top: 0.25rem;
+}
+
+/* ======================================== */
+/* SHARED UI STATES (US-1 through US-4)    */
+/* ======================================== */
+
+/* US-1: Loading */
+.v2-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--component-text-muted);
+    font-size: 0.9rem;
+    padding: 2rem;
+    min-height: 200px;
+}
+
+/* US-2: Empty (no data) */
+.v2-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--component-text-muted);
+    font-size: 0.85rem;
+    padding: 2rem;
+    text-align: center;
+    min-height: 100px;
+}
+
+/* ======================================== */
+/* BADGES (S-17)                           */
+/* ======================================== */
+
+/* L-17: BURNOUT RISK Badge (Red) */
+.v2-badge-high {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: var(--component-color-danger);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.v2-badge-medium {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: var(--component-color-warning);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Planning View Badge */
+.v2-planning-badge {
+    background: rgba(6, 182, 212, 0.2);
+    color: var(--component-color-success);
+}
+
+/* ======================================== */
+/* W4 RISK SPECIFICS                       */
+/* ======================================== */
+
+.v2-risk-item {
+    padding: 0.75rem;
+    border-left: 3px solid var(--component-color-danger);
+    background: rgba(239, 68, 68, 0.05);
+    border-radius: 0 4px 4px 0;
+    margin-bottom: 0.5rem;
+}
+
+.v2-risk-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
+
+/* ======================================== */
+/* FORM ELEMENTS                           */
+/* ======================================== */
+
+.v2-filter-select {
+    background-color: var(--component-panel-bg-alt);
+    color: var(--component-text-primary);
+    border: 1px solid var(--component-panel-border);
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    outline: none;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+.v2-filter-select:focus {
+    border-color: var(--component-text-accent);
+}
+
+.v2-filter-select option {
+    background-color: var(--component-bg-primary);
+    color: var(--component-text-primary);
+}
+
+@keyframes v2-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.v2-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(212, 175, 55, 0.1);
+    border-top-color: var(--accent-gold);
+    border-radius: 50%;
+    animation: v2-spin 1s linear infinite;
+}
+
+.v2-loading-skeleton {
+    position: relative;
+    overflow: hidden;
+}
+
+.v2-loading-skeleton::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0,
+        rgba(255, 255, 255, 0.05) 20%,
+        rgba(255, 255, 255, 0.1) 60%,
+        rgba(255, 255, 255, 0)
+    );
+    animation: v2-shimmer 2s infinite;
+}
+
+@keyframes v2-shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* ======================================== */
+/* DUAL LENS HUD SPECIFIC STYLES           */
+/* ======================================== */
+
+.v2-dual-lens-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr; /* Equivalent to col-span-4 for all */
+    gap: 1rem;
+    height: 100%;
+    align-items: stretch;
+}
+
+/* Responsive breakpoint behavior similar to md: */
+@media (max-width: 768px) {
+    .v2-dual-lens-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+    }
+}
+
+.v2-lens-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.4);
+    height: 100%;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.v2-lens-card-left {
+    border-left: 2px solid #D4AF37; /* Gold */
+}
+
+.v2-lens-card-right {
+    border-right: 2px solid #00FFFF; /* Cyan */
+}
+
+.v2-lens-title {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+}
+
+.v2-text-gold {
+    color: #D4AF37;
+}
+
+.v2-text-cyan {
+    color: #00FFFF;
+    text-align: right;
+}
+
+.v2-lens-content {
+    flex: 1;
+    min-height: 200px;
+}
+
+.v2-center-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.v2-center-content-wrapper {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.v2-hero-title {
+    font-size: 2.25rem;
+    font-weight: 900;
+    color: #ffffff;
+    filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.5));
+}
+
+.v2-hero-subtitle {
+    font-size: 0.75rem;
+    color: #9CA3AF;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.v2-pulse-container {
+    position: relative;
+    width: 6rem;
+    height: 6rem;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 2px solid #D4AF37;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.v2-pulse-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #D4AF37;
+}
+
+.v2-pulse-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid #D4AF37;
+    opacity: 0.2;
+    animation: v2-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes v2-ping {
+    75%, 100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+.v2-no-data {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6B7280;
+    font-size: 0.75rem;
+}

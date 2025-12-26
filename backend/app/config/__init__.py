@@ -17,11 +17,11 @@ class Settings:
     
     # Database Configuration (PostgreSQL via Supabase)
     DATABASE_URL = os.getenv("DATABASE_URL")
-    PGUSER = os.getenv("PGUSER")
-    PGPASSWORD = os.getenv("PGPASSWORD")
-    PGHOST = os.getenv("PGHOST")
-    PGPORT = os.getenv("PGPORT")
-    PGDATABASE = os.getenv("PGDATABASE")
+    PGUSER = os.getenv("PGUSER", "postgres")
+    PGPASSWORD = os.getenv("PGPASSWORD", "")
+    PGHOST = os.getenv("PGHOST", "localhost")
+    PGPORT = os.getenv("PGPORT") or "5432"
+    PGDATABASE = os.getenv("PGDATABASE", "postgres")
     
     # Supabase REST API Configuration
     SUPABASE_URL = os.getenv("SUPABASE_URL", "")

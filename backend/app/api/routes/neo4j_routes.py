@@ -423,50 +423,105 @@ async def get_graph_data(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/business-chain/counts")
-async def get_chain_counts(year: Optional[int] = None):
+async def get_chain_counts(year: Optional[int] = None, quarter: Optional[str] = None):
+    def normalize_quarter(raw: Optional[str]) -> Optional[int]:
+        if not raw:
+            return None
+        candidate = str(raw).strip().upper()
+        if candidate.startswith('Q'):
+            candidate = candidate[1:]
+        if not candidate.isdigit():
+            return None
+        value = int(candidate)
+        if value < 1 or value > 4:
+            return None
+        return value
+
+    quarter_order = normalize_quarter(quarter)
+    if quarter and quarter_order is None:
+        raise HTTPException(status_code=400, detail="Invalid quarter. Use Q1-Q4.")
+    if quarter_order is not None and year is None:
+        raise HTTPException(status_code=400, detail="Year is required when filtering by quarter.")
+
     try:
-        year_filter = 'WHERE (n.year = $year OR n.Year = $year)' if year else ''
-        params = {'year': year} if year else {}
-        
+        params: Dict[str, Any] = {}
+        if year is not None:
+            params['year'] = year
+        if quarter_order is not None:
+            params['quarterOrder'] = quarter_order
+
+        def quarter_value(alias: str) -> str:
+            return f"""COALESCE(
+                CASE
+                    WHEN {alias}.quarter IS NOT NULL THEN
+                        CASE
+                            WHEN toString({alias}.quarter) STARTS WITH 'Q' THEN toInteger(replace(toUpper({alias}.quarter), 'Q', ''))
+                            ELSE toInteger({alias}.quarter)
+                        END
+                    WHEN {alias}.Quarter IS NOT NULL THEN
+                        CASE
+                            WHEN toString({alias}.Quarter) STARTS WITH 'Q' THEN toInteger(replace(toUpper({alias}.Quarter), 'Q', ''))
+                            ELSE toInteger({alias}.Quarter)
+                        END
+                    ELSE NULL
+                END,
+                $quarterOrder
+            )"""
+
+        def build_conditions(alias: str) -> List[str]:
+            clauses: List[str] = []
+            if year is not None:
+                clauses.append(f"({alias}.year = $year OR {alias}.Year = $year)")
+            if quarter_order is not None:
+                clauses.append(f"{quarter_value(alias)} <= $quarterOrder")
+            return clauses
+
+        def label_clause(alias: str) -> str:
+            return f"(ANY(label IN labels({alias}) WHERE label STARTS WITH 'Entity' OR label STARTS WITH 'Sector'))"
+
         # Node Counts
+        node_conditions = build_conditions('n')
+        node_conditions.append(label_clause('n'))
+        node_where = 'WHERE ' + ' AND '.join(node_conditions)
         node_query = f"""
           MATCH (n)
-          {year_filter.replace('n.', 'n.')}
-          { 'AND' if year_filter else 'WHERE' } (ANY(label IN labels(n) WHERE label STARTS WITH 'Entity' OR label STARTS WITH 'Sector'))
+          {node_where}
           RETURN labels(n)[0] as label, count(n) as count
         """
         node_res = neo4j_client.execute_query(node_query, params)
         node_counts = {r['label']: r['count'] for r in node_res}
-        
+
         # Rel Counts
+        rel_conditions = build_conditions('a') + build_conditions('b')
+        rel_conditions.append(f"{label_clause('a')} AND {label_clause('b')}")
+        rel_where = 'WHERE ' + ' AND '.join(rel_conditions)
         rel_query = f"""
           MATCH (a)-[r]->(b)
-          {year_filter.replace('n.', 'a.')}
-          { 'AND' if year_filter else 'WHERE' } (ANY(label IN labels(a) WHERE label STARTS WITH 'Entity' OR label STARTS WITH 'Sector'))
-          AND (ANY(label IN labels(b) WHERE label STARTS WITH 'Entity' OR label STARTS WITH 'Sector'))
+          {rel_where}
           RETURN type(r) as relType, count(r) as count
         """
         rel_res = neo4j_client.execute_query(rel_query, params)
         rel_counts = {r['relType']: r['count'] for r in rel_res}
-        
+
         # Pair Counts
+        pair_conditions = build_conditions('a') + build_conditions('b')
+        pair_conditions.append(f"{label_clause('a')} AND {label_clause('b')}")
+        pair_where = 'WHERE ' + ' AND '.join(pair_conditions)
         pair_query = f"""
           MATCH (a)-[r]-(b)
-          {year_filter.replace('n.', 'a.')}
-          { 'AND' if year_filter else 'WHERE' } (ANY(label IN labels(a) WHERE label STARTS WITH 'Entity' OR label STARTS WITH 'Sector'))
-          AND (ANY(label IN labels(b) WHERE label STARTS WITH 'Entity' OR label STARTS WITH 'Sector'))
+          {pair_where}
           WITH labels(a)[0] as labelA, labels(b)[0] as labelB, count(r) as cnt
           RETURN labelA + '-' + labelB as pair, cnt as count
         """
         pair_res = neo4j_client.execute_query(pair_query, params)
         pair_counts = {r['pair']: r['count'] for r in pair_res}
-        
+
         return {
             "nodeCounts": node_counts,
             "relCounts": rel_counts,
             "pairCounts": pair_counts
         }
-        
+
     except Exception as e:
         logger.error(f"Chain counts failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))

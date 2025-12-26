@@ -1,0 +1,4 @@
+Analysis: Edge paths originated from node centers, so circles obscured the lines and only arrowheads were visible.
+Plan: 1) Offset default anchors to exit/enter at the node perimeter, 2) Keep calibrated port logic and self-loop routing intact, 3) Verify SVG elbow paths still honor calibration mode handles.
+Execution: Updated frontend/src/pages/josoor-v2/components/RiskTopologyMap.tsx to add getDefaultHandlePosition plus adjusted edge rendering so non-handle links shift outward before passing to generatePath/generateSelfLoopPath.
+Result: Straight elbow lines now render from each node’s perimeter, so custom connections drawn in calibration mode remain fully visible (only arrowheads hide behind nodes if the user explicitly connects identical ports).

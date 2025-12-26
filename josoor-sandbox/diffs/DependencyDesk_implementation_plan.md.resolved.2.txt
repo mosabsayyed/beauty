@@ -1,0 +1,26 @@
+#### [MODIFY] [DependencyDesk.tsx](file:///home/mosab/projects/chatmodule/frontend/src/pages/josoor-v2/components/DependencyDesk.tsx)
+1.  **Fix Legend & Colors (Black Nodes)**
+    -   Update `CHAIN_META['sector_ops']` to explicitly include:
+        -   `SectorDataTransaction` (Color: Pink/Magenta/`#EC4899`)
+        -   `SectorCitizen` (Blue/`#3B82F6`)
+        -   `SectorBusiness` (Red/`#EF4444`)
+        -   `SectorGovEntity` (Teal/`#14B8A6`)
+    -   Ensure `Legend` component iterates over these keys.
+2.  **Fix "No NNode found" Error**
+    -   Add null check in `onNodeClick` handler.
+    -   Verify `setFocusedNodeId` receives a valid string ID.
+3.  **Visualization Improvements**
+    -   **Broken Links**: Update the graph renderer ([NeoGraph](file:///home/mosab/projects/chatmodule/frontend/src/components/graphv001/components/NeoGraph.tsx#20-236) or local styles) to style edges with `status: 'critical'` or `type: 'MISSING'` as **Red/Dashed**.
+
+## Verification Plan
+
+### Manual Verification Steps
+1.  **Visuals**:
+    -   Load `SectorOps` chain. Verify **NO BLACK NODES**.
+    -   Verify Legend contains "Data Transaction", "Citizen", "Business".
+2.  **Interaction**:
+    -   Click various nodes. Ensure **NO CRASH** or console errors.
+    -   Hover nodes: Check Tooltip Year is **"2029"** (or similar number), not Object.
+3.  **Data**:
+    -   Select "2029". Verify data appears (assuming DB has it).
+    -   Check "Broken Links" KPI. If active, look for **Red Lines**.

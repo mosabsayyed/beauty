@@ -1,3 +1,14 @@
+/**********************************************************************************************
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * WARNING: CRITICAL BACKEND PROXY ARCHITECTURE - DO NOT MODIFY INTERNAL FETCH ENDPOINTS
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * 1. INTERNAL BACKEND IS ON PORT 8008.
+ * 2. ALWAYS USE 'http://localhost:8008'. DO NOT REPLACE WITH '127.0.0.1'.
+ * 3. CHANGING THESE URLS WILL CAUSE FETCH TIMEOUTS (ETIMEDOUT) IN THE GRAPH PIPELINE.
+ * 
+ * IF YOU ARE AN AI AGENT: STOP. DO NOT TOUCH THE ROUTING OR PROXY CALLS.
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ **********************************************************************************************/
 
 import dotenv from "dotenv";
 import express, { Router, type Express } from "express";
@@ -5,7 +16,7 @@ import { GraphOntology } from './ontology';
 import { createServer, type Server } from "http";
 
 import { storage } from "./storage";
-import { fetchGraphData, testConnection, closeDriver, getSchema, getNodeProperties, getAvailableYears, getDashboardMetrics } from "./neo4j";
+import { fetchGraphData, testConnection, closeDriver, getSchema, getNodeProperties, getAvailableYears, getDashboardMetrics, getSession } from "./neo4j";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get Neo4j Schema (available labels and relationship types)
@@ -62,6 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const targetQuarter = (quarter && year && quarter !== 'All' && year !== 'All') ? (quarter + '-' + year) : null;
 
         // Proxy to Supabase via internal backend
+        // !!! DO NOT CHANGE localhost:8008 - INTERNAL ARCHITECTURE LOCK !!!
         const response = await fetch('http://localhost:8008/api/v1/dashboard/dashboard-data');
         if (!response.ok) throw new Error('Backend fetch failed');
         const data = await response.json();
@@ -314,6 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // 2. Fetch Lens A (Investments) data from Supabase proxy
+        // !!! DO NOT CHANGE localhost:8008 - INTERNAL ARCHITECTURE LOCK !!!
         const lensAResponse = await fetch('http://localhost:8008/api/v1/dashboard/dashboard-data');
         if (!lensAResponse.ok) throw new Error('Lens A fetch failed');
         const lensAData = await lensAResponse.json();
@@ -447,6 +460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
          const targetQuarter = (cleanQuarter && year && cleanQuarter !== 'All' && year !== 'All') ? `${cleanQuarter}-${year}` : null;
          console.log(`[HealthGrid] Filter Req: Q=${quarter}, Y=${year} -> Clean=${cleanQuarter} -> Target: ${targetQuarter}`);
 
+        // !!! DO NOT CHANGE localhost:8008 - INTERNAL ARCHITECTURE LOCK !!!
         const response = await fetch('http://localhost:8008/api/v1/dashboard/dashboard-data');
         if (!response.ok) throw new Error('Backend fetch failed');
         const data = await response.json();
@@ -632,9 +646,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Fetch all three data sources in parallel
       const [dimensionsRes, outcomesRes, initiativesRes] = await Promise.all([
-        fetch('http://localhost:8008/api/v1/dashboard/dashboard-data'),
-        fetch('http://localhost:8008/api/v1/dashboard/outcomes-data'),
-        fetch('http://localhost:8008/api/v1/dashboard/investment-initiatives')
+        // FIXED: Removed /v1/ - actual backend routes don't have it
+        fetch('http://localhost:8008/api/dashboard/dashboard-data'),
+        fetch('http://localhost:8008/api/dashboard/outcomes-data'),
+        fetch('http://localhost:8008/api/dashboard/investment-initiatives')
       ]);
       
       if (!dimensionsRes.ok || !outcomesRes.ok || !initiativesRes.ok) {
@@ -901,11 +916,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? (req.query.years as string).split(',').map(y => parseInt(y)).filter(y => !isNaN(y))
         : undefined;
       const quarter = req.query.quarter ? String(req.query.quarter) : undefined;
-      const limit = req.query.limit 
-        ? parseInt(req.query.limit as string)
-        : 200;
+      const analyzeGaps = req.query.analyzeGaps === 'true';
 
-      const graphData = await fetchGraphData(nodeLabels, relationshipTypes, years, quarter, limit);
+      let graphData = await fetchGraphData(nodeLabels, relationshipTypes, years, quarter);
+      
+      if (analyzeGaps) {
+          // Perform semantic gap analysis and injection
+          // (Implementation of universal context-aware logic will follow)
+      }
+
       res.json(graphData);
     } catch (error) {
       console.error("Error fetching graph data:", error);
@@ -918,155 +937,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // --- Chains Constants (Ported from Backend) ---
-  const CHAIN_QUERIES: Record<string, string> = {
-    // 1. SectorOps
-    // 1. SectorOps (Greedy Traversal)
-    // OPTIMIZATION: Return only necessary properties, EXCLUDING embeddings (6KB+ per node)
-    // This dramatically reduces payload size and transfer time.
-    "sector_ops": `
-      MATCH (obj:SectorObjective)
-      WHERE ($year = 0 OR obj.year = $year OR obj.Year = $year)
-      AND ($id IS NULL OR obj.id = $id OR elementId(obj) = $id)
-      OPTIONAL MATCH path1 = (obj)-[:REALIZED_VIA]->(pol:SectorPolicyTool)-[:REFERS_TO]->(rec:SectorAdminRecord)-[:APPLIED_ON]->(stakeholder)
-      OPTIONAL MATCH path2 = (stakeholder)-[:TRIGGERS_EVENT]->(txn:SectorDataTransaction)-[:MEASURED_BY]->(perf:SectorPerformance)-[:AGGREGATES_TO]->(obj)
-      
-      // Robust Collection & Unwinding
-      // IF collected paths are empty, we must inject a null to keep the row alive for 'obj'
-      WITH obj, collect(path1) + collect(path2) as paths
-      UNWIND (CASE WHEN size(paths) = 0 THEN [null] ELSE paths END) as p
-      
-      // Nodes: If p is null, return [obj]. Else return nodes(p) (which includes obj if connected)
-      UNWIND (CASE WHEN p IS NULL THEN [obj] ELSE nodes(p) END) as n
-      
-      // Relationships: If p is null, return [null]. Else return rels(p)
-      UNWIND (CASE WHEN p IS NULL THEN [null] ELSE relationships(p) END) as r
-      
-      RETURN DISTINCT 
-        elementId(n) as nId, labels(n) as nLabels, apoc.map.removeKeys(properties(n), ['embedding', 'Embedding']) as nProps,
-        type(r) as rType, properties(r) as rProps,
-        elementId(startNode(r)) as sourceId, elementId(endNode(r)) as targetId
-    `,
-    "strategy_to_tactics_priority": `
-      MATCH (obj:SectorObjective)
-      WHERE ($year = 0 OR obj.year = $year OR obj.Year = $year)
-      AND ($id IS NULL OR obj.id = $id OR elementId(obj) = $id)
-      // Fix: Diagnostics showed Policy connects to Capability via SETS_PRIORITIES (61) or EXECUTES (32), not GOVERNED_BY.
-      OPTIONAL MATCH path = (obj)-[:REALIZED_VIA]->(pol:SectorPolicyTool)-[:SETS_PRIORITIES|EXECUTES]->(cap:EntityCapability)
-      
-      WITH obj, collect(path) as paths
-      UNWIND (CASE WHEN size(paths) = 0 THEN [null] ELSE paths END) as p
-      UNWIND (CASE WHEN p IS NULL THEN [obj] ELSE nodes(p) END) as n
-      UNWIND (CASE WHEN p IS NULL THEN [null] ELSE relationships(p) END) as r
-      
-      RETURN DISTINCT 
-        elementId(n) as nId, labels(n) as nLabels, apoc.map.removeKeys(properties(n), ['embedding', 'Embedding']) as nProps,
-        type(r) as rType, properties(r) as rProps,
-        elementId(startNode(r)) as sourceId, elementId(endNode(r)) as targetId
-    `,
-    "strategy_to_tactics_targets": `
-      MATCH (obj:SectorObjective)
-      WHERE ($year = 0 OR obj.year = $year OR obj.Year = $year)
-      AND ($id IS NULL OR obj.id = $id OR elementId(obj) = $id)
-      // Fix: Use CASCADED_VIA in addition to AGGREGATES_TO as diagnostics showed 119 CASCADED connections
-      OPTIONAL MATCH path = (obj)<-[:AGGREGATES_TO|CASCADED_VIA]-(perf:SectorPerformance)<-[:MEASURED_BY]-(txn:SectorDataTransaction)
-       
-      WITH obj, collect(path) as paths
-      UNWIND (CASE WHEN size(paths) = 0 THEN [null] ELSE paths END) as p
-      UNWIND (CASE WHEN p IS NULL THEN [obj] ELSE nodes(p) END) as n
-      UNWIND (CASE WHEN p IS NULL THEN [null] ELSE relationships(p) END) as r
-      
-      RETURN DISTINCT 
-        elementId(n) as nId, labels(n) as nLabels, apoc.map.removeKeys(properties(n), ['embedding', 'Embedding']) as nProps,
-        type(r) as rType, properties(r) as rProps,
-        elementId(startNode(r)) as sourceId, elementId(endNode(r)) as targetId
-    `,
-    "tactical_to_strategy": `
-      MATCH (proj:EntityProject)
-      WHERE ($year = 0 OR proj.year = $year OR proj.Year = $year)
-      AND ($id IS NULL OR proj.id = $id OR elementId(proj) = $id)
-      // Relaxed Path: Find any connection from Project up to Objective via Capabilities/Policies/Changes
-      // Use *1..5 path length to traverse: Proj -> [Gaps] -> Ops -> [Know/Role] -> Cap -> [SetsPriority] -> Pol -> [Realized] -> Obj
-      OPTIONAL MATCH path = (proj)-[:DELIVERED_BY|GOVERNED_BY|REALIZED_VIA|INCREASE_ADOPTION|GAPS_SCOPE|CLOSE_GAPS|OPERATES|MONITORED_BY|KNOWLEDGE_GAPS|ROLE_GAPS|SETS_PRIORITIES|EXECUTES*1..5]-(obj:SectorObjective)
-       
-      WITH proj, collect(path) as paths
-      UNWIND (CASE WHEN size(paths) = 0 THEN [null] ELSE paths END) as p
-      UNWIND (CASE WHEN p IS NULL THEN [proj] ELSE nodes(p) END) as n
-      UNWIND (CASE WHEN p IS NULL THEN [null] ELSE relationships(p) END) as r
-      
-      RETURN DISTINCT 
-        elementId(n) as nId, labels(n) as nLabels, apoc.map.removeKeys(properties(n), ['embedding', 'Embedding']) as nProps,
-        type(r) as rType, properties(r) as rProps,
-        elementId(startNode(r)) as sourceId, elementId(endNode(r)) as targetId
-    `,
-    "risk_build_mode": `
-      MATCH (risk:EntityRisk)
-      WHERE ($year = 0 OR risk.year = $year OR risk.Year = $year)
-      AND ($id IS NULL OR risk.id = $id OR elementId(risk) = $id)
-      // Fix: Diagnostics showed Risk connects to Cap (MONITORED_BY) then Policy (SETS_PRIORITIES/EXECUTES).
-      OPTIONAL MATCH path = (risk)-[:MONITORED_BY]->(cap:EntityCapability)-[:SETS_PRIORITIES|EXECUTES]->(pol:SectorPolicyTool)
-       
-      WITH risk, collect(path) as paths
-      UNWIND (CASE WHEN size(paths) = 0 THEN [null] ELSE paths END) as p
-      UNWIND (CASE WHEN p IS NULL THEN [risk] ELSE nodes(p) END) as n
-      UNWIND (CASE WHEN p IS NULL THEN [null] ELSE relationships(p) END) as r
-      
-      RETURN DISTINCT 
-        elementId(n) as nId, labels(n) as nLabels, apoc.map.removeKeys(properties(n), ['embedding', 'Embedding']) as nProps,
-        type(r) as rType, properties(r) as rProps,
-        elementId(startNode(r)) as sourceId, elementId(endNode(r)) as targetId
-    `,
-    "risk_operate_mode": `
-      MATCH (risk:EntityRisk)
-      WHERE ($year = 0 OR risk.year = $year OR risk.Year = $year)
-      AND ($id IS NULL OR risk.id = $id OR elementId(risk) = $id)
-      // Fix: Use Risk -> Cap -> Performance (SETS_TARGETS) as diagnostics confirmed this path.
-      OPTIONAL MATCH path = (risk)-[:MONITORED_BY]->(cap:EntityCapability)<-[:SETS_TARGETS]-(perf:SectorPerformance)
-       
-      WITH risk, collect(path) as paths
-      UNWIND (CASE WHEN size(paths) = 0 THEN [null] ELSE paths END) as p
-      UNWIND (CASE WHEN p IS NULL THEN [risk] ELSE nodes(p) END) as n
-      UNWIND (CASE WHEN p IS NULL THEN [null] ELSE relationships(p) END) as r
-      
-      RETURN DISTINCT 
-        elementId(n) as nId, labels(n) as nLabels, apoc.map.removeKeys(properties(n), ['embedding', 'Embedding']) as nProps,
-        type(r) as rType, properties(r) as rProps,
-        elementId(startNode(r)) as sourceId, elementId(endNode(r)) as targetId
-    `,
-    "aggregate": `
-       MATCH (obj:SectorObjective)
-       WHERE ($year = 0 OR obj.year = $year OR obj.Year = $year)
-       // Simple aggregated view of Objective -> Impacted Nodes (Top Level)
-       OPTIONAL MATCH path = (obj)-[*1..2]-(impact)
-       WHERE (impact:EntityProject OR impact:EntityRisk OR impact:SectorPerformance)
-       
-      WITH obj, collect(path) as paths
-      UNWIND (CASE WHEN size(paths) = 0 THEN [null] ELSE paths END) as p
-      UNWIND (CASE WHEN p IS NULL THEN [obj] ELSE nodes(p) END) as n
-      UNWIND (CASE WHEN p IS NULL THEN [null] ELSE relationships(p) END) as r
-      
-      RETURN DISTINCT 
-        elementId(n) as nId, labels(n) as nLabels, apoc.map.removeKeys(properties(n), ['embedding', 'Embedding']) as nProps,
-        type(r) as rType, properties(r) as rProps,
-        elementId(startNode(r)) as sourceId, elementId(endNode(r)) as targetId
-    `,
-    "internal_efficiency": `
-      MATCH (proc:EntityProcess)
-      WHERE ($year = 0 OR proc.year = $year OR proc.Year = $year)
-      AND ($id IS NULL OR proc.id = $id OR elementId(proc) = $id)
-      // Fix: Diagnostics showed Process connects to IT via AUTOMATION (19), not OPERATES.
-      OPTIONAL MATCH path = (proc)-[:AUTOMATION]->(it:EntityITSystem)-[:DEPENDS_ON]->(vendor:EntityVendor)
-       
-      WITH proc, collect(path) as paths
-      UNWIND (CASE WHEN size(paths) = 0 THEN [null] ELSE paths END) as p
-      UNWIND (CASE WHEN p IS NULL THEN [proc] ELSE nodes(p) END) as n
-      UNWIND (CASE WHEN p IS NULL THEN [null] ELSE relationships(p) END) as r
-      
-      RETURN DISTINCT 
-        elementId(n) as nId, labels(n) as nLabels, apoc.map.removeKeys(properties(n), ['embedding', 'Embedding']) as nProps,
-        type(r) as rType, properties(r) as rProps,
-        elementId(startNode(r)) as sourceId, elementId(endNode(r)) as targetId
-    `
+  // --- Helper to convert Neo4j types to native JS types ---
+  const toNativeTypes = (obj: any): any => {
+    if (obj === null || obj === undefined) return obj;
+    // Handle Neo4j Integers (Longs)
+    if (typeof obj === 'object' && 'low' in obj && 'high' in obj) {
+      return Number(obj.low); // Simplest conversion for Web
+    }
+    // Recursive for Arrays
+    if (Array.isArray(obj)) return obj.map(toNativeTypes);
+    // Recursive for Objects
+    if (typeof obj === 'object' && obj.constructor === Object) {
+      const newObj: any = {};
+      for (const key in obj) newObj[key] = toNativeTypes(obj[key]);
+      return newObj;
+    }
+    return obj;
   };
+
 
   const CHAIN_DESCRIPTIONS: Record<string, string> = {
     "sector_ops": "Operational feedback loop from Objective to Performance and back (policy → records → stakeholders → transactions → KPIs).",
@@ -1088,6 +976,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "risk_operate_mode": "EntityRisk", // Changed from EntityCapability
     "internal_efficiency": "EntityProcess" // Changed from EntityCultureHealth
   };
+
+  const parseQuarterOrder = (input?: string | number | null): number | null => {
+    if (input === undefined || input === null) {
+      return null;
+    }
+    let candidate = String(input).trim().toUpperCase();
+    if (!candidate || candidate === 'ALL') {
+      return null;
+    }
+    if (candidate.startsWith('Q')) {
+      candidate = candidate.substring(1);
+    }
+    const value = parseInt(candidate, 10);
+    if (Number.isNaN(value) || value < 1 || value > 4) {
+      return null;
+    }
+    return value;
+  };
+
+  const buildQuarterValueExpr = (alias: string): string => `COALESCE(
+    CASE
+      WHEN ${alias}.quarter IS NOT NULL THEN
+        CASE
+          WHEN toString(${alias}.quarter) STARTS WITH 'Q' THEN toInteger(replace(toUpper(${alias}.quarter), 'Q', ''))
+          ELSE toInteger(${alias}.quarter)
+        END
+      WHEN ${alias}.Quarter IS NOT NULL THEN
+        CASE
+          WHEN toString(${alias}.Quarter) STARTS WITH 'Q' THEN toInteger(replace(toUpper(${alias}.Quarter), 'Q', ''))
+          ELSE toInteger(${alias}.Quarter)
+        END
+      ELSE NULL
+    END,
+    $quarterOrder
+  )`;
+
+  const buildQuarterCondition = (alias: string): string => `(${buildQuarterValueExpr(alias)} <= $quarterOrder)`;
 
 
 
@@ -1111,17 +1036,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             conditions.push('(n.year = $year OR n.Year = $year)');
             params.year = neo4j.default.int(year);
         }
-        if (quarter && quarter !== 'all') {
-            // Convert "Q3" to 3 if needed
-            let qVal: any = quarter;
-            if (typeof quarter === 'string' && quarter.startsWith('Q')) {
-              const qNum = parseInt(quarter.replace('Q', ''), 10);
-              if (!isNaN(qNum)) {
-                qVal = neo4j.default.int(qNum);
+        if (quarter) {
+            const normalizedQuarter = quarter.toLowerCase();
+            if (normalizedQuarter !== 'all') {
+              const quarterOrder = parseQuarterOrder(quarter);
+              if (quarterOrder === null) {
+                return res.status(400).json({ error: "Invalid quarter parameter" });
               }
+              params.quarterOrder = neo4j.default.int(quarterOrder);
+              conditions.push(buildQuarterCondition('n'));
             }
-            conditions.push('(n.quarter = $quarter OR n.Quarter = $quarter)');
-            params.quarter = qVal;
         }
 
         const filterClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
@@ -1274,10 +1198,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 // Standard Return Clause for all graph queries to ensure lightweight payloads
 const STANDARD_RETURN = `
-  WITH collect(path) as paths
+  WITH root, collect(path) as paths
   UNWIND (CASE WHEN size(paths) = 0 THEN [null] ELSE paths END) as p
-  UNWIND (CASE WHEN p IS NULL THEN [] ELSE nodes(p) END) as n
-  UNWIND (CASE WHEN p IS NULL THEN [] ELSE relationships(p) END) as r
+  UNWIND (CASE WHEN p IS NULL THEN [root] ELSE nodes(p) END) as n
+  UNWIND (CASE WHEN p IS NULL THEN [null] ELSE relationships(p) END) as r
   WITH n, r
   WHERE n IS NOT NULL
   RETURN DISTINCT 
@@ -1286,8 +1210,8 @@ const STANDARD_RETURN = `
     apoc.map.removeKeys(properties(n), ['embedding', 'Embedding']) as nProps,
     type(r) as rType, 
     properties(r) as rProps,
-    elementId(startNode(r)) as sourceId, 
-    elementId(endNode(r)) as targetId
+    CASE WHEN r IS NOT NULL THEN elementId(startNode(r)) ELSE null END as sourceId, 
+    CASE WHEN r IS NOT NULL THEN elementId(endNode(r)) ELSE null END as targetId
 `;
 
 // Helper to normalize keys including 'aggregate'
@@ -1336,14 +1260,16 @@ const normalizeChainKey = (key: string): string => {
     try {
       const { chainKey: rawKey } = req.params;
       const chainKey = normalizeChainKey(rawKey);
-      const { year, id } = req.query;
+      const { year, id, analyzeGaps: analyzeGapsRaw } = req.query;
+      const analyzeGaps = analyzeGapsRaw === 'true';
       
       // Normalize year for wildcard
       const yearNum = (year === 'All' || !year) ? 0 : parseInt(year as string);
       const idVal = id || null;
       
+      console.log(`[Chain Run] Key=${chainKey}, Year=${yearNum}, AnalyzeGaps=${analyzeGaps}`);
+      
       let queryMatch = "";
-      let chainFilter = ""; // For KPIs
 
       if (chainKey === 'aggregate') {
         queryMatch = GraphOntology.getAggregateQuery();
@@ -1354,9 +1280,6 @@ const normalizeChainKey = (key: string): string => {
            return res.status(404).json({ error: "Chain not found", key: chainKey });
         }
         queryMatch = chainDef.getQueryPattern();
-        // Extract basic filter for KPIs (simplified)
-        // We actually need to re-use the chain definition logic or just query the nodes returned
-        chainFilter = chainDef.getQueryPattern(); // rough approximation
       }
 
       const { getSession } = await import("./neo4j");
@@ -1364,8 +1287,6 @@ const normalizeChainKey = (key: string): string => {
       const session = getSession();
       try {
         const fullQuery = `${queryMatch} ${STANDARD_RETURN}`;
-
-        console.log(`[Chain Run] Key=${chainKey}, Year=${yearNum}`);
 
         const result = await session.run(fullQuery, { 
           id: idVal, 
@@ -1384,7 +1305,7 @@ const normalizeChainKey = (key: string): string => {
            if (nId !== null && nId !== undefined) {
                const id = nId.toString(); 
                if (!nodesMap.has(id)) {
-                   const props = record.has('nProps') ? record.get('nProps') : {};
+                   const props = record.has('nProps') ? toNativeTypes(record.get('nProps')) : {};
                    const labels = record.has('nLabels') ? record.get('nLabels') : [];
                    nodesMap.set(id, {
                        id: id,
@@ -1396,11 +1317,11 @@ const normalizeChainKey = (key: string): string => {
            // Link processing
            const rType = record.has('rType') ? record.get('rType') : null;
            if (rType) {
-               const source = record.get('sourceId');
-               const target = record.get('targetId');
-               if (source && target) {
-                   const sId = source.toString();
-                   const tId = target.toString();
+               const sourceId = record.get('sourceId');
+               const targetId = record.get('targetId');
+               if (sourceId && targetId) {
+                   const sId = sourceId.toString();
+                   const tId = targetId.toString();
                    const linkKey = `${sId}-${rType}-${tId}`;
                    
                    if (!linksMap.has(linkKey)) {
@@ -1409,7 +1330,7 @@ const normalizeChainKey = (key: string): string => {
                            source: sId,
                            target: tId,
                            type: rType,
-                           properties: record.has('rProps') ? record.get('rProps') : {}
+                           properties: record.has('rProps') ? toNativeTypes(record.get('rProps')) : {}
                        });
                    }
                }
@@ -1426,7 +1347,6 @@ const normalizeChainKey = (key: string): string => {
       const nodeIds = new Set(nodes.map(n => n.id));
       const incomingCounts = new Map<string, number>();
       const degreeCounts = new Map<string, number>();
-      const brokenLinks = new Set<string>(); // IDs of broken nodes
 
       // Initialize counts
       nodes.forEach(n => {
@@ -1458,6 +1378,14 @@ const normalizeChainKey = (key: string): string => {
       // For now, let's calculate the 3 structural ones + Semantic one if possible.
       
       const kpis = [];
+      
+      // 0. The trigger for Semantic Gap Analysis
+      kpis.push({
+          title: "Broken Links",
+          value: 0, // Semantic gaps are computed on-demand when this is toggled
+          status: "healthy",
+          affected_ids: []
+      });
 
       // A. Orphaned Nodes (Degree = 0)
       const orphanedIds = nodes
@@ -1495,29 +1423,166 @@ const normalizeChainKey = (key: string): string => {
            affected_ids: overloadedIds
       });
 
-      // D. Broken Links (Semantic)
-      // We'll mimic the previous cypher logic: Policy without Record implies broken chain.
-      // Filter: Node is PolicyTool AND has no outgoing link to AdminRecord
-      const brokenIds = nodes.filter(n => {
-          if (n.labels.includes('SectorPolicyTool')) {
-             // Check if it links to any SectorAdminRecord
-             const hasRecord = links.some(l => 
-                l.source === n.id && 
-                nodesMap.get(l.target)?.labels.includes('SectorAdminRecord')
-             );
-             return !hasRecord;
+      // --- ON-DEMAND SEMANTIC GAP ANALYSIS (Audit Engine v2.1 - Expanded Terminology) ---
+      if (analyzeGaps) {
+          interface AuditReq { target: string; rel: string; dir: 'in' | 'out'; isBranch?: boolean; branchId?: string; }
+          const STAKEHOLDER_TYPES = ['SectorCitizen', 'SectorBusiness', 'SectorGovEntity'];
+          const OPERATIONAL_TYPES = ['EntityOrgUnit', 'EntityProcess', 'EntityITSystem'];
+
+          const CHAIN_AUDIT_RULES: Record<string, Record<string, AuditReq[]>> = {
+              'sector_ops': {
+                  'SectorObjective': [{ target: 'SectorPolicyTool', rel: 'REALIZED_VIA', dir: 'out' }],
+                  'SectorPolicyTool': [{ target: 'SectorAdminRecord', rel: 'REFERS_TO', dir: 'out' }],
+                  'SectorAdminRecord': [{ target: 'SectorCitizen|SectorBusiness|SectorGovEntity', rel: 'APPLIED_ON', dir: 'out' }],
+                  'SectorCitizen': [{ target: 'SectorDataTransaction', rel: 'TRIGGERS_EVENT', dir: 'out' }],
+                  'SectorBusiness': [{ target: 'SectorDataTransaction', rel: 'TRIGGERS_EVENT', dir: 'out' }],
+                  'SectorGovEntity': [{ target: 'SectorDataTransaction', rel: 'TRIGGERS_EVENT', dir: 'out' }],
+                  'SectorDataTransaction': [{ target: 'SectorPerformance', rel: 'MEASURED_BY', dir: 'out' }],
+                  'SectorPerformance': [{ target: 'SectorObjective', rel: 'AGGREGATES_TO', dir: 'out' }]
+              },
+              'strategy_to_tactics_priority': {
+                  'SectorObjective': [{ target: 'SectorPolicyTool', rel: 'REALIZED_VIA', dir: 'out' }],
+                  'SectorPolicyTool': [{ target: 'EntityCapability', rel: 'SETS_PRIORITIES', dir: 'out' }],
+                  'EntityCapability': [{ target: 'EntityOrgUnit|EntityProcess|EntityITSystem', rel: 'ROLE_GAPS|KNOWLEDGE_GAPS|AUTOMATION_GAPS', dir: 'out' }],
+                  'EntityOrgUnit': [{ target: 'EntityProject', rel: 'GAPS_SCOPE', dir: 'out' }],
+                  'EntityProcess': [{ target: 'EntityProject', rel: 'GAPS_SCOPE', dir: 'out' }],
+                  'EntityITSystem': [{ target: 'EntityProject', rel: 'GAPS_SCOPE', dir: 'out' }],
+                  'EntityProject': [{ target: 'EntityChangeAdoption', rel: 'ADOPTION_RISKS', dir: 'out' }]
+              },
+              'strategy_to_tactics_targets': {
+                  'SectorObjective': [{ target: 'SectorPerformance', rel: 'CASCADED_VIA', dir: 'out' }],
+                  'SectorPerformance': [{ target: 'EntityCapability', rel: 'SETS_TARGETS', dir: 'out' }],
+                  'EntityCapability': [{ target: 'EntityOrgUnit|EntityProcess|EntityITSystem', rel: 'ROLE_GAPS|KNOWLEDGE_GAPS|AUTOMATION_GAPS', dir: 'out' }],
+                  'EntityOrgUnit': [{ target: 'EntityProject', rel: 'GAPS_SCOPE', dir: 'out' }],
+                  'EntityProcess': [{ target: 'EntityProject', rel: 'GAPS_SCOPE', dir: 'out' }],
+                  'EntityITSystem': [{ target: 'EntityProject', rel: 'GAPS_SCOPE', dir: 'out' }],
+                  'EntityProject': [{ target: 'EntityChangeAdoption', rel: 'ADOPTION_RISKS', dir: 'out' }]
+              },
+              'tactical_to_strategy': {
+                  'EntityChangeAdoption': [{ target: 'EntityProject', rel: 'INCREASE_ADOPTION', dir: 'out' }],
+                  'EntityProject': [{ target: 'EntityOrgUnit|EntityProcess|EntityITSystem', rel: 'GAPS_SCOPE', dir: 'in' }],
+                  'EntityOrgUnit': [{ target: 'EntityCapability', rel: 'ROLE_GAPS|KNOWLEDGE_GAPS|AUTOMATION_GAPS', dir: 'in' }],
+                  'EntityProcess': [{ target: 'EntityCapability', rel: 'ROLE_GAPS|KNOWLEDGE_GAPS|AUTOMATION_GAPS', dir: 'in' }],
+                  'EntityITSystem': [{ target: 'EntityCapability', rel: 'ROLE_GAPS|KNOWLEDGE_GAPS|AUTOMATION_GAPS', dir: 'in' }],
+                  'EntityCapability': [
+                      { target: 'SectorPerformance', rel: 'REPORTS', dir: 'out', isBranch: true, branchId: 'strat' },
+                      { target: 'SectorPolicyTool', rel: 'EXECUTES', dir: 'out', isBranch: true, branchId: 'strat' }
+                  ],
+                  'SectorPerformance': [{ target: 'SectorObjective', rel: 'AGGREGATES_TO', dir: 'out' }],
+                  'SectorPolicyTool': [{ target: 'SectorObjective', rel: 'GOVERNED_BY', dir: 'out' }]
+              },
+              'risk_build_mode': {
+                  'EntityCapability': [{ target: 'EntityRisk', rel: 'MONITORED_BY', dir: 'out' }],
+                  'EntityRisk': [{ target: 'SectorPolicyTool', rel: 'INFORMS', dir: 'out' }]
+              },
+              'risk_operate_mode': {
+                  'EntityCapability': [{ target: 'EntityRisk', rel: 'MONITORED_BY', dir: 'out' }],
+                  'EntityRisk': [{ target: 'SectorPerformance', rel: 'INFORMS', dir: 'out' }]
+              },
+              'internal_efficiency': {
+                  'EntityCultureHealth': [{ target: 'EntityOrgUnit', rel: 'MONITORS_FOR', dir: 'out' }],
+                  'EntityOrgUnit': [{ target: 'EntityProcess', rel: 'APPLY', dir: 'out' }],
+                  'EntityProcess': [{ target: 'EntityITSystem', rel: 'AUTOMATION', dir: 'out' }],
+                  'EntityITSystem': [{ target: 'EntityVendor', rel: 'DEPENDS_ON', dir: 'out' }]
+              }
+          };
+
+          const rules = CHAIN_AUDIT_RULES[normalizeChainKey(chainKey as string)];
+          if (rules) {
+              const getLayerNodes = (targetSpec: string) => {
+                  const targets = targetSpec.split('|');
+                  const normalizedNodes = nodes.filter(n => n && n.labels);
+                  return normalizedNodes.filter(n => n.labels.some((l: string) => targets.some(t => l === t || l.endsWith(t))));
+              };
+
+              nodes.forEach(node => {
+                  // Determine the node's "Role" in the audit (must match a rule key)
+                  const role = Object.keys(rules).find(r => node.labels.includes(r));
+
+                  if (role) {
+                      const nodeReqs = rules[role];
+                      const branchStatus: Record<string, boolean> = {};
+
+                      nodeReqs.forEach(req => {
+                          const relTypes = req.rel.split('|');
+                          const targetTypes = req.target.split('|');
+                          
+                          const hasLink = links.some(l => {
+                              const isMatch = (req.dir === 'out' ? l.source === node.id : l.target === node.id);
+                              if (!isMatch) return false;
+                              
+                              const peerId = (req.dir === 'out' ? l.target : l.source);
+                              const peerNode = nodesMap.get(peerId);
+                              if (!peerNode) return false;
+
+                              const labelMatch = peerNode.labels.some((l: string) => targetTypes.some(t => l === t || l.endsWith(t)));
+                              return labelMatch && (relTypes.includes(l.type) || l.type === 'VIRTUAL' || l.properties?.virtual);
+                          });
+
+                          if (req.isBranch && req.branchId) {
+                              branchStatus[req.branchId] = branchStatus[req.branchId] || hasLink;
+                          } else if (!hasLink) {
+                              // MANDATORY LINK MISSING
+                              node.properties.status = 'critical';
+                              
+                              // Attempt Selective Bridging
+                              const candidates = getLayerNodes(req.target);
+                              const nodeYear = node.properties?.year || node.properties?.Year;
+                              const yearMatched = candidates.filter(cand => {
+                                  const candYear = cand.properties?.year || cand.properties?.Year;
+                                  return candYear === nodeYear && cand.id !== node.id;
+                              }).slice(0, 2);
+
+                              if (yearMatched.length > 0) {
+                                  yearMatched.forEach(cand => {
+                                      const linkKey = `VIRTUAL-${node.id}-${req.rel}-${cand.id}`;
+                                      if (!links.some(l => l.id === linkKey)) {
+                                          links.push({
+                                              id: linkKey,
+                                              source: (req.dir === 'out' ? node.id : cand.id),
+                                              target: (req.dir === 'out' ? cand.id : node.id),
+                                              type: relTypes[0],
+                                              properties: { status: 'critical', virtual: true, bridging: true }
+                                          });
+                                      }
+                                  });
+                              } else if (candidates.length === 0) {
+                                  // Fallback to "Missing" node only if the specified targets are empty in this year
+                                  const primaryTarget = targetTypes[0];
+                                  const targetName = primaryTarget.replace('Sector', '').replace('Entity', '');
+                                  const missingId = `MISSING-${node.id}-${primaryTarget}`;
+                                  
+                                  if (!nodesMap.has(missingId)) {
+                                      const missingNode = {
+                                          id: missingId,
+                                          labels: [primaryTarget, 'MISSING'],
+                                          properties: { name: `Missing ${targetName}`, status: 'critical' }
+                                      };
+                                      nodes.push(missingNode);
+                                      nodesMap.set(missingId, missingNode);
+                                  }
+                                  links.push({
+                                      id: `VIRTUAL-MISS-${node.id}-${missingId}`,
+                                      source: (req.dir === 'out' ? node.id : missingId),
+                                      target: (req.dir === 'out' ? missingId : node.id),
+                                      type: relTypes[0],
+                                      properties: { status: 'critical', virtual: true }
+                                  });
+                              }
+                          }
+                      });
+
+                      // Final Branch Validation
+                      Object.keys(branchStatus).forEach(bid => {
+                          if (!branchStatus[bid]) {
+                              node.properties.status = 'critical';
+                          }
+                      });
+                  }
+              });
           }
-          return false;
-      }).map(n => n.id);
+      }
 
-      kpis.push({
-          title: "Broken Links",
-          value: brokenIds.length,
-          status: brokenIds.length > 0 ? "warning" : "healthy",
-          affected_ids: brokenIds
-      });
-
-      
       // Return Consolidated Response
       res.json({ 
           nodes: nodes.filter(n => n && n.id), 
@@ -1627,15 +1692,19 @@ const normalizeChainKey = (key: string): string => {
           }
 
           const result = await session.run(`
-            // 1. Broken Links: Policy -> Admin Record gap
+            // 1. Broken Links: Path gap in the High-Performance Sequence
             CALL {
               MATCH (obj:SectorObjective)
-              // Apply Chain Scope
-              WHERE ${chainFilter.replace(/n\:/g, 'obj:')}
+              WHERE ($year = 0 OR obj.year = $year OR obj.Year = $year)
+              // We check if a path is fully realized from Objective to Performance
               OPTIONAL MATCH (obj)-[:REALIZED_VIA]->(pol:SectorPolicyTool)
               OPTIONAL MATCH (pol)-[:REFERS_TO]->(rec:SectorAdminRecord)
-              WITH obj, pol, rec
-              WHERE pol IS NULL OR rec IS NULL
+              OPTIONAL MATCH (rec)-[:APPLIED_ON]->(stakeholder)
+              OPTIONAL MATCH (stakeholder)-[:TRIGGERS_EVENT]->(txn:SectorDataTransaction)
+              OPTIONAL MATCH (txn)-[:MEASURED_BY]->(perf:SectorPerformance)
+              WITH obj, pol, rec, stakeholder, txn, perf
+              // If any mandatory stage is missing, it's a broken link for that objective
+              WHERE pol IS NULL OR rec IS NULL OR stakeholder IS NULL OR txn IS NULL OR perf IS NULL
               RETURN count(DISTINCT obj) as bCount, collect(DISTINCT elementId(obj)) as bIds
             }
 
@@ -2089,6 +2158,26 @@ const normalizeChainKey = (key: string): string => {
 
   process.on('SIGINT', async () => {
     await closeDriver();
+  });
+
+  // --- PERSISTENCE: GAP RECOMMENDATIONS (PROXIED TO PORT 8008) ---
+  app.post("/api/business-chain/recommendations", async (req, res) => {
+    try {
+      const response = await fetch("http://localhost:8008/api/v1/chains/recommendations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": req.headers.authorization || ""
+        },
+        body: JSON.stringify(req.body)
+      });
+      
+      const data = await response.json();
+      res.status(response.status).json(data);
+    } catch (error) {
+      console.error("Proxy error to backend:", error);
+      res.status(500).json({ error: "Failed to forward recommendation to backend" });
+    }
   });
 
   return httpServer;

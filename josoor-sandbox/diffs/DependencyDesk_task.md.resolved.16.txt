@@ -1,0 +1,7 @@
+    - [x] Integrate into [DependencyDesk.tsx](file:///home/mosab/projects/chatmodule/frontend/src/pages/josoor-v2/components/DependencyDesk.tsx)
+    - [x] Fix JSX syntax and styling (Gold theme)
+    - [x] Implement Select-All by default
+- [x] Business Chain Audit Logic Refinement
+    - [x] Update `CHAIN_AUDIT_RULES` for mandatory layers
+    - [x] Prioritize bridging existing nodes over creating virtual nodes
+    - [x] Ensure all chains match [ONTOLOGY_SPEC.md](file:///home/mosab/projects/chatmodule/docs/ONTOLOGY_SPEC.md)

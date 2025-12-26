@@ -25,7 +25,7 @@
 
   --component-font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif';
   --component-font-heading: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif';
-  --component-font-mono: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace';
+  --component-font-mono: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif';
   
   /* Fix for white flash on dropdowns and native controls */
   color-scheme: dark;

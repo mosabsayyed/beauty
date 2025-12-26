@@ -1,0 +1,91 @@
+/* ControlTowerHeader.css - V1.3 Compliant Styles */
+/* Uses theme.css variables ONLY */
+
+.v2-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.v2-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.v2-page-title {
+    font-family: var(--component-font-heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--component-text-primary);
+    margin: 0;
+}
+
+.v2-page-subtitle {
+    color: var(--component-text-muted);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.v2-planning-badge {
+    margin-top: 0.5rem;
+    background: rgba(6, 182, 212, 0.2);
+    color: var(--component-color-success);
+    display: inline-block;
+}
+
+.v2-header-right {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.v2-filter-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.v2-filter-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.v2-filter-label {
+    font-size: 0.7rem;
+    color: var(--component-text-muted);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.v2-filter-select {
+    padding: 0.25rem;
+    font-size: 0.9rem;
+    width: 80px;
+    background: var(--component-panel-bg);
+    border: 1px solid var(--component-panel-border);
+    color: var(--component-text-primary);
+}
+
+.v2-filter-select-year {
+    width: 100px;
+}
+
+.v2-header-divider {
+    width: 1px;
+    height: 32px;
+    background: var(--component-panel-border);
+}
+
+.v2-action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.v2-action-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+}

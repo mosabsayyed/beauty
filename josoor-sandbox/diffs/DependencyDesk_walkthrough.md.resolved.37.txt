@@ -1,0 +1,13 @@
+-   **CSS Imports**: Corrected `../josoor-v2.css` to `../josoor.css` in `DependencyDesk.tsx`.
+-   **ESLint Cleanup**: Removed unused variables (`DependencyKnots`, `useQuery`, `RiskNode`, `size`) to ensure a clean build.
+
+### Current State
+-   The application should now compile successfully.
+-   Accessing `/josoor` should load the new unified platform shell.
+
+## Verification
+-   **Route**: `http://localhost:3000/josoor` verified as accessible (redirect logic may apply if unauthenticated).
+-   **Compilation**: Confirmed "Compiled successfully" in terminal logs after fixes.
+-   **Visual Verification**: Confirmed Risk Desk now displays "Rectangles" (Bar Charts/Matrix) as requested, replacing the old "Circles" (Topology Map).
+
+![Risk Desk Rectangles Verified](/root/.gemini/antigravity/brain/4149ddbc-e9c2-46b7-bf8c-33e6e0c527a8/risk_desk_rectangles_1766671425944.png)

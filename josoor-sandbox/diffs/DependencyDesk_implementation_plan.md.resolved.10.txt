@@ -1,0 +1,14 @@
+#### [MODIFY] [DependencyDesk.tsx](file:///home/mosab/projects/chatmodule/frontend/src/pages/josoor-v2/components/DependencyDesk.tsx)
+- Integrate `GapRecommendationPanel` into the right sidebar when `analyzeGaps` is active.
+- Handle the submission logic and success/error notifications.
+
+## Verification Plan
+
+### Automated Tests
+- [curl](file:///home/mosab/projects/chatmodule/backend/app/db/supabase_client.py#30-77) test to verify the new `POST /api/business-chain/recommendations` endpoint.
+- Validate that recommendations are correctly stored in Supabase.
+
+### Manual Verification
+- Open the Dependency Desk, activate "Analyze Gaps".
+- Select a few identified links in the right panel.
+- Submit the recommendations and verify the success state.

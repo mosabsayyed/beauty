@@ -18,6 +18,8 @@ Sector domain:
 - `SectorDataTransaction`
 - `SectorPerformance`
 
+Note: `SectorStakeholder` is a **conceptual grouping** and not a physical label in the database. Traversals must target `SectorBusiness | SectorGovEntity | SectorCitizen`.
+
 Entity domain:
 - `EntityCapability`
 - `EntityOrgUnit`
@@ -83,6 +85,7 @@ Admin Record -[:APPLIED_ON]-> Stakeholder (Business | GovEntity | Citizen)
 Stakeholder -[:TRIGGERS_EVENT]-> Sector Data Transaction -[:MEASURED_BY]-> Sector Performance
 Sector Performance -[:AGGREGATES_TO]-> Objective
 Filters: optional `$id` on `SectorObjective`; `$year` on Objective/Tool
+Gap Analysis: Flagged on-demand if relationships in this sequence are missing.
 ```
 
 2) Strategy → Tactics (Priorities) (`strategy_to_tactics_priority`)

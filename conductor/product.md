@@ -3,6 +3,16 @@ Clients are looking for outcomes, solutions to their pain which is the need for 
 
 # Product Guide: JOSOOR
 
+## 🚨 SOURCE OF TRUTH HIERARCHY (CRITICAL)
+1. **`00_START_HERE.md`**: The absolute root entry point.
+2. **Architecture Docs (`docs/`)**:
+    - `docs/BACKEND_ARCHITECTURE.md`
+    - `docs/FRONTEND_ARCHITECTURE.md`
+    - `docs/DATA_ARCHITECTURE.md`
+3. **`conductor/product.md`**: High-level product vision (this file).
+
+**WARNING:** Do NOT use `COGNITIVE_ARCHITECTURE_SPECIFICATION.md` or other root-level markdown files as source of truth for implementation. They are likely outdated. Always defer to the files listed above.
+
 ## Vision & Purpose
 JOSOOR is a comprehensive **Enterprise AI Platform**, designed to serve as the cognitive backbone for modern organizations. While its architecture is modular and extensible, its inaugural flagship module focuses on **Transformation Management**, deploying "agentic AI recruits" to solve critical resource shortages in Transformation Management Offices (TMOs).
 

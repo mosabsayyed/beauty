@@ -1,0 +1,49 @@
+/* MissingInputs.css - V1.3 Compliant Styles */
+/* Uses theme.css variables ONLY */
+
+.v2-missing-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    max-height: 300px;
+}
+
+.v2-missing-item {
+    padding: 0.75rem;
+    border: 1px solid var(--component-panel-border);
+    background: rgba(0,0,0,0.2);
+    border-radius: 4px;
+}
+
+.v2-missing-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+}
+
+.v2-missing-overdue {
+    color: var(--component-color-danger);
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.v2-missing-type {
+    color: var(--component-text-secondary);
+    font-size: 0.85rem;
+}
+
+.v2-missing-entity {
+    color: var(--component-text-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.v2-missing-quarter {
+    color: var(--component-text-muted);
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}

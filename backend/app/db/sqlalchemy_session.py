@@ -4,7 +4,13 @@ from sqlalchemy.orm import sessionmaker, Session
 from app.config import settings
 
 # Create SQLAlchemy engine (synchronous for ORM operations)
-SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.PGUSER}:{settings.PGPASSWORD}@{settings.PGHOST}:{settings.PGPORT}/{settings.PGDATABASE}"
+if settings.DATABASE_URL:
+    SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+else:
+    # Use individual components if DATABASE_URL is not set
+    # Ensure PGPORT is a valid string/number
+    port = settings.PGPORT or "5432"
+    SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.PGUSER}:{settings.PGPASSWORD}@{settings.PGHOST}:{port}/{settings.PGDATABASE}"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,

@@ -1,0 +1,2 @@
+    - [ ] Integrate panel into [DependencyDesk.tsx](file:///home/mosab/projects/chatmodule/frontend/src/pages/josoor-dashboards/DependencyDesk.tsx).
+    - [ ] Implement submission logic and success feedback.

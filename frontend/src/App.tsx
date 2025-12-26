@@ -16,6 +16,8 @@ import FounderLetterPage from './pages/FounderLetterPage';
 import ContactUsPage from './pages/ContactUsPage';
 import ArchitecturePage from './pages/ArchitecturePage';
 import JosoorDashboardPage from './pages/josoor-dashboards/JosoorDashboardPage';
+import { JosoorPage } from './pages/josoor-restored-safe/JosoorPage';
+import { JosoorSandboxPage } from './pages/josoor-sandbox/JosoorPage';
 import { JosoorV2Page } from './pages/josoor-v2/JosoorV2Page';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
@@ -89,7 +91,10 @@ function AppRoutes() {
         <Route path="/canvas-test" element={<CanvasTestPage />} />
 
         <Route path="/josoor-dashboards" element={<JosoorDashboardPage />} />
+        <Route path="/josoor-review" element={<JosoorPage />} />
+        <Route path="/josoor" element={<JosoorPage />} />
         <Route path="/josoor-v2" element={<JosoorV2Page />} />
+        <Route path="/josoor-sandbox" element={<JosoorSandboxPage />} />
 
         <Route path="/founder-letter" element={<FounderLetterPage />} />
 
@@ -99,8 +104,9 @@ function AppRoutes() {
 
         {/* Dashboard route - protected */}
         {/* Dashboard route - bypass auth if requested */}
-        <Route path="/admin/settings" element={<ObservabilityPage mode="admin-only" />} />
-        <Route path="/admin/observability" element={<ObservabilityPage mode="full" />} />
+        <Route path="/admin" element={<ObservabilityPage mode="full" />} />
+        <Route path="/admin/settings" element={<Navigate to="/admin" replace />} />
+        <Route path="/admin/observability" element={<Navigate to="/admin" replace />} />
 
         <Route path="/dashboard" element={
           <ProtectedRoute>
@@ -108,13 +114,11 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
 
-        {/* JOSOOR V2 ISOLATED SANDBOX */}
-        <Route path="/josoor-v2" element={
+        {/* JOSOOR PLATFORM MAIN ENTRY */}
+        <Route path="/josoor-review" element={<JosoorPage />} />
+        <Route path="/josoor" element={
            <ProtectedRoute>
-              {/* Ensure we lazy load or directly import. For now direct import is fine as per file size */}
-              <React.Suspense fallback={<div>Loading V2...</div>}>
-                  <JosoorV2Page />
-              </React.Suspense>
+              <JosoorPage />
            </ProtectedRoute>
         } />
 

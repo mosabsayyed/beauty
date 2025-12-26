@@ -1,0 +1,31 @@
+#### [MODIFY] [DependencyDesk.tsx](file:///home/mosab/projects/chatmodule/frontend/src/pages/josoor-v2/components/DependencyDesk.tsx)
+-   Update `CHAIN_META` to include:
+    -   `SectorDataTransaction` (Pink/Magenta) in `sector_ops` and `strategy_to_tactics_targets` colors.
+    -   `SectorCitizen`, `SectorBusiness`, `SectorGovEntity` in `sector_ops` colors (Stakeholders).
+-   Ensure these labels appear in the Legend.
+
+### Backend (Graph Server)
+#### [MODIFY] [routes.ts](file:///home/mosab/projects/chatmodule/graph-server/routes.ts)
+-   Refactor the `/api/business-chain/:chainKey` endpoint:
+    -   Implement a recursive `toNativeTypes` helper function to traverse the `properties` map of every node and relationship.
+    -   Convert any Neo4j Integer/Long objects (e.g., `{low: 2029, high: 0}`) into standard JavaScript numbers.
+    -   This directly fixes the "Year: [object Object]" tooltip issue.
+-   Review queries:
+    -   Ensure `sector_ops` and other queries strictly follow the paths provided by the user if different. (The current queries look mostly correct, but we will double-check the `Stakeholder` generic label usage vs specific types).
+
+## Verification Plan
+
+### Automated Tests
+-   None available for this visual component.
+
+### Manual Verification
+1.  **Tooltip Check**:
+    -   Navigate to `/josoor-v2?desk=dependency-desk`.
+    -   Hover over a node. Verify "Year" shows "2025" (or relevant year) instead of `[object Object]`.
+2.  **Legend & Colors**:
+    -   Select "Sector Ops" chain.
+    -   Verify "Data Transaction" and "Stakeholders" (Citizen/Business) appear in the legend.
+    -   Verify nodes on the graph are colored correctly (not black).
+3.  **Data Completeness**:
+    -   Select Year 2029.
+    -   Verify nodes appear (if data exists in DB for 2029).

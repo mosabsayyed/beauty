@@ -9,9 +9,15 @@ class PostgresClient:
     async def connect(self):
         """Create database connection pool"""
         if not self.pool:
+            # Ensure port is an integer
+            try:
+                port = int(settings.PGPORT) if settings.PGPORT else 5432
+            except (ValueError, TypeError):
+                port = 5432
+                
             self.pool = await asyncpg.create_pool(
                 host=settings.PGHOST,
-                port=settings.PGPORT,
+                port=port,
                 user=settings.PGUSER,
                 password=settings.PGPASSWORD,
                 database=settings.PGDATABASE,

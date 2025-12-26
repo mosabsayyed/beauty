@@ -224,11 +224,11 @@ export default function LandingPage() {
         background: var(--component-bg-primary);
         color: var(--component-text-primary);
         font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
-        overflow-x: hidden; /* Prevent horizontal scroll only */
+        overflow-x: hidden;
+        overflow-y: auto;
         line-height: 1.5;
         min-height: 100vh;
         position: relative;
-        /* Padding top removed to allow Hero to touch top */
       }
       
       /* Arabic Font Overrides */
@@ -250,11 +250,11 @@ export default function LandingPage() {
       .hero-section {
         position: relative;
         width: 100%;
-        height: 85vh; /* Large Hero Height */
-        display: flex;
-        align-items: center;
+        font-weight: 400;
         justify-content: center;
-        overflow: hidden;
+        overflow-y: auto;
+        padding-bottom: 60px;
+        flex-direction: row;
         margin-bottom: 0px;
       }
 
@@ -283,17 +283,25 @@ export default function LandingPage() {
       .hero-content {
         position: relative;
         z-index: 2;
-        text-align: center;
         max-width: 800px;
+        text-align: left;
+        margin-left: 40px;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        align-items: flex-start;
         padding: 0 20px;
       }
 
       .hero-title {
-        font: 800 64px/1.1 "Inter", sans-serif;
+        font: 48px/67.2px "Inter", sans-serif;
         color: #FFFFFF;
         margin-bottom: 24px;
         text-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        letter-spacing: -1px;
+        width: auto;
+        align-self: start;
+        text-align: left;
       }
 
       .hero-subtitle {
@@ -633,7 +641,17 @@ export default function LandingPage() {
         </video>
         <div className="hero-overlay"></div>
         <div className="hero-content">
-          <h1 className="hero-title">{language === 'en' ? 'Decision Intelligence for the Public Sector' : 'ذكاء القرار للقطاع العام'}</h1>
+          <h1 className="hero-title">
+            {language === 'en' ? (
+              <div>
+                Complex Transformation? Good, help is here, meet your Agentic TMO Team
+              </div>
+            ) : (
+              <div>
+                تحول معقد؟ حسناً، المساعدة هنا، التقابل فريق TMO الوكيل الخاص بك
+              </div>
+            )}
+          </h1>
           <p className="hero-subtitle">{language === 'en' ? 'The world\'s first Cognitive Twin designed for national scale transformation.' : 'أول توأم إدراكي في العالم مصمم للتحول على نطاق وطني.'}</p>
         </div>
         <div className="scroll-indicator">

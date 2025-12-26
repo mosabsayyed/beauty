@@ -884,11 +884,10 @@ export async function fetchGraphData(
   nodeLabels?: string[],
   relationshipTypes?: string[],
   years?: number[],
-  quarter?: string,
-  limit: number = 200
+  quarter?: string
 ): Promise<GraphData> {
   const session = getSession();
-  console.log('[DEBUG] fetchGraphData called with:', { nodeLabels, relationshipTypes, years, quarter, limit });
+  console.log('[DEBUG] fetchGraphData called with:', { nodeLabels, relationshipTypes, years, quarter });
   
   try {
     // If no labels are selected, return empty result (nothing selected = nothing queried)
@@ -898,7 +897,7 @@ export async function fetchGraphData(
     }
 
     let query = '';
-    const params: any = { limit: neo4j.int(limit) };
+    const params: any = {};
     const whereClauses: string[] = [];
 
     // PERFORMANCE OPTIMIZATION: Use pattern matching when all 17 Entity/Sector labels selected.
@@ -952,7 +951,6 @@ export async function fetchGraphData(
     query = `
       MATCH (n)
       ${nodeWhere}
-      WITH n LIMIT $limit
       OPTIONAL MATCH (n)-[r]->(m)
       WHERE m IS NULL OR ${targetLabelFilter}
       ${relationshipTypes && relationshipTypes.length > 0 ? 'AND type(r) IN $relationshipTypes' : ''}

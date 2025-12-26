@@ -4,8 +4,10 @@ class StaticPromptService:
     """
     Hard-coded source for v3.4 Cognitive Architecture prompts.
     Serves as the single source of truth for the cognitive control loop.
-    """    # --- TIER 1: BOOTSTRAP ---
-    TIER1_BOOTSTRAP = r"""TIER 1: LIGHTWEIGHT BOOTSTRAP (ALWAYS LOADED)
+    """
+
+    # --- TIER 1: BOOTSTRAP ---
+    TIER1_BOOTSTRAP = """TIER 1: LIGHTWEIGHT BOOTSTRAP (ALWAYS LOADED)
 
 YOUR ROLE
 You are a Cognitive Digital Twin, an expert in Graph Databases, Sectoral Economics, and Organizational Transformation. Your core principle is: classify intent, then route accordingly using the 5-Step Cognitive Control Loop.
@@ -84,23 +86,16 @@ ELSE (mode in E, F, G, H, I, J):
 *   `confidence`: Probabilistic confidence score (0.0 - 1.0).
 
 **VISUALIZATION TYPES (CLOSED SET):**
-`column`, `line`, `pie`, `radar`, `scatter`, `bubble`, `combo`, `table`, `html` (lowercase only). NO other types permitted."""
+`column`, `line`, `pie`, `radar`, `scatter`, `bubble`, `combo`, `table`, `html` (lowercase only). NO other types permitted.
+""
 
-    NOOR_CONSTRAINT = r"""
-**MEMORY ACCESS (Noor Agent):**
-- You have READ-ONLY access to: `personal`, `departmental`, `ministry`, `global`.
-- You are FORBIDDEN from accessing: `secrets`, `csuite`.
-"""
+    TIER1_SCOPES_NOOR = "\nYou have READ-ONLY access to: 'personal', 'departmental', 'ministry'. You are forbidden from 'csuite' or 'secrets' tiers."
+    TIER1_SCOPES_MAESTRO = "\nMaestro Agent: Has R/W access to all scopes, including 'csuite' and 'secrets'."
 
-    MAESTRO_CONSTRAINT = r"""
-**MEMORY ACCESS (Maestro Agent):**
-- You have READ/WRITE access to ALL scopes: `personal`, `departmental`, `ministry`, `global`, `secrets`, `csuite`.
-"""
-
-    # --- TIER 2: MODE BUNDLES ---
-    # Placeholder for atomic elements aggregated into Tier 2 views
+    # --- TIER 2: MODE INSTRUCTIONS ---
+    # These bundles are loaded dynamically based on the mode.
     TIER2_BUNDLES = {
-        "A": r"""<element name="step1_requirements">
+        "A": """<element name=\"step1_requirements\">
 STEP 1: REQUIREMENTS (Pre-Analysis)
 Memory Call: Mandatory hierarchical memory recall for complex analysis (Mode B).
 Foundational Levels: Load universal Level Definitions and Gap Diagnosis Principles ("Absence is Signal").
@@ -108,38 +103,19 @@ Gap Types (4 TYPES ONLY): DirectRelationshipMissing, TemporalGap, LevelMismatch,
 Integrated Planning: For complex Modes B/D, proactively analyze and generate the near-complete list of predictable Business Chains and Query Patterns needed for Step 2 retrieval.
 </element>
 
-<element name="step2_recollect">
+<element name=\"step2_recollect\">
 STEP 2: RECOLLECT (Atomic Element Retrieval)
 Tool Execution Rules: Load all core constraints governing Cypher syntax (e.g., Keyset Pagination, Aggregation First Rule, Forbidden: SKIP/OFFSET).
 Schema Filtering Enforcement: Mandate internal schema relevance assessment to select the MINIMUM needed elements only.
-Execution: Make ONE retrieve_instructions(tier="elements", ...) call.
+Execution: Make ONE retrieve_instructions(tier=\"elements\", ...) call.
 Tier 3 provides: Schemas for requested Nodes (17 types), Relationships (27 types), Business Chains (7 types). Visualization Definitions: Includes detailed definitions for visualization types.
-</element>""",
-        "B": r"""<element name="step1_requirements">
-STEP 1: REQUIREMENTS (Pre-Analysis)
-Memory Call: Mandatory hierarchical memory recall for complex analysis (Mode B).
-Foundational Levels: Load universal Level Definitions and Gap Diagnosis Principles ("Absence is Signal").
-</element>
-<element name="step2_recollect">
-STEP 2: RECOLLECT (Atomic Element Retrieval)
-</element>""",
-        "C": r"""<element name="step1_requirements">
-STEP 1: REQUIREMENTS (Continuation)
-</element>
-<element name="step2_recollect">
-STEP 2: RECOLLECT (Atomic Element Retrieval)
-</element>""",
-        "D": r"""<element name="step1_requirements">
-STEP 1: REQUIREMENTS (Planning)
-</element>
-<element name="step2_recollect">
-STEP 2: RECOLLECT (Atomic Element Retrieval)
 </element>"""
     }
 
     # --- TIER 3: ATOMIC ELEMENTS ---
+    # These are granular, on-demand instructions.
     TIER3_ELEMENTS = {
-        "EntityProject": r"""<element name="EntityProject">
+        "EntityProject": """<element name=\"EntityProject\">
 **EntityProject Node**
 Properties:
 - id (string): Unique identifier
@@ -157,8 +133,9 @@ Key Relationships:
 - [:ADOPTION_RISKS]->(EntityChangeAdoption)
 Level Meaning: L1: Portfolio, L2: Program, L3: Project Output.
 </element>""",
-        "chart_type_Column": r"""<element name="chart_type_Column">
-**Column Chart (type: "column")**
+
+        "chart_type_Column": """<element name=\"chart_type_Column\">
+**Column Chart (type: \"column\")**
 Use for: Comparing discrete categories, showing counts/amounts across groups.
 Structure:
 {
@@ -170,32 +147,37 @@ Structure:
 </element>"""
     }
 
-    def get_tier1_prompt(self, persona: str = "noor") -> str:
+    def __init__(self):
+        pass
+
+    def get_tier1_prompt(self, persona: str) -> str:
         """
-        Returns the Tier 1 Bootstrap prompt with persona-specific constraints.
+        Returns the Tier 1 prompt with persona-specific constraints.
         """
         base_prompt = self.TIER1_BOOTSTRAP
-        
-        if persona.lower() == "maestro":
-            constraint = self.MAESTRO_CONSTRAINT
+        if persona.lower() == "noor":
+            return base_prompt + self.TIER1_SCOPES_NOOR
+        elif persona.lower() == "maestro":
+            return base_prompt + self.TIER1_SCOPES_MAESTRO
         else:
-            # Default to Noor
-            constraint = self.NOOR_CONSTRAINT
-            
-        return f"{base_prompt}\n{constraint}"
+            # Default to Noor logic if unknown, or strict handling?
+            # For now, default to Noor to be safe.
+            return base_prompt + self.TIER1_SCOPES_NOOR
 
-    def get_tier2_bundle(self, mode: Literal["A", "B", "C", "D"]) -> str:
+    def get_tier2_bundle(self, mode: str) -> str:
         """
-        Returns the Tier 2 prompt bundle for the specified mode.
+        Returns the Tier 2 bundle for the specified mode.
         """
-        if mode not in self.TIER2_BUNDLES:
-            raise ValueError(f"Invalid mode: {mode}. Must be one of A, B, C, D.")
-        return self.TIER2_BUNDLES[mode]
+        if mode in self.TIER2_BUNDLES:
+            return self.TIER2_BUNDLES[mode]
+        else:
+            raise ValueError(f"Unknown mode: {mode}")
 
-    def get_tier3_element(self, element_tag: str) -> str:
+    def get_tier3_element(self, element: str) -> str:
         """
-        Returns the content of a specific Tier 3 atomic element.
+        Returns the Tier 3 atomic element content.
         """
-        if element_tag not in self.TIER3_ELEMENTS:
-            raise ValueError(f"Unknown element tag: {element_tag}")
-        return self.TIER3_ELEMENTS[element_tag]
+        if element in self.TIER3_ELEMENTS:
+            return self.TIER3_ELEMENTS[element]
+        else:
+            raise ValueError(f"Unknown element: {element}")

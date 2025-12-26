@@ -1,0 +1,17 @@
+- **Display**: Overridden to `block` (instead of the default CSS grid) to allow the [DependencyDesk](file:///home/mosab/projects/chatmodule/frontend/src/pages/josoor-dashboards/DependencyDesk.tsx#5-90) component to fill the entire container width and height.
+- **Padding**: Removed padding for this view to maximize graph space.
+
+```tsx
+<div className="jd-content-area" style={{ 
+    position: 'relative', 
+    height: ['conversations', 'observability', 'dependencies'].includes(activeView) ? 'calc(100vh - 80px)' : 'auto',
+    display: activeView === 'dependencies' ? 'block' : undefined,
+    padding: activeView === 'dependencies' ? '0' : undefined 
+}}>
+```
+
+## Verification
+
+The browser subagent navigated to the Dependency Desk and confirmed that the graph area now extends to fill the available vertical space, rather than being constrained to a small default height or grid row.
+
+![Dependency Desk View](/root/.gemini/antigravity/brain/4149ddbc-e9c2-46b7-bf8c-33e6e0c527a8/dependency_desk_view_1766540723278.png)

@@ -124,13 +124,15 @@ def init_tracing(app=None) -> Optional[trace.Tracer]:
     _tracer = trace.get_tracer(__name__)
     
     # Auto-instrument FastAPI
-    if app:
-        FastAPIInstrumentor.instrument_app(app)
-        logger.info("✅ FastAPI auto-instrumentation enabled")
+    # DISABLED: Causes request blocking issues
+    # if app:
+    #     FastAPIInstrumentor.instrument_app(app)
+    #     logger.info("✅ FastAPI auto-instrumentation enabled")
     
     # Auto-instrument requests library
-    RequestsInstrumentor().instrument()
-    logger.info("✅ Requests library auto-instrumentation enabled")
+    # DISABLED: Causes blocking issues
+    # RequestsInstrumentor().instrument()
+    # logger.info("✅ Requests library auto-instrumentation enabled")
     
     logger.info(f"🔍 OpenTelemetry tracing initialized: {service_name}")
     return _tracer

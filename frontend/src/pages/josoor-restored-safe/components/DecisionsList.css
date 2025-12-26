@@ -1,0 +1,70 @@
+/* DecisionsList.css - V1.3 Compliant Styles */
+/* Uses theme.css variables ONLY */
+
+.v2-decisions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    max-height: 300px;
+}
+
+.v2-decision-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px solid var(--component-panel-border);
+    background: rgba(0,0,0,0.2);
+    border-radius: 4px;
+}
+
+.v2-decision-content {
+    flex: 1;
+}
+
+.v2-decision-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--component-text-primary);
+}
+
+.v2-decision-meta {
+    font-size: 0.75rem;
+    color: var(--component-text-muted);
+    margin-top: 0.25rem;
+}
+
+.v2-decision-badges {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.v2-priority-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.v2-priority-high {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--component-color-danger);
+}
+
+.v2-priority-medium {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--component-color-warning);
+}
+
+.v2-priority-low {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--component-color-success);
+}
+
+.v2-status-badge {
+    font-size: 0.7rem;
+    color: var(--component-text-muted);
+}

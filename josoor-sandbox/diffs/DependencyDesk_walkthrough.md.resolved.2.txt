@@ -1,0 +1,24 @@
+- **Legend & Colors**: Updated [DependencyDesk.tsx](file:///home/mosab/projects/chatmodule/frontend/src/pages/josoor-dashboards/DependencyDesk.tsx) to include `SectorDataTransaction` and distinct stakeholder groups (`Citizen`, [Business](file:///home/mosab/projects/chatmodule/frontend/src/components/graphv001/components/BusinessChains.tsx#98-784), `GovEntity`) with unique colors.
+- **Broken Links**: Implemented a "Virtual Edge" injection logic in the backend. When a mandatory sequence (e.g., Policy -> Admin Record) is missing, the system injects a red, dashed line to a "MISSING" node, visually flagging the gap.
+
+### 3. Stability & Interaction
+- **Node Click Error**: Added safety checks to prevent the "No NNode found" error during graph interactions.
+- **Layout**: Fixed the graph container to use dynamic flexbox sizing, allowing the visualization to fill the available screen area.
+
+## 📸 Verification Results
+
+````carousel
+![Dependency Desk Fixed](file:///root/.gemini/antigravity/brain/4149ddbc-e9c2-46b7-bf8c-33e6e0c527a8/dependency_desk_fixed_1766548954034.png)
+<!-- slide -->
+![Tooltip Verification](file:///root/.gemini/antigravity/brain/4149ddbc-e9c2-46b7-bf8c-33e6e0c527a8/tooltip_verification_1766548972672.png)
+````
+
+> [!TIP]
+> You can now select any Business Chain (e.g., Sector Ops) and see the full path from Objective to Stakeholders, including any "Broken Links" flagged in red.
+
+## 🛠️ Files Modified
+- [routes.ts](file:///home/mosab/projects/chatmodule/graph-server/routes.ts): Data transformation and broken link logic.
+- [ontology.ts](file:///home/mosab/projects/chatmodule/graph-server/ontology.ts): Robust Cypher patterns.
+- [neo4j.ts](file:///home/mosab/projects/chatmodule/graph-server/neo4j.ts): Increased data limits.
+- [DependencyDesk.tsx](file:///home/mosab/projects/chatmodule/frontend/src/pages/josoor-v2/components/DependencyDesk.tsx): Frontend colors and legend.
+- [NeoGraph.tsx](file:///home/mosab/projects/chatmodule/frontend/src/components/graphv001/components/NeoGraph.tsx): Red line rendering.

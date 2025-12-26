@@ -306,6 +306,7 @@ export const RiskTopologyMap: React.FC<RiskTopologyMapProps> = ({ year, quarter 
         start: {x:number, y:number, h?: string}, 
         end: {x:number, y:number, h?: string}
     ) => {
+        // Simple Elbow:
         const path = [];
         path.push(`M ${start.x} ${start.y}`);
         
@@ -321,9 +322,9 @@ export const RiskTopologyMap: React.FC<RiskTopologyMapProps> = ({ year, quarter 
                  path.push(`L ${midX} ${start.y} L ${midX} ${end.y}`);
              }
         } 
-        // Handle Logic (Port-based Elbow Routing)
+        // Handle Logic (Simplest Robust Elbow)
         else {
-            // Force exit direction with offset
+            // Force exit direction
             let p1 = { x: start.x, y: start.y };
             let p2 = { x: end.x, y: end.y };
             
@@ -359,18 +360,11 @@ export const RiskTopologyMap: React.FC<RiskTopologyMapProps> = ({ year, quarter 
             }
             
             path.push(`L ${p2.x} ${p2.y}`);
+            path.push(`L ${end.x} ${end.y}`);
         }
         
-        // Final endpoint
         path.push(`L ${end.x} ${end.y}`);
-        const pathString = path.join(" ");
-        
-        // DEBUG: Log first 3 paths to console
-        if (Math.random() < 0.1) {
-            console.log('SVG Path:', pathString, 'Start:', start, 'End:', end);
-        }
-        
-        return pathString;
+        return path.join(" ");
     };
 
     return (
@@ -430,21 +424,10 @@ export const RiskTopologyMap: React.FC<RiskTopologyMapProps> = ({ year, quarter 
                      </defs>
                      
                      {/* Existing Edges */}
-                     {(() => {
-                         console.log('🔍 EDGES DEBUG:', {
-                             totalEdges: edges.length,
-                             firstEdge: edges[0],
-                             nodePositions: Object.keys(nodePositions)
-                         });
-                         return null;
-                     })()}
                      {edges.map((edge, i) => {
                          const startNode = nodePositions[edge.from];
                          const endNode = nodePositions[edge.to];
-                         if (!startNode || !endNode) {
-                             console.warn(`⚠️ Missing node for edge ${i}:`, edge.from, '→', edge.to);
-                             return null;
-                         }
+                         if (!startNode || !endNode) return null;
                          
                          const count = getCount(edge.from); // simplified sizing
                          const startR = getNodeRadius(count); // Not perfect as count varies, but close enough for anchor
@@ -458,28 +441,15 @@ export const RiskTopologyMap: React.FC<RiskTopologyMapProps> = ({ year, quarter 
                          const isBroken = status === 'broken';
                          const color = isBroken ? '#EF4444' : '#10B981';
                          
-                         const pathData = generatePath({ ...startPos, h: edge.fromHandle }, { ...endPos, h: edge.toHandle });
-                         
-                         if (i < 3) {
-                             console.log(`📊 Edge ${i}:`, {
-                                 from: edge.from,
-                                 to: edge.to,
-                                 color,
-                                 opacity: isBroken ? 1.0 : 0.9,
-                                 strokeWidth: isBroken ? 2 : 1.5,
-                                 pathLength: pathData.length
-                             });
-                         }
-                         
                          return (
                              <path 
                                 key={i}
-                                d={pathData} 
+                                d={generatePath({ ...startPos, h: edge.fromHandle }, { ...endPos, h: edge.toHandle })} 
                                 stroke={color} 
                                 strokeWidth={isBroken ? 2 : 1.5} 
                                 strokeDasharray={isBroken ? "5,5" : "0"}
                                 fill="none"
-                                opacity={isBroken ? 1.0 : 0.9}
+                                opacity={isBroken ? 0.8 : 0.6}
                                 markerEnd={`url(#arrow-${isBroken ? 'red' : 'green'})`}
                              />
                          );
@@ -492,7 +462,7 @@ export const RiskTopologyMap: React.FC<RiskTopologyMapProps> = ({ year, quarter 
                             y1={getPortPosition(tempWire.fromId, tempWire.fromHandle, getNodeRadius(getCount(tempWire.fromId))).y}
                             x2={tempWire.currX}
                             y2={tempWire.currY}
-                            stroke="#FFFFFF"
+                            stroke="#3B82F6"
                             strokeWidth="2"
                             strokeDasharray="4,4"
                          />

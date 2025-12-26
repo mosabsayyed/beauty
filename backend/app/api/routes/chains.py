@@ -1,7 +1,12 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends, Body
 from typing import Dict, Any, List, Tuple
+from sqlalchemy.orm import Session
 from app.db.neo4j_client import neo4j_client
+from app.db.sqlalchemy_session import get_db, engine
+from app.db.models import Base, GapRecommendation
 from app.config import settings
+from app.utils import auth_utils
+from app.services.user_service import User
 
 router = APIRouter()
 
@@ -264,3 +269,34 @@ async def run_chain(
         "description": description,
         "summary": summary,
     }
+
+@router.post("/recommendations")
+async def persist_recommendations(
+    payload: Dict[str, Any] = Body(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_utils.get_current_user)
+) -> Dict[str, Any]:
+    # Ensure tables exist (one-off check per request is okay for dev, or can be moved to startup)
+    Base.metadata.create_all(bind=engine)
+    
+    recs = payload.get("recommendations", [])
+    if not isinstance(recs, list):
+        raise HTTPException(status_code=400, detail="Invalid recommendations format")
+        
+    created_count = 0
+    for r in recs:
+        new_rec = GapRecommendation(
+            recommender_id=current_user.id,
+            source_id=str(r.get("source")),
+            target_id=str(r.get("target")),
+            relationship_type=str(r.get("type")),
+            chain_key=str(r.get("chain_key", "unknown")),
+            year=int(r.get("year", settings.CURRENT_YEAR)),
+            status="pending",
+            extra_metadata=r.get("properties", {})
+        )
+        db.add(new_rec)
+        created_count += 1
+        
+    db.commit()
+    return {"success": True, "count": created_count}

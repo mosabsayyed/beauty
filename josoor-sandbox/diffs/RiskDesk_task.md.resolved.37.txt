@@ -1,0 +1,35 @@
+    - [x] Verify `RiskDesk` imports fixed
+- [ ] Sidebar Integration
+    - [ ] Extract chat history and "+ New Chat" logic from `ChatAppPage.tsx`
+    - [ ] Implement new sidebar layout ("Enterprise Management"):
+        - [ ] Executives Desk (Legacy Control Tower)
+        - [ ] Dependency Desk
+        - [ ] Risks Desk
+        - [ ] Planning Desk (L1/2/3 Capability Matrix + Heat Map Overlays)
+        - [ ] Reporting Desk (Archived Library + AI Report Designer)
+    - [ ] Twin Knowledge Group (Migrated from /chat):
+        - [ ] Learning Hub (Iframe mode)
+        - [ ] AI Enterprise Design (Product Roadmap)
+        - [ ] Plan Your Journey
+    - [ ] Admin Group:
+        - [ ] Settings (Direct link)
+        - [ ] Observability (Direct link)
+    - [ ] Conversations (History from /chat)
+- [ ] Header Refactoring
+    - [ ] AI Twin Tech Logo & JOSOOR branding (Left)
+    - [ ] Global Year/Quarter filters (Center)
+    - [ ] Action buttons: Share, Print, Export
+    - [ ] User context: Profile icon, AR/EN, Dark/Light toggles (Far Right)
+- [ ] Phase 3: Specialized Desk Implementation
+    - [ ] Planning Desk: Build Capability Matrix UI and Heat Map data mapping
+    - [ ] Reporting Desk: Build Archived Reports list and AI Designer workspace
+- [ ] Component & Desk Implementation
+    - [ ] Create Planning Desk placeholder
+    - [ ] Create Reporting Desk placeholder
+    - [ ] Create AI Enterprise Design (Roadmap) placeholder
+    - [ ] Move Learning Hub to direct view (iframe/component)
+    - [ ] Split Admin view into separate Settings and Observability pages
+- [ ] Final Polishing & Verification
+    - [ ] Ensure consistent styling across all desks
+    - [ ] Verify chat state persistence in the new sidebar
+    - [ ] Verify global filters affect all relevant desks
