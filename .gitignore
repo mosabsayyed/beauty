@@ -187,3 +187,4 @@ local_backups/
 .env
 backend/.env
 
+.env_backups/
