@@ -17,7 +17,18 @@ import ContactUsPage from './pages/ContactUsPage';
 import ArchitecturePage from './pages/ArchitecturePage';
 import JosoorDashboardPage from './pages/josoor-dashboards/JosoorDashboardPage';
 import { JosoorPage } from './pages/josoor-restored-safe/JosoorPage';
-import { JosoorSandboxPage } from './pages/josoor-sandbox/JosoorPage';
+// import { JosoorSandboxPage } from './pages/josoor-sandbox/JosoorPage'; // Deprecated
+import { JosoorFrame } from './pages/josoor-sandbox/layout/JosoorFrame';
+import { ControlTower } from './pages/josoor-sandbox/components/ControlTower';
+import { DependencyDesk } from './pages/josoor-sandbox/components/DependencyDesk';
+import RiskDesk from './pages/josoor-sandbox/components/RiskDesk';
+import { PlanningDesk } from './pages/josoor-sandbox/components/PlanningDesk';
+import { ReportingDesk } from './pages/josoor-sandbox/components/ReportingDesk';
+import InvestorDemoHub from './components/content/InvestorDemoHub';
+import TwinKnowledge from './components/content/TwinKnowledge';
+import ProductRoadmap from './components/content/ProductRoadmap';
+import PlanYourJourney from './components/content/PlanYourJourney';
+
 import { JosoorV2Page } from './pages/josoor-v2/JosoorV2Page';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
@@ -94,7 +105,21 @@ function AppRoutes() {
         <Route path="/josoor-review" element={<JosoorPage />} />
         <Route path="/josoor" element={<JosoorPage />} />
         <Route path="/josoor-v2" element={<JosoorV2Page />} />
-        <Route path="/josoor-sandbox" element={<JosoorSandboxPage />} />
+        
+        {/* New Josoor Sandbox with Frame */}
+        <Route path="/josoor-sandbox" element={<JosoorFrame />}>
+            <Route index element={<Navigate to="executives" replace />} />
+            <Route path="executives" element={<ControlTower />} />
+            <Route path="dependencies" element={<DependencyDesk />} />
+            <Route path="risks" element={<RiskDesk />} />
+            <Route path="planning" element={<PlanningDesk />} />
+            <Route path="reporting" element={<ReportingDesk />} />
+            <Route path="knowledge/hub" element={<TwinKnowledge />} />
+            <Route path="knowledge/demo" element={<InvestorDemoHub />} />
+            <Route path="knowledge/design" element={<ProductRoadmap />} />
+            <Route path="knowledge/journey" element={<PlanYourJourney />} />
+            <Route path="admin/*" element={<ObservabilityPage mode="full" />} />
+        </Route>
 
         <Route path="/founder-letter" element={<FounderLetterPage />} />
 

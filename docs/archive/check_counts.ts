@@ -1,4 +1,4 @@
-import { getSession } from './graph-server/neo4j';
+import { getSession } from '../../graph-server/neo4j';
 async function run() {
     const session = getSession();
     try {

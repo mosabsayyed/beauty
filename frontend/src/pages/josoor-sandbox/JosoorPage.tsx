@@ -132,9 +132,9 @@ export const JosoorPage: React.FC = () => {
             </header>
 
             <div style={{ padding: '0.75rem 1.5rem', display: 'block', width: '100%', height: 'calc(100vh - 80px)', overflowY: 'auto', overflowX: 'hidden' }}>
-                {activeDesk === 'control-tower' && <ControlTower quarter={quarter} year={year} />}
-                {activeDesk === 'dependency-desk' && <DependencyDesk quarter={quarter} year={year} />}
-                {activeDesk === 'risk-desk' && <RiskDesk quarter={quarter} year={year} />}
+                {activeDesk === 'control-tower' && <ControlTower />}
+                {activeDesk === 'dependency-desk' && <DependencyDesk />}
+                {activeDesk === 'risk-desk' && <RiskDesk />}
                 {activeDesk === 'planning-desk' && <div style={{padding:'2rem'}}>Planning Desk Placeholder</div>}
                 {activeDesk === 'reporting-desk' && <div style={{padding:'2rem'}}>Reporting Desk Placeholder</div>}
                 {activeDesk === 'admin' && (

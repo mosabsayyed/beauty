@@ -1,73 +1,282 @@
-# Project Overview: Frontend & Backend Integration
+# 🚀 JOSOOR - Coding Agent Entry Point
 
-## Frontend Setup
-
-- **Location:** `frontend/`
-- **Framework:** React (bootstrapped with Create React App)
-- **Language:** TypeScript
-- **Entry Point:** `src/index.tsx` renders `<App />` from `src/App.tsx`.
-- **Main Features:**
-  - Chat interface (`src/components/Chat/Chat.tsx`)
-  - Canvas visualization (`src/components/Canvas/CanvasManager.tsx`)
-  - Sidebar for conversations
-  - Debug panel
-- **Styling:**
-  - Uses CSS files: `src/styles/integrate-full.css`, `src/index.css`, `src/App.css`, `src/canvas.css`
-- **API Communication:**
-  - Uses environment variable `REACT_APP_API_URL` (see `.env.example`) for backend API endpoint.
-  - If not set, defaults to relative `/api/v1` paths or uses proxy (`package.json` proxy: `http://localhost:8008`).
-  - All API calls are made via `src/services/chatService.ts`.
-- **Build & Run:**
-  - `npm start` for development (default port 3000)
-  - `npm run build` for production build
-  - See `frontend/README.md` for more details
-
-## Backend Setup
-
-- **Location:** `backend/`
-- **Framework:** FastAPI (Python)
-- **Entry Point:** `app/main.py`
-- **Main Features:**
-  - REST API endpoints for chat, embeddings, sync, debug (see `app/api/routes/`)
-  - Handles chat requests, conversation management, artifact generation
-  - Integrates with Supabase (PostgreSQL) and Neo4j (GraphDB)
-- **Configuration:**
-  - Uses `.env` file in `backend/` for secrets and DB config (see `app/config/__init__.py`)
-  - Database schema defined in `db_schema.sql` and `app/config/schema_definition.json`
-  - Worldview mapping in `app/config/worldview_map.json`
-- **Dependencies:**
-  - Listed in `backend/requirements.txt` (FastAPI, SQLAlchemy, asyncpg, supabase, neo4j, etc.)
-- **Run:**
-  - Typically started via a script (e.g., `sb.sb.sh`, `sf1.sh`, `sf2.sh`)
-  - Serves API on configured port (default: 8008)
-
-## Integration: How Frontend & Backend Work Together
-
-- **API Contract:**
-  - Frontend sends chat and other requests to backend REST API endpoints (default `/api/v1/chat/message`)
-  - Backend processes requests, manages conversations, generates responses and artifacts (tables, charts)
-  - Artifacts and responses are returned as JSON and rendered in the frontend
-- **Authentication:**
-  - MVP uses demo user (id=1); JWT authentication is planned (see backend code comments)
-- **Data Flow:**
-  1. User interacts with chat UI in frontend
-  2. Frontend sends request to backend API
-  3. Backend processes request, interacts with Supabase/Neo4j, generates response
-  4. Response (including artifacts) is sent back to frontend and displayed
-
-  
-
-## Configuration Files & References
-
-- **Frontend:**
-  - `.env.example` (API endpoint config)
-  - `package.json` (proxy, dependencies)
-- **Backend:**
-  - `.env` (DB/API secrets)
-  - `requirements.txt` (Python dependencies)
-  - `db_schema.sql`, `app/config/schema_definition.json` (DB schema)
-  - `app/config/worldview_map.json` (domain mapping)
+> **READ THIS FIRST:** This file is the single entry point for any coding agent working on this codebase.  
+NEVER START/STOP/RESTART THE SERVERS WITHOUT THE USERS APPROVAL
+> **Last Updated:** December 2025
 
 ---
 
-_All information above is based strictly on the codebase and configuration files. No assumptions or inferences have been made._
+## 📍 Quick Navigation
+
+| What You Need | Go To |
+|---------------|-------|
+| **Backend Architecture** | [`/docs/BACKEND_ARCHITECTURE.md`](docs/BACKEND_ARCHITECTURE.md) |
+| **Frontend Architecture** | [`/docs/FRONTEND_ARCHITECTURE.md`](docs/FRONTEND_ARCHITECTURE.md) |
+| **Data Architecture** | [`/docs/DATA_ARCHITECTURE.md`](docs/DATA_ARCHITECTURE.md) |
+| **Dev Server Ports** | See [Servers & Ports](#servers--ports) below |
+| **Start Dev Environment** | See [Run Commands](#run-commands) below |
+
+---
+
+## 🌐 Servers & Ports
+
+| Service | Port | URL | Start Script |
+|---------|------|-----|--------------|
+| **Frontend (Vite/React)** | 3000 | http://localhost:3000 | `./sf1.sh` |
+| **Backend (FastAPI)** | 8008 | http://localhost:8008 | `./sb.sh` |
+| **Graph Server** | 3001 | http://localhost:3001 | `./sf1.sh` |
+| **MCP Router (Noor)** | 8201 | http://127.0.0.1:8201 | `./sb.sh` |
+| **MCP Router (Maestro)** | 8202 | http://127.0.0.1:8202 | `./sb.sh` |
+| **Embeddings Router** | 8203 | http://127.0.0.1:8203 | `./sb.sh` |
+| **MCP Neo4j Cypher** | 8080 | http://127.0.0.1:8080 | `./sb.sh` |
+| **Ngrok Dashboard** | 4040 | http://127.0.0.1:4040 | (if ngrok running) |
+
+### API Endpoints (Backend on 8008)
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /docs` | Swagger API documentation |
+| `GET /api/v1/health` | Health check |
+| `POST /api/v1/chat/message` | Send chat message |
+| `GET /api/v1/chat/conversations` | List conversations |
+| `POST /api/v1/auth/login` | User login |
+| `POST /api/v1/auth/guest` | Create guest session |
+| `GET /api/v1/debug/traces` | Observability traces |
+| `GET /api/v1/dashboard/*` | Dashboard analytics |
+| `POST /api/v1/control-tower/*` | Control Tower dashboards (health, outcomes, investments) |
+| `GET /api/v1/chains/*` | Business chain queries (strategy→tactics paths) |
+| `GET /api/v1/admin/settings` | Admin settings (LLM provider, MCP config) |
+
+### Graph Server Proxy Routes (via Vite → port 3001)
+
+The frontend proxies these routes to the graph server, NOT the backend:
+- `/api/neo4j/*` → Graph server
+- `/api/dashboard/*` → Graph server  
+- `/api/graph/*` → Graph server
+- `/api/business-chain/*` → Graph server
+- `/api/control-tower/*` → Graph server
+- `/api/dependency/*` → Graph server
+- `/api/domain-graph/*` → Graph server
+- `/api/debug/*` → Graph server (some routes)
+
+---
+
+## 🏃 Run Commands
+
+### Start Everything (Recommended)
+
+```bash
+# Terminal 1: Backend + MCP routers
+./sb.sh
+
+# Terminal 2: Frontend + Graph server
+./sf1.sh
+```
+
+### Individual Services
+
+```bash
+# Backend only
+./sb.sh
+
+# Backend with --fg (foreground, see logs)
+./sb.sh --fg
+
+# Stop all dev services
+./stop_dev.sh
+```
+
+### Manual Start
+
+```bash
+# Backend
+cd backend
+source .venv/bin/activate
+uvicorn app.main:app --host 0.0.0.0 --port 8008 --reload
+
+# Frontend
+cd frontend
+npm start
+```
+
+---
+
+## 📚 Architecture Documentation
+
+### Backend (`/docs/BACKEND_ARCHITECTURE.md`)
+
+Comprehensive reference covering:
+- Directory structure
+- FastAPI app entry point, route registration
+- Database layer (Supabase REST, Neo4j)
+- All API routes with endpoints and models
+- Service layer (orchestrator, tier1_assembler, MCP, embeddings)
+- Authentication (JWT + Supabase dual validation)
+- Orchestrator architecture (multi-persona, MCP integration)
+- Debug/observability system
+- Environment variables (required + optional)
+- Request flow diagrams
+
+### Frontend (`/docs/FRONTEND_ARCHITECTURE.md`)
+
+Comprehensive reference covering:
+- Directory structure
+- Vite config, build commands
+- React app entry, provider hierarchy
+- Routing with protected routes
+- Context providers (Auth, Language)
+- Services (chatService, authService)
+- Component inventory (chat, ui, renderers, graph)
+- Type definitions
+- **Styling system (CSS variables, NO Tailwind)**
+- Authentication flow (including guest mode)
+- Chat architecture (3-column layout)
+- Artifact rendering system
+- i18n (English/Arabic, RTL support)
+- Environment variables
+
+### Data (`/docs/DATA_ARCHITECTURE.md`)
+
+Comprehensive reference covering:
+- Dual-database architecture (Supabase + Neo4j)
+- Supabase schema (users, conversations, messages, instructions, memory)
+- Neo4j graph schema (nodes, relationships, properties)
+- Memory & embedding system (OpenAI embeddings, semantic search)
+- Data access patterns (CRUD, queries, hybrid operations)
+- Cross-database operations
+- Query examples (PostgreSQL + Cypher)
+- Best practices (indexing, batching, caching)
+- Data migration patterns
+
+---
+
+## 🔑 Key Facts
+
+### Backend
+- **Framework:** FastAPI (Python)
+- **Port:** 8008
+- **Databases:** Supabase (PostgreSQL REST) + Neo4j (graph)
+- **LLM Provider:** OpenRouter (remote) with optional local LM Studio/Ollama fallback
+- **Personas:** Noor (staff, port 8201) / Maestro (exec, port 8202)
+ - **Models:** Configurable primary/fallback/alt via admin settings
+
+### Frontend
+- **Framework:** React 19 + TypeScript
+- **Build:** Vite
+- **Port:** 3000
+- **Styling:** CSS variables (theme.css) — **NO Tailwind**
+- **Languages:** English + Arabic (RTL)
+- **Auth:** Supabase + localStorage
+
+---
+
+## 🗂️ Directory Overview
+
+```
+chatmodule/
+├── 00_START_HERE.md          # ← YOU ARE HERE
+├── docs/
+│   ├── BACKEND_ARCHITECTURE.md    # Backend reference
+│   └── FRONTEND_ARCHITECTURE.md   # Frontend reference
+├── backend/                  # FastAPI app
+│   ├── app/
+│   │   ├── main.py          # Entry point
+│   │   ├── config/          # Settings
+│   │   ├── api/routes/      # API endpoints
+│   │   ├── services/        # Business logic
+│   │   ├── db/              # Database clients
+│   │   └── utils/           # Utilities
+│   └── logs/                # Debug logs
+├── frontend/                 # React app
+│   ├── src/
+│   │   ├── App.tsx          # Entry point
+│   │   ├── pages/           # Route pages
+│   │   ├── components/      # UI components
+│   │   ├── lib/services/    # API clients
+│   │   ├── contexts/        # React contexts
+│   │   ├── styles/          # CSS files
+│   │   └── types/           # TypeScript types
+│   └── public/              # Static assets
+├── mcp-router/              # MCP router server
+├── sb.sh                    # Start backend + MCP
+├── sf1.sh                   # Start frontend
+└── stop_dev.sh              # Stop all
+```
+
+---
+
+## ⚠️ Common Gotchas
+
+1. **Tailwind:** The frontend does NOT use Tailwind. Use CSS variables from `theme.css`.
+
+2. **Port 5173:** Ignore references to port 5173. Frontend runs on **port 3000**.
+
+3. **API Proxy Split:** Frontend proxies some routes to graph server (3001), others to backend (8008). See proxy config above.
+
+4. **MCP Routers:** Must be running for chat to work. Use `./sb.sh` to start them.
+
+5. **Supabase Keys:** Both backend and frontend need Supabase credentials in `.env`.
+
+6. **Guest Mode:** Frontend supports guest mode (no login) with localStorage persistence.
+
+---
+
+## 🤖 LLM Provider Architecture
+
+JOSOOR supports dual-mode LLM connectivity for flexibility in development and deployment.
+
+### Remote LLM (OpenRouter)
+- Endpoint: https://openrouter.ai/api/v1/responses
+- Configure: `OPENROUTER_API_KEY`, `OPENROUTER_MODEL_PRIMARY`, `OPENROUTER_MODEL_FALLBACK`, `OPENROUTER_MODEL_ALT`
+- Use: Default in production; broad model choice (Gemma, Gemini, Mistral, etc.)
+
+### Local LLM (LM Studio / Ollama)
+- Enable: `LOCAL_LLM_ENABLED=true`
+- Configure: `LOCAL_LLM_BASE_URL` (e.g., LM Studio `http://127.0.0.1:1234`), `LOCAL_LLM_MODEL`, `LOCAL_LLM_TIMEOUT`
+- Use: Offline/dev testing, cost control; any OpenAI-compatible local server
+
+### Selection Logic
+- Admin API: `/api/v1/admin/settings` can set provider and models at runtime
+- Default: If local is enabled, it’s preferred; else OpenRouter primary
+- Per-request: Chat orchestrator accepts a `model_override` (e.g., `local|primary|fallback|alt`)
+
+See details in Backend Architecture → LLM Provider Abstraction.
+
+## 🔍 Distributed Tracing
+
+JOSOOR now includes comprehensive OpenTelemetry tracing for monitoring:
+- API requests and responses
+- LLM calls (Groq)
+- Database operations (Supabase, Neo4j)
+- MCP tool calls
+- Service layer operations
+
+**Quick Start:**
+```bash
+# Already enabled by default! Just start backend:
+./sb.sh
+
+# Traces print to console automatically
+```
+
+**Full Documentation:** See [TRACING_QUICKSTART.md](TRACING_QUICKSTART.md) or [docs/TRACING_GUIDE.md](docs/TRACING_GUIDE.md)
+
+---
+
+## 🧭 For Coding Agents
+
+**When you start a task:**
+
+1. **Read the Coding Agent Contract.md** to understand how to conduct yourself
+2. **Check the architecture doc** for the layer you're working on:
+   - Backend work → `/docs/BACKEND_ARCHITECTURE.md`
+   - Frontend work → `/docs/FRONTEND_ARCHITECTURE.md`
+3. **Find the specific file** using the directory structure
+4. **Check ports** if your change involves API calls
+5. **Follow styling patterns** (CSS variables, not Tailwind)
+
+**When in doubt:** The architecture docs are ground truth, based on actual code analysis.
+
+---
+
+*This is the authoritative entry point. Update this file when architecture changes.*

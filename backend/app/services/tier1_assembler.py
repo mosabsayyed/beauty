@@ -23,7 +23,8 @@ def get_supabase_client() -> Client:
 
 def load_tier1_elements(persona: str = "noor") -> List[Dict]:
     """
-    Load Tier 1 elements from database for specific persona
+    Load Tier 1 elements from database for specific persona.
+    Note: Bundle is strictly hardcoded to 'tier1' (Zero Magic / Period).
     
     Args:
         persona: Either "noor" or "maestro"
@@ -34,7 +35,7 @@ def load_tier1_elements(persona: str = "noor") -> List[Dict]:
     client = get_supabase_client()
 
     # Preferred schema (normalized):
-    # - bundle is exactly "tier1"
+    # - bundle is strictly "tier1"
     # - element names have a numeric prefix for ordering (e.g., "0.1_mode_classification")
     # - Step 0 + Step 5 are represented as major prefixes 0.* and 5.*
     normalized = (
@@ -91,52 +92,43 @@ def _sort_tier1_elements(elements: List[Dict]) -> List[Dict]:
     def rank_step0(n: str) -> tuple:
         """Rank Step 0: remember → mindset → rules → instructions."""
         # 1. Bootstrap context (remember)
-        if "remember" in n:
+        if "remember" in n or "identity" in n:
             return (1, n)
         # 2. Identity/Mindset
         if "mindset" in n:
             return (2, n)
         # 3. Rules (memory access, dedup, forbidden)
-        if any(k in n for k in ["memory_access", "dedup", "forbidden"]):
+        if any(k in n for k in ["memory_access", "dedup", "forbidden", "rules"]):
             return (3, n)
-        # 4. Instructions (mode_classification, routing, conditional)
+        # 4. Instructions (classification, routing, steps)
         return (4, n)
 
     def rank_step5(n: str) -> tuple:
-        """Rank Step 5: rules → synthesis/context → response → format."""
-        # 1. Foundational rules
-        if "rules_of_thumb" in n or ("thumb" in n and "rules" in n):
+        """Rank Step 5: rules → context → instructions → format."""
+        # 1. Rules
+        if any(k in n for k in ["rules_of_thumb", "evidence_gating", "guards"]):
             return (1, n)
-        # 2. Context/Synthesis (synthesis_mandate, business_translation)
-        if any(k in n for k in ["synthesis", "business_translation"]):
+        # 2. Context (translation, mandate, rules)
+        if any(k in n for k in ["translation", "mandate", "protocol"]):
             return (2, n)
-        # 3. Response instructions (respond, return, workflow_steps)
-        if any(k in n for k in ["respond", "return", "workflow"]):
+        # 3. Instructions (respond, workflow)
+        if any(k in n for k in ["workflow", "respond", "return"]):
             return (3, n)
-        # 4. Format/Evidence (output_format, evidence_gating, visualization)
-        if any(k in n for k in ["output_format", "evidence", "visualization"]):
-            return (4, n)
-        # Default: late in sequence
-        return (5, n)
+        # 4. Format/Schema
+        return (4, n)
 
-    step0_sorted = sorted(step0, key=lambda e: rank_step0(name(e)))
-    step5_sorted = sorted(step5, key=lambda e: rank_step5(name(e)))
+    step0.sort(key=lambda x: rank_step0(name(x)))
+    step5.sort(key=lambda x: rank_step5(name(x)))
 
-    return step0_sorted + step5_sorted + others
-
+    return step0 + others + step5
 
 def assemble_tier1_prompt(persona: str = "noor") -> str:
     """
-    Assemble Tier 1 prompt strictly from atomic database elements.
+    Assembles Tier 1 prompt from atomic elements.
+    Note: Bundle is strictly hardcoded to 'tier1'.
     
-    Note: No additional preambles, separators, or injected text are added.
-    Only DB field contents are concatenated in the determined order.
-    
-    Args:
-        persona: Either "noor" or "maestro"
-    
-    Returns:
-        Complete Tier 1 prompt string composed solely of DB element contents
+    Order: Step 0 (0.*) -> Step 5 (5.*)
+    Within each step, elements are sorted by rank_step* logic.
     """
     elements = load_tier1_elements(persona=persona)
 
@@ -153,7 +145,8 @@ def assemble_tier1_prompt(persona: str = "noor") -> str:
 
 def get_tier1_token_count(persona: str = "noor") -> Dict[str, int]:
     """
-    Get token count statistics for Tier 1 elements for specific persona
+    Get token count statistics for Tier 1 elements for specific persona.
+    Note: Bundle is strictly hardcoded to 'tier1'.
     
     Args:
         persona: Either "noor" or "maestro"
@@ -177,20 +170,22 @@ _cached_tier1_prompts = {}
 def get_tier1_prompt(persona: str = "noor", use_cache: bool = True) -> str:
     """
     Get Tier 1 prompt (with per-persona caching)
+    Note: Bundle is strictly hardcoded to 'tier1'.
     
     Args:
         persona: Either "noor" or "maestro"
-        use_cache: If True, use cached version after first load
+        use_cache: Whether to use the cached version
         
     Returns:
-        Complete Tier 1 prompt string with persona-specific content
+        The assembled prompt
     """
-    global _cached_tier1_prompts
+    cache_key = persona
+    if use_cache and cache_key in _cached_tier1_prompts:
+        return _cached_tier1_prompts[cache_key]
     
-    if not use_cache or persona not in _cached_tier1_prompts:
-        _cached_tier1_prompts[persona] = assemble_tier1_prompt(persona)
-    
-    return _cached_tier1_prompts[persona]
+    prompt = assemble_tier1_prompt(persona=persona)
+    _cached_tier1_prompts[cache_key] = prompt
+    return prompt
 
 def refresh_tier1_cache(persona: str = None):
     """

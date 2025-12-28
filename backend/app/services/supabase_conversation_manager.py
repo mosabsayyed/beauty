@@ -1,7 +1,7 @@
 from typing import Dict, Any, List, Optional
 import json
 from datetime import datetime
-from app.db.supabase_client import SupabaseClient
+from app.db.supabase_client_async import SupabaseClient
 
 
 class SupabaseConversationManager:
@@ -14,15 +14,13 @@ class SupabaseConversationManager:
         persona_name: str = "transformation_analyst",
         title: Optional[str] = None
     ) -> Optional[Dict[str, Any]]:
-        personas = await self.client.table_select('personas', '*', {'name': persona_name})
-        if not personas:
-            raise ValueError(f"Persona '{persona_name}' not found. Please seed personas first.")
-        
-        persona = personas[0]
+        # TODO: When personas table is seeded, use persona_name to look up persona_id
+        # For now: hardcode persona_id=1 (noor) for all conversations
+        persona_id = 1
         
         conversation_data = {
             'user_id': user_id,
-            'persona_id': persona['id'],
+            'persona_id': persona_id,
             'title': title or "New Conversation",
             'created_at': datetime.utcnow().isoformat(),
             'updated_at': datetime.utcnow().isoformat()
@@ -48,34 +46,7 @@ class SupabaseConversationManager:
         user_id: int,
         limit: int = 50
     ) -> List[Dict[str, Any]]:
-        # Try to run a single aggregated SQL query to fetch conversations along
-        # with their message counts. This avoids an N+1 query pattern and
-        # ensures the API returns an accurate `message_count` for each
-        # conversation.
-        # try:
-        #     sql = f"""
-        #     SELECT c.id, c.user_id, c.persona_id, c.title, c.created_at, c.updated_at,
-        #            COALESCE(mc.count, 0) AS message_count
-        #     FROM conversations c
-        #     LEFT JOIN (
-        #         SELECT conversation_id, COUNT(*) AS count
-        #         FROM messages
-        #         GROUP BY conversation_id
-        #     ) mc ON mc.conversation_id = c.id
-        #     WHERE c.user_id = {int(user_id)}
-        #     ORDER BY c.updated_at DESC
-        #     LIMIT {int(limit)};
-        #     """
-
-        #     rows = await self.client.execute_raw_sql(sql)
-        #     if rows and isinstance(rows, list):
-        #         return rows
-        # except Exception:
-        #     # Fall back to table_select if raw SQL execution is unavailable
-        #     # (e.g., RPC not configured in Supabase). The caller will handle
-        #     # missing `message_count` fields by treating them as zero.
-        #     pass
-
+        # RPC path removed: rely on standard table_select to avoid missing-function errors.
         conversations = await self.client.table_select(
             'conversations',
             '*',
@@ -83,17 +54,27 @@ class SupabaseConversationManager:
         )
         conversations.sort(key=lambda x: x.get('updated_at', ''), reverse=True)
         
-        # Limit first, then fetch counts to minimize queries
+        # Return with message_count filled from a single messages fetch (no per-conversation calls)
         limited_conversations = conversations[:limit]
-        
-        # Populate message counts manually
+        conv_ids = [str(conv['id']) for conv in limited_conversations if 'id' in conv]
+
+        message_counts: Dict[str, int] = {}
+        if conv_ids:
+            params = {
+                "select": "conversation_id",
+                # One request for all conversations; Supabase supports in.(...) filter.
+                "conversation_id": f"in.({','.join(conv_ids)})"
+            }
+            rows = await self.client._run_http('messages', 'GET', params)
+            for row in rows or []:
+                cid = str(row.get('conversation_id'))
+                if cid:
+                    message_counts[cid] = message_counts.get(cid, 0) + 1
+
         for conv in limited_conversations:
-            try:
-                count = await self.client.table_count('messages', {'conversation_id': conv['id']})
-                conv['message_count'] = count
-            except Exception:
-                conv['message_count'] = 0
-                
+            cid = str(conv.get('id')) if conv.get('id') is not None else None
+            conv['message_count'] = message_counts.get(cid, 0)
+
         return limited_conversations
     
     async def delete_conversation(

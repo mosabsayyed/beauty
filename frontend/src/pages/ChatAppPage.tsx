@@ -442,15 +442,12 @@ export default function ChatAppPage() {
   }, [activeConversationId, loadConversationMessages]);
 
   // Load conversation list on mount and whenever auth state changes
+  // Don't await - load in background to prevent blocking page load
   useEffect(() => {
-    (async () => {
-      try {
-        await loadConversations();
-      } catch (e) {
-
-      }
-    })();
-  }, [auth.user, auth.token, loadConversations]);
+    loadConversations().catch(e => {
+      console.error('Failed to load conversations:', e);
+    });
+  }, [auth.user]);
 
   // Auto-select most recent conversation ONLY on initial load
   useEffect(() => {
@@ -478,6 +475,7 @@ export default function ChatAppPage() {
     } as any;
 
     setMessages(prev => [...prev, tempMessage]);
+    // Block input until assistant reply arrives (per UX requirement)
     setIsLoading(true);
 
     try {
@@ -557,135 +555,47 @@ export default function ChatAppPage() {
 
       const data = await response.json();
 
-      // Extract the actual content from the response
-      let content = "";
+      // Phase 2: All responses have immediate llm_payload (no polling needed)
       let artifacts: any[] = [];
-      let llmPayload = data.llm_payload || data;
+      let llmPayload: any = data.llm_payload || null;
+      let content = "";
+      let conversationId = data.conversation_id || activeConversationId;
 
-      // If llm_payload is a string, try to parse it
-      if (typeof llmPayload === 'string') {
-        try {
-          llmPayload = JSON.parse(llmPayload);
-        } catch (e) {
-          // keep as string
-        }
+      // Parse payload if string
+      if (llmPayload && typeof llmPayload === 'string') {
+        try { llmPayload = JSON.parse(llmPayload); } catch (_) { /* keep string */ }
       }
+      
+      content = llmPayload?.answer || llmPayload?.message || llmPayload?.thought || data.message || data.answer || "";
+      artifacts = llmPayload?.visualizations || data.artifacts || [];
 
-      // 1. Try to get content from llm_payload
-      if (llmPayload) {
-        content = llmPayload.answer || llmPayload.message || llmPayload.thought || "";
-        if (llmPayload.visualizations) {
-          artifacts = llmPayload.visualizations;
-        }
-      }
-
-      // 2. Fallback to top-level fields
-      if (!content) {
-        content = data.message || data.answer || "";
-      }
-      if (artifacts.length === 0 && data.artifacts) {
-        artifacts = data.artifacts;
-      }
-
-      // 3. If content looks like a JSON string, try to parse it one more time
-      // This handles the case where the backend returns a stringified JSON as the message
-      if (typeof content === 'string' && (content.trim().startsWith('{') || content.trim().startsWith('['))) {
-        try {
-           const parsed = JSON.parse(content);
-           if (parsed.answer) content = parsed.answer;
-           if (parsed.visualizations) artifacts = parsed.visualizations;
-           // Update llmPayload with the parsed content if it wasn't already valid
-           if (!llmPayload || typeof llmPayload !== 'object') llmPayload = parsed;
-        } catch (e) {
-           // Not valid JSON, treat as text
-        }
-      }
-
-      // 4. Final Fallback: If content is still empty but we have a payload, stringify it
-      if (!content && llmPayload && typeof llmPayload === 'object') {
-         content = JSON.stringify(llmPayload, null, 2);
-      }
-
-
-
-      // Create assistant message from response
       const assistantMsg = {
         id: `msg-${Date.now()}`,
         role: "assistant",
-        content: content, 
+        content,
         created_at: new Date().toISOString(),
-        metadata: { 
+        metadata: {
           llm_payload: llmPayload,
-          artifacts: artifacts, // Explicitly pass artifacts to metadata
-          ...data 
+          artifacts,
+          ...data,
         },
       } as any;
 
       setMessages(prev => {
-        // Keep the user message, update ID to avoid "temp-" prefix so it persists
-        const updatedPrev = prev.map((m: any) => {
-           if (m.id === tempMessage.id) {
-              return { ...m, id: `sent-${Date.now()}` }; 
-           }
-           return m;
-        });
+        const updatedPrev = prev.map((m: any) => m.id === tempMessage.id ? { ...m, id: `sent-${Date.now()}` } : m);
         return [...updatedPrev, assistantMsg];
       });
 
-      // If guest mode, append assistant message to guest convo local storage too
-      if (authService.isGuestMode()) {
-        try {
-          const guestConvos = authService.getGuestConversations();
-          const convo = guestConvos.find((c: any) => c.id === activeConversationId);
-          if (convo) {
-            const assistantLocal = {
-              id: `guest-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-              conversation_id: convo.id,
-              role: 'assistant',
-              content: assistantMsg.content,
-              created_at: assistantMsg.created_at,
-              metadata: assistantMsg.metadata,
-            };
-            convo.messages.push(assistantLocal);
-            convo.updated_at = new Date().toISOString();
-            authService.saveGuestConversations(guestConvos);
-          }
-        } catch (e) {
-
-        }
-      }
-
-      // Handle artifacts for canvas
-      console.log('[handleSendMessage] Artifacts check:', { 
-        count: artifacts.length, 
-        pushToGraph: options?.push_to_graph_server,
-        options,
-        backendDebug: data.graph_server_debug // Log debug info from backend
-      });
-      
       if (artifacts.length > 0 && !options?.push_to_graph_server && !options?.suppress_canvas_auto_open) {
-         console.log('[handleSendMessage] Opening canvas for artifacts');
-         setCanvasArtifacts(artifacts);
-         setIsCanvasOpen(true);
-      } else {
-         console.log('[handleSendMessage] Skipping canvas open (pushing to graph server, suppressed, or no artifacts)');
+        setCanvasArtifacts(artifacts);
+        setIsCanvasOpen(true);
       }
 
-      // Update or set active conversation
-      if (data.conversation_id && !activeConversationId) {
-        setActiveConversationId(data.conversation_id);
-      }
-
-      // Reload conversations list to ensure canonical state; only call server if not guest
       if (!authService.isGuestMode()) {
         await loadConversations();
-      } else {
-        // If guest, we already updated local guest conversations; just reload from local storage
-        await loadConversations();
       }
-      
-    } catch (error) {
 
+    } catch (error) {
       try {
         const formatted = chatService.formatErrorMessage(error as Error);
         const errorMsg = {
@@ -696,11 +606,8 @@ export default function ChatAppPage() {
           metadata: { error: true },
         } as any;
         setMessages(prev => {
-           const updatedPrev = prev.map((m: any) => {
-             if (m.id === tempMessage.id) return { ...m, id: `sent-${Date.now()}` };
-             return m;
-           });
-           return [...updatedPrev, errorMsg];
+          const updatedPrev = prev.map((m: any) => m.id === tempMessage.id ? { ...m, id: `sent-${Date.now()}` } : m);
+          return [...updatedPrev, errorMsg];
         });
       } catch (e) {
         // ignore formatting/display failures
@@ -709,7 +616,7 @@ export default function ChatAppPage() {
       setIsLoading(false);
       setStreamingMessage(null);
     }
-  }, [activeConversationId, authService, chatService, loadConversations]);
+  }, [activeConversationId, authService, chatService]);
 
   // ============================================================================
   // EVENT HANDLERS

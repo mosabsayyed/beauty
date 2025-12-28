@@ -3,7 +3,7 @@ from passlib.context import CryptContext
 from passlib.exc import UnknownHashError
 import hashlib
 import asyncio
-from app.db.supabase_client import supabase_client, SupabaseClient
+from app.db.supabase_client_async import supabase_client, SupabaseClient
 from pydantic import BaseModel, EmailStr
 import logging
 

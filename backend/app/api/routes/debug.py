@@ -79,6 +79,9 @@ async def list_traces(limit: int = 50):
             tool_calls_count = 0
             has_error = False
             persona = "unknown"
+            assistant_answer_snippet = ""
+            parse_failed = False
+            parse_recovered = False
             
             for event in events:
                 if event.get("event_type") == "llm_request":
@@ -90,12 +93,30 @@ async def list_traces(limit: int = 50):
             # Check layer2 for more details
             layer2_events = layers.get("layer2", {}).get("events", [])
             for event in layer2_events:
-                if event.get("event_type") == "tier1_loaded":
-                    persona = event.get("data", {}).get("persona", "unknown")
-                if event.get("event_type") == "groq_full_trace":
-                    tool_calls_count = event.get("data", {}).get("tool_calls_count", 0)
-                if event.get("event_type") in ["json_parse_failed", "tier1_load_failed"]:
+                et = event.get("event_type")
+                evd = event.get("data", {})
+                if et == "tier1_loaded":
+                    persona = evd.get("persona", "unknown")
+                # Align with orchestrator: use openrouter_full_response to count tool calls
+                if et == "openrouter_full_response":
+                    tool_calls = evd.get("tool_calls", [])
+                    tool_calls_count = len(tool_calls) if isinstance(tool_calls, list) else 0
+                # Capture parse failures
+                if et == "json_parse_failed":
+                    parse_failed = True
+                if et == "tier1_load_failed":
                     has_error = True
+                # Capture assistant answer snippet when present and parse recovery
+                if et == "llm_parsed_response":
+                    if evd.get("parse_success") is True:
+                        parse_recovered = True
+                    ans = evd.get("answer")
+                    if isinstance(ans, str) and ans:
+                        assistant_answer_snippet = ans[:100] + ("..." if len(ans) > 100 else "")
+
+            # Only flag parse errors if no successful recovery
+            if parse_failed and not parse_recovered:
+                has_error = True
             
             traces.append({
                 "conversation_id": conv_id,
@@ -104,6 +125,7 @@ async def list_traces(limit: int = 50):
                 "persona": persona,
                 "tool_calls_count": tool_calls_count,
                 "has_error": has_error,
+                "assistant_answer": assistant_answer_snippet,
                 "file_size": log_file.stat().st_size,
                 "turns": len(data.get("turns", []))
             })

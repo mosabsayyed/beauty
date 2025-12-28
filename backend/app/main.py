@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 from app.api.v1 import health, setup
 from app.api.routes import chat, debug, embeddings, sync, auth, files, dashboard, neo4j_routes, chains, control_tower, admin_settings
-from app.db.supabase_client import supabase_client
+from app.db.supabase_client_async import supabase_client
 import os
 
 @asynccontextmanager
@@ -74,7 +74,7 @@ app.include_router(files.router, prefix="/api/v1/files", tags=["Files"])
 app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["Dashboard"])
 app.include_router(neo4j_routes.router, prefix="/api", tags=["Neo4j"])
 app.include_router(chains.router, prefix="/api/v1/chains", tags=["Chains"])
-app.include_router(control_tower.router, prefix="/api/v1/control-tower", tags=["Control Tower"])
+app.include_router(control_tower.router, prefix="/api/control-tower", tags=["Control Tower"])
 app.include_router(admin_settings.router, prefix="/api/v1/admin", tags=["Admin"])
 
 frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "frontend")

@@ -5,7 +5,7 @@ Validates and executes SQL queries with composite key enforcement via Supabase R
 from typing import Dict, Any, List, Optional
 from .composite_key_validator import CompositeKeyValidator
 from .schema_loader import SchemaLoader
-from app.db.supabase_client import supabase_client
+from app.db.supabase_client_async import supabase_client
 import asyncio
 
 class SQLExecutorService:

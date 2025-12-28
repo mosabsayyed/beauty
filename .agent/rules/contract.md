@@ -1,8 +1,8 @@
 ---
-trigger: always_on
+trigger: model_decision
+description: # Coding Agent Contract
 ---
 
-# Coding Agent Contract
 
 ## Purpose
 - Provide a compact, machine-actionable contract that coding agents must follow when working in this repository and with this user. Prioritize safety, reproducibility, and explicit user approval for high-impact changes.

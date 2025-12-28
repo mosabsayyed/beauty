@@ -4,10 +4,10 @@
  * This file defines the TypeScript interfaces for the backend API.
  * Frontend and backend must both adhere to this contract.
  * 
- * Version: 1.0.0
- * Date: November 14, 2024
+ * Version: 1.1.0
+ * Date: December 28, 2025
  * 
- * Base URL: http://localhost:8000/api/v1
+ * Base URL: http://localhost:8008/api/v1
  */
 
 // ============================================================================
@@ -149,13 +149,32 @@ export interface ChatMessageRequest {
 
 export interface ChatMessageResponse {
   conversation_id: number;
-  message: string;
-  visualization: Record<string, any> | null; // LEGACY - use artifacts instead
-  insights: string[];
-  artifacts: Artifact[];
+  message: string;         // Transport-level message
+  answer?: string;          // Narrative answer (Ground Truth for Voice)
+  insights: string[];      // Highlights
+  artifacts: Artifact[];   // Structured visualizations/documents
   clarification_needed?: boolean;
   clarification_questions?: string[];
   clarification_context?: string;
+  
+  // CONTRACT V1.1 ENVELOPE
+  memory_process?: Record<string, any>;
+  mode?: 'DATA_MODE' | 'CONVERSATION_MODE' | string;
+  data?: {
+    query_results?: any[];
+    summary_stats?: Record<string, any>;
+    diagnostics?: Record<string, any>;
+    query_plan?: Record<string, any>;
+    [key: string]: any;
+  };
+  evidence?: Array<{
+    claim: string;
+    support: Record<string, any>;
+  }>;
+  cypher_executed?: string;
+  cypher_params?: Record<string, any>;
+  confidence?: number;
+  raw_response?: any;
 }
 
 /**

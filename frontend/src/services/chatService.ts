@@ -303,7 +303,7 @@ class ChatService {
 
   async getDebugLogs(conversationId: number): Promise<DebugLogs> {
     const response = await this.fetchWithErrorHandling(
-      buildUrl(`/debug_logs/${conversationId}`)
+      buildUrl(`/chat/debug_logs/${conversationId}`)
     );
     return response.json();
   }

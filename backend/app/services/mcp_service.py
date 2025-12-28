@@ -165,7 +165,7 @@ async def _execute_vector_query(
 # =============================================================================
 
 async def retrieve_instructions(
-    mode: str,
+    mode: Optional[str] = None,
     tier: Optional[str] = None,
     elements: Optional[List[str]] = None
 ) -> str:
@@ -206,7 +206,7 @@ async def retrieve_instructions(
         # v3.3 TIER 3: Atomic Element Retrieval
         # =====================================================================
         if tier == "elements" and elements:
-            logger.info(f"retrieve_instructions: Tier 3 - Fetching {len(elements)} elements for mode '{mode}'")
+            logger.info(f"retrieve_instructions: Tier 3 - Fetching {len(elements)} elements")
 
             def _base_element_name(name: str) -> str:
                 """Return the legacy/base element name.
@@ -282,7 +282,7 @@ async def retrieve_instructions(
         # v3.3 TIER 2: Data Mode Definitions with Context-First Ordering
         # =====================================================================
         if tier == "data_mode_definitions":
-            logger.info(f"retrieve_instructions: Tier 2 - Loading data mode definitions for mode '{mode}'")
+            logger.info(f"retrieve_instructions: Tier 2 - Loading all data mode definitions")
             
             # Tier 2 elements stored in instruction_elements with bundle='tier2'
             tier2_response = supabase.table('instruction_elements') \
@@ -364,9 +364,36 @@ async def retrieve_instructions(
             return "".join(contents)
         
         # =====================================================================
+        # v3.2 / SIMPLIFIED: Mode-based Bundle Retrieval (Legacy/Direct)
+        # =====================================================================
+        if tier is None and mode:
+            tags = lookup_tags_by_mode(mode)
+            logger.info(f"retrieve_instructions: Legacy - Fetching {len(tags)} bundles for mode '{mode}'")
+            
+            bundles_response = supabase.table('instruction_bundles') \
+                .select('tag, content') \
+                .in_('tag', tags) \
+                .execute()
+                
+            if not bundles_response.data:
+                logger.warning(f"No bundles found for tags: {tags}")
+                return ""
+            
+            # Reorder according to the tags list to preserve hierarchy
+            bundle_map = {b['tag']: b['content'] for b in bundles_response.data}
+            ordered_contents = []
+            for tag in tags:
+                if tag in bundle_map:
+                    ordered_contents.append(bundle_map[tag])
+                else:
+                    logger.warning(f"Bundle tag '{tag}' not found in instruction_bundles")
+                    
+            return "".join(ordered_contents)
+
+        # =====================================================================
         # FALLBACK: No valid tier specified
         # =====================================================================
-        logger.warning(f"retrieve_instructions: Invalid tier specified for mode '{mode}'")
+        logger.warning(f"retrieve_instructions: Invalid tier specified ('{tier}') for mode '{mode}'")
         return ""
         
     except Exception as e:
@@ -513,6 +540,16 @@ def lookup_tags_by_mode(mode: str) -> List[str]:
     - H (Underspecified): mode_clarification only
     """
     mode_mapping = {
+        'DATA_MODE': [
+            'cognitive_loop_core', 'data_integrity_rules', 'tool_rules_comprehensive', 'vector_strategy_full',
+            'node_ent_projects', 'node_ent_capabilities', 'node_ent_risks', 'node_sec_objectives',
+            'node_ent_org_units', 'node_ent_it_systems', 'node_ent_processes',
+            'rel_monitored_by', 'rel_operates', 'rel_close_gaps', 'rel_parent_of', 'rel_requires', 'rel_utilizes',
+            'direct_relationships_full',
+            'chain_sector_ops', 'chain_strategy_to_tactics_priority', 'chain_tactical_to_strategy',
+            'cypher_optimized_retrieval', 'cypher_impact_analysis', 'cypher_keyset_pagination',
+            'constraint_efficiency', 'constraint_keyset_pagination', 'constraint_level_integrity', 'constraint_temporal_filtering'
+        ],
         'A': [
             'cognitive_loop_core', 'data_integrity_rules', 'tool_rules_comprehensive',
             'node_ent_projects', 'node_sec_objectives', 
@@ -620,13 +657,22 @@ MCP_TOOL_DEFINITIONS = [
         "parameters": {
             "type": "object",
             "properties": {
+                "tier": {
+                    "type": "string",
+                    "enum": ["data_mode_definitions", "elements"],
+                    "description": "REQUIRED. Use 'data_mode_definitions' for all Tier 2 logic, or 'elements' for selective Tier 3 schemas."
+                },
+                "elements": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "List of specific atomic elements to retrieve (only if tier='elements')."
+                },
                 "mode": {
                     "type": "string",
-                    "enum": ["A", "B1", "B2", "C", "D", "E", "F", "G", "H"],
-                    "description": "The interaction mode determined in Step 1: REQUIREMENTS."
+                    "description": "Optional legacy mode identifier."
                 }
             },
-            "required": ["mode"]
+            "required": ["tier"]
         }
     },
     {

@@ -1,51 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import DimensionModule from '../../../components/graphv001/components/DimensionModule';
 import type { Dimension } from '../../../components/graphv001/types';
-import '../../../components/graphv001/GraphDashboard.css'; // Required for DimensionModule styles
+import '../../../components/graphv001/GraphDashboard.css';
 import './InternalOutputs.css';
 
 interface InternalOutputsProps {
   quarter: string;
   year: string;
-  dashboardData?: any[]; // Passed from ControlTower - avoids duplicate fetch
+  dashboardData?: any[]; 
+  columns?: number;
 }
 
 // Transform raw API response to Dimension type
-// Backend returns ALL quarters so we filter client-side
 const transformToDimensions = (rawData: any[], targetQuarter?: string): Dimension[] => {
-  // If no target quarter specified, find the latest quarter in the data
   let quarterToUse = targetQuarter;
   if (!quarterToUse || quarterToUse === 'All All' || quarterToUse.includes('All')) {
-    // Extract all unique quarters
     const quarters = [...new Set(rawData.map(r => r.quarter))];
-    
-    // Sort chronologically: Year then Quarter (e.g. "Q4 2025" < "Q1 2026")
     quarters.sort((a, b) => {
       const partsA = a.split(' ');
       const partsB = b.split(' ');
-      
-      // If formats don't match expected "Q# YYYY", fallback to string sort
       if (partsA.length < 2 || partsB.length < 2) return a.localeCompare(b);
-      
       const yearA = parseInt(partsA[1]);
       const yearB = parseInt(partsB[1]);
-      
       if (yearA !== yearB) return yearA - yearB;
-      
       const qA = parseInt(partsA[0].replace('Q', ''));
       const qB = parseInt(partsB[0].replace('Q', ''));
-      
       return qA - qB;
     });
-
-    quarterToUse = quarters[quarters.length - 1]; // Latest quarter
+    quarterToUse = quarters[quarters.length - 1]; 
   }
   
-  // Filter by the determined quarter
   const filteredData = rawData.filter(row => row.quarter === quarterToUse);
   
-  // Should have exactly 8 records (one per dimension) for the quarter
-  // Sort explicitly by Lens A order
   const ORDER = [
     'Strategic Plan Alignment',
     'Operational Efficiency',
@@ -60,13 +46,9 @@ const transformToDimensions = (rawData: any[], targetQuarter?: string): Dimensio
   filteredData.sort((a, b) => {
     const idxA = ORDER.indexOf(a.dimension_title);
     const idxB = ORDER.indexOf(b.dimension_title);
-    // If not found, put last
     return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
   });
   
-
-  // Determine Previous Quarter for Lookup
-  // Format: "Q3 2026" -> "Q2 2026"
   let previousQuarter = "";
   if (quarterToUse) {
       const parts = quarterToUse.split(' ');
@@ -89,10 +71,7 @@ const transformToDimensions = (rawData: any[], targetQuarter?: string): Dimensio
     const finalTarget = Number(row.kpi_final_target);
     const deltaVal = Number(row.health_score);
     
-    // Previous Value Lookup Logic
-    // User Requirement: "Previous is the Actual for the previous quarter"
-    // We look for a row in rawData with same title and previousQuarter
-    let previousValue = Number(row.kpi_base_value); // Default fallback
+    let previousValue = Number(row.kpi_base_value); 
     
     if (previousQuarter) {
         const prevRow = rawData.find(r => 
@@ -102,7 +81,6 @@ const transformToDimensions = (rawData: any[], targetQuarter?: string): Dimensio
         if (prevRow) {
             previousValue = Number(prevRow.kpi_actual);
         } else {
-             // If no exact Q-1, maybe fallback to previous_kpi if available, or keep base
              if (row.previous_kpi) previousValue = Number(row.previous_kpi);
         }
     }
@@ -112,44 +90,31 @@ const transformToDimensions = (rawData: any[], targetQuarter?: string): Dimensio
 
     const maxVal = finalTarget > 0 ? Number(finalTarget) : 100;
 
-    // Logic for percentage display based on dimension type
-    // List of metrics that really should be percentages
-    // Now including 'Score' to catch 'Employee Engagement Score' (9.4 -> 94%)
     const percentageMetrics = /(Rate|Alignment|Efficiency|Compliance|ROI|Velocity|Score)/i;
-    
-    // Check if we should format as percentage
     const isPercentage = percentageMetrics.test(row.dimension_title);
     
     let displayValue = actual;
     let displayBaseline = previousValue;
     let displayNextTarget = Number(row.kpi_next_target || target);
     
-    // STRICT NORMALIZATION: Only normalize specific metrics as requested.
-    // "Employee Engagement Score" and "Investment Portfolio ROI"
-    // Heuristics removed.
     const needsNormalization = row.dimension_title.includes('Employee Engagement') || row.dimension_title.includes('Investment Portfolio ROI');
 
     if (isPercentage && finalTarget > 0) {
         if (needsNormalization) {
-             // Score/Ratio mode -> Normalize
              displayValue = (actual / finalTarget) * 100;
              displayBaseline = (displayBaseline / finalTarget) * 100;
              displayNextTarget = (displayNextTarget / finalTarget) * 100;
         }
-        // Else: Assume Native Percentage (e.g. Rate, Risk Mitigation) -> Keep raw.
-        
-        // Round all to 1 decimal
         displayValue = Number(displayValue.toFixed(1));
         displayBaseline = Number(displayBaseline.toFixed(1));
         displayNextTarget = Number(displayNextTarget.toFixed(1));
     }
 
-    // Define missing variables for the transformed object
     const baseline = Number(row.kpi_base_value || 0);
     const normalizedActual = maxVal > 0 ? Math.min((actual / maxVal) * 100, 100) : 0;
     const normalizedPlanned = maxVal > 0 ? Math.min((target / maxVal) * 100, 100) : 0;
 
-    const transformed = {
+    return {
       id: row.dimension_id || `dim-${index}`,
       title: row.dimension_title,
       label: row.dimension_title,
@@ -168,22 +133,16 @@ const transformToDimensions = (rawData: any[], targetQuarter?: string): Dimensio
       healthScore: Number(row.health_score || 0),
       trend: row.trend,
     };
-    
-    return transformed;
   });
 };
 
-export const InternalOutputs: React.FC<InternalOutputsProps> = ({ quarter, year, dashboardData }) => {
+export const InternalOutputs: React.FC<InternalOutputsProps> = ({ quarter, year, dashboardData, columns = 4 }) => {
   const [dimensions, setDimensions] = useState<Dimension[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   
-  // Default to dark mode if not explicitly light - ensures visibility on dark backgrounds
   const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
 
-  // ════════════════════════════════════════════════════════════════════
-  // USES dashboardData PROP FROM ControlTower - NO DUPLICATE FETCH
-  // ════════════════════════════════════════════════════════════════════
   useEffect(() => {
     if (!dashboardData) return;
     
@@ -263,7 +222,7 @@ export const InternalOutputs: React.FC<InternalOutputsProps> = ({ quarter, year,
       ) : (
         <div className="grid-container internal-outputs-grid" style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(4, 1fr)', 
+          gridTemplateColumns: `repeat(${columns}, 1fr)`, 
           gap: '1rem', 
           width: '100%',
           minHeight: '300px'

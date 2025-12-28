@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.models.schemas import HealthCheckResponse
-from app.db.supabase_client import supabase_client
+from app.db.supabase_client_async import supabase_client
 from datetime import datetime
 
 router = APIRouter()

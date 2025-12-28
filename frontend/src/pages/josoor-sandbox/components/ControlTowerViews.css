@@ -1,0 +1,83 @@
+/* ControlTowerViews.css */
+/* Shared styles for Control Tower components (StrategicInsights, SectorOutcomes, etc.) */
+
+.ct-card {
+    background: var(--component-panel-bg);
+    border: 1px solid var(--component-panel-border);
+    border-radius: 12px;
+    padding: 16px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.ct-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--component-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ct-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /* Scrollbar styling if needed */
+}
+
+.ct-row {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.ct-row:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.ct-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--component-text-secondary);
+    font-weight: 600;
+}
+
+.v2-badge-high {
+    background: rgba(239, 68, 68, 0.15);
+    color: #F87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.ct-muted {
+    font-size: 0.8rem;
+    color: var(--component-text-muted);
+    font-style: italic;
+    text-align: center;
+    padding: 20px 0;
+}
+
+.ct-action-link {
+    font-size: 0.8rem;
+    color: var(--component-text-accent);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: auto;
+    padding-top: 10px;
+}
+
+.ct-action-link:hover {
+    text-decoration: underline;
+}

@@ -35,22 +35,22 @@ class ProviderConfig(BaseModel):
     local_llm_enabled: bool = False
     local_llm_base_url: Optional[str] = None
     local_llm_model: Optional[str] = None
-    local_llm_timeout: int = 60
+    local_llm_timeout: Optional[int] = None
     use_responses_api: bool = True
     openrouter_api_endpoint: Optional[str] = None
     openrouter_model_primary: Optional[str] = None
     openrouter_model_fallback: Optional[str] = None
     openrouter_model_alt: Optional[str] = None
-    max_output_tokens: Optional[int] = 8000
-    temperature: Optional[float] = 0.1
+    max_output_tokens: Optional[int] = None
+    temperature: Optional[float] = None
 
     @model_validator(mode='after')
     def _sanitize(self) -> 'ProviderConfig':
-        # Guard negative values
+        # Guard negative values but allow None (which means omit from request)
         if self.local_llm_timeout is not None and self.local_llm_timeout <= 0:
             self.local_llm_timeout = 300
         if self.max_output_tokens is not None and self.max_output_tokens <= 0:
-            self.max_output_tokens = 8000
+            self.max_output_tokens = None
         return self
 
 
@@ -113,27 +113,11 @@ class AdminSettingsService:
         return AdminSettings(**payload)
 
     def merge_with_env_defaults(self) -> AdminSettings:
-        settings = self.load_settings()
-        env_defaults = {
-            "local_llm_enabled": os.getenv("LOCAL_LLM_ENABLED", "false").lower() == "true",
-            "local_llm_base_url": os.getenv("LOCAL_LLM_BASE_URL"),
-            "local_llm_model": os.getenv("LOCAL_LLM_MODEL"),
-            "local_llm_timeout": int(os.getenv("LOCAL_LLM_TIMEOUT", "300")),
-            "use_responses_api": os.getenv("LOCAL_LLM_USE_RESPONSES_API", "true").lower() == "true",
-            "openrouter_api_endpoint": os.getenv(
-                "OPENROUTER_API_ENDPOINT", "https://openrouter.ai/api/v1/responses"
-            ),
-            "openrouter_model_primary": os.getenv("OPENROUTER_MODEL_PRIMARY"),
-            "openrouter_model_fallback": os.getenv("OPENROUTER_MODEL_FALLBACK"),
-            "openrouter_model_alt": os.getenv("OPENROUTER_MODEL_ALT"),
-        }
-
-        provider_dict = settings.provider.dict()
-        for key, val in env_defaults.items():
-            if provider_dict.get(key) is None or provider_dict.get(key) == "":
-                provider_dict[key] = val
-        settings.provider = ProviderConfig(**provider_dict)
-        return settings
+        """
+        STRICT PROTOCOL (v3.4.6): No environment variable merging.
+        The UI settings (admin_settings.json) are the sole source of truth.
+        """
+        return self.load_settings()
 
 
 admin_settings_service = AdminSettingsService()

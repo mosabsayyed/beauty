@@ -16,6 +16,7 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 
+import httpx
 import requests
 
 from app.config import settings
@@ -54,24 +55,25 @@ class CognitiveOrchestrator:
         if self.persona not in ["noor", "maestro"]:
             raise ValueError(f"Invalid persona: {persona}. Must be 'noor' or 'maestro'")
 
-        self.api_endpoint = os.getenv("OPENROUTER_API_ENDPOINT", "https://openrouter.ai/api/v1/responses")
+        # Core Secrets (STRICTLY ENV)
         self.openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
 
-        # Model configuration (env-driven with OpenRouter-friendly defaults)
-        self.model_primary = os.getenv("OPENROUTER_MODEL_PRIMARY", "google/gemma-3-27b-it")
-        self.model_fallback = os.getenv("OPENROUTER_MODEL_FALLBACK", "google/gemini-2.5-flash")
-        self.model_alt = os.getenv("OPENROUTER_MODEL_ALT", "mistralai/devstral-2512:free")
-        self.model = self.model_primary
+        # Initial refresh to populate all settings from admin_settings.json
+        self._refresh_cached_settings()
 
-        # Persona-specific MCP router URLs
-        if self.persona == "noor":
-            self.mcp_router_url = os.getenv("NOOR_MCP_ROUTER_URL")
-            if not self.mcp_router_url:
-                raise ValueError("NOOR_MCP_ROUTER_URL environment variable not set (e.g., http://127.0.0.1:8201)")
-        else:
-            self.mcp_router_url = os.getenv("MAESTRO_MCP_ROUTER_URL")
-            if not self.mcp_router_url:
-                raise ValueError("MAESTRO_MCP_ROUTER_URL environment variable not set (e.g., http://127.0.0.1:8202)")
+        # Persona-specific MCP router URLs (STRICTLY FROM SETTINGS)
+        # 1. Get the binding label from settings (e.g. noor -> "josoor-noor")
+        # 2. Look up that label in the map
+        bindings = self._admin_settings_cached.mcp.persona_bindings
+        binding_label = bindings.get(self.persona) if bindings else None
+        
+        if not binding_label:
+             raise ValueError(f"No MCP binding found for persona '{self.persona}' in Admin Settings")
+
+        self.mcp_router_url = self._mcp_endpoint_map.get(binding_label)
+        
+        if not self.mcp_router_url:
+            raise ValueError(f"MCP Endpoint label '{binding_label}' not found in Admin Settings endpoint list")
 
         # Track response IDs for stateful LM Studio conversations
         self._response_id_cache: Dict[str, str] = {}
@@ -91,14 +93,35 @@ class CognitiveOrchestrator:
 
     def _refresh_cached_settings(self):
         """Reload admin settings to pick up changes from the UI without restart."""
+        # admin_settings_service now performs STRICT loading (no env merge)
         self._admin_settings_cached = admin_settings_service.merge_with_env_defaults()
         provider_config = self._admin_settings_cached.provider
         mcp_config = self._admin_settings_cached.mcp
+
+        # Infrastructure
+        self.api_endpoint = provider_config.openrouter_api_endpoint
+        if not self.api_endpoint:
+            raise ValueError("OPENROUTER_API_ENDPOINT missing in Admin Settings")
 
         self.local_llm_enabled = provider_config.local_llm_enabled
         self.local_llm_model = provider_config.local_llm_model
         self.local_llm_base_url = provider_config.local_llm_base_url
         self.local_llm_timeout = provider_config.local_llm_timeout
+
+        # Models
+        self.model_primary = provider_config.openrouter_model_primary
+        self.model_fallback = provider_config.openrouter_model_fallback
+        self.model_alt = provider_config.openrouter_model_alt
+        
+        if not self.model_primary:
+             raise ValueError("Primary Model (openrouter_model_primary) missing in Admin Settings")
+        
+        # STRICT SETTINGS ENFORCEMENT
+        # If Local is enabled, it IS the default model.
+        if self.local_llm_enabled:
+            self.model = self.local_llm_model
+        else:
+            self.model = self.model_primary
 
         # Re-build MCP endpoint lookup map
         self._mcp_endpoint_map = {}
@@ -129,20 +152,18 @@ class CognitiveOrchestrator:
             "devstral": "alt",
         }
 
-        alias = synonyms.get(override_key) if override_key else None
-        if alias not in self._model_alias_map:
-            # If no valid override, check if local LLM is enabled globally.
-            # If enabled, it becomes the default "primary" choice.
-            if self.local_llm_enabled:
-                alias = "local"
-            else:
-                alias = "primary"
+        # Default to primary unless explicitly overridden, OR if Local is the configured default
+        if not override_key:
+             # Use the default we established in _refresh_cached_settings (which respects local_llm_enabled)
+             alias = "local" if self.local_llm_enabled else "primary"
+        else:
+             alias = synonyms.get(override_key, "primary")
 
-        # If local was requested (or defaulted) but strictly not enabled, fall back to primary
-        use_local = alias == "local" and self.local_llm_enabled
-        if alias == "local" and not self.local_llm_enabled:
-            alias = "primary"
-            use_local = False
+        # STRICT ENFORCEMENT: No "magic" switching
+        use_local = (alias == "local")
+        
+        if use_local and not self.local_llm_enabled:
+            raise ValueError("Local LLM requested but 'local_llm_enabled' is FALSE in Admin Settings.")
 
         model_name = self._model_alias_map.get(alias, self.model_primary)
 
@@ -155,7 +176,7 @@ class CognitiveOrchestrator:
             "use_local": use_local,
         }
 
-    def execute_query(
+    async def execute_query(
         self,
         user_query: str,
         session_id: str,
@@ -197,30 +218,14 @@ class CognitiveOrchestrator:
             self.model = model_choice["model_name"]
             
             # 3. Load cognitive_cont bundle with datetoday injection
-            cognitive_prompt = self._build_cognitive_prompt()
+            cognitive_prompt = await self._build_cognitive_prompt()
             
             # 4. Build full prompt with history
             messages = self._build_messages(cognitive_prompt, user_query, history or [])
             
             # 5. Call OpenRouter LLM with MCP tools (single Responses API call)
             logger.info(f"[{session_id}] Calling OpenRouter LLM with MCP tools...")
-            log_debug(2, "llm_request", {
-                "session_id": session_id,
-                "query": user_query,
-                "history_length": len(history) if history else 0,
-                "model": self.model,
-                "model_alias": model_choice.get("alias"),
-                "use_local_llm": model_choice.get("use_local", False)
-            })
-            llm_response = self._call_llm(messages, model_choice)
-            
-            # Log raw LLM response for debugging
-            log_debug(2, "llm_raw_response", {
-                "session_id": session_id,
-                "response_length": len(llm_response) if llm_response else 0,
-                "response_snippet": (llm_response[:500] if llm_response else "<empty>"),
-                "full_response": llm_response
-            })
+            llm_response = await self._call_llm(messages, model_choice)
             
             # 6. Parse & validate JSON
             parsed_response = self._parse_llm_output(llm_response)
@@ -228,42 +233,20 @@ class CognitiveOrchestrator:
             # Track parse success for logging separation
             parse_success = self._is_valid_json_response(parsed_response)
             
-            # Log parsed response with parse success indicator
-            log_debug(2, "llm_parsed_response", {
-                "session_id": session_id,
-                "parse_success": parse_success,
-                "has_answer": bool(parsed_response.get("answer")),
-                "has_artifacts": bool(parsed_response.get("artifacts")),  # Updated to artifacts
-                "confidence": parsed_response.get("confidence", 0)
-            })
-            
-            # 7. Auto-recovery if invalid JSON
-            if not parse_success:
-                logger.warning(f"[{session_id}] Invalid JSON detected, attempting auto-recovery...")
-                parsed_response = self._auto_recover(messages, llm_response)
-                # Mark that fallback execution occurred
-                parsed_response["fallback_executed"] = True
-                parsed_response["original_parse_failed"] = True
-                
-                # Log fallback execution result separately
-                log_debug(2, "agent_result_from_fallback", {
-                    "session_id": session_id,
-                    "fallback_success": self._is_valid_json_response(parsed_response),
-                    "has_answer": bool(parsed_response.get("answer")),
-                    "has_artifacts": bool(parsed_response.get("artifacts")),
-                    "confidence": parsed_response.get("confidence", 0)
-                })
+            # 10. Return (Zero Magic Infrastructure)
+            # ========================================================
+            # OPTIONAL MAGIC (Commented out for Zero Fallback adherence)
+            # ========================================================
+            # # 7b. Deterministic safety net for empty results
+            # parsed_response = self._apply_empty_result_guard(user_query, parsed_response)
+            # 
+            # # 8. Apply business language translation
+            # parsed_response = self._apply_business_language(parsed_response)
+            # 
+            # # 9. Log metrics
+            # self._log_metrics(session_id, parsed_response, user_query)
+            # ========================================================
 
-            # 7b. Deterministic safety net for empty results
-            parsed_response = self._apply_empty_result_guard(user_query, parsed_response)
-            
-            # 8. Apply business language translation
-            parsed_response = self._apply_business_language(parsed_response)
-            
-            # 9. Log metrics
-            self._log_metrics(session_id, parsed_response, user_query)
-            
-            # 10. Return
             return parsed_response
             
         except Exception as e:
@@ -296,242 +279,29 @@ class CognitiveOrchestrator:
         
         return None
 
-    def _apply_empty_result_guard(self, user_query: str, response: Dict[str, Any]) -> Dict[str, Any]:
-        """Safety net to prevent false "no data" outputs when data exists.
 
-        This runs when:
-        - The model returned an empty result set (0 rows), OR
-        - The model returned a suspiciously low count (e.g., 0 for a temporal query), OR
-        - Visualization counts don't match query_results counts
-
-        If Neo4j shows data exists for the requested year/quarter, the guard will
-        fetch the correct rows and attach them to the response.
-        """
-        try:
-            data = response.get("data") if isinstance(response, dict) else None
-            query_results = (data or {}).get("query_results") if isinstance(data, dict) else None
-            
-            # Enhanced validation: check for suspicious results
-            needs_validation = False
-            
-            # Case 1: Empty results
-            if not query_results:
-                needs_validation = True
-            # Case 2: Results exist but contain suspicious zeros
-            elif isinstance(query_results, list) and len(query_results) > 0:
-                first_result = query_results[0] if isinstance(query_results[0], dict) else {}
-                # Check common count field names
-                count_fields = ['projectCount', 'project_count', 'count', 'count_projects', 'total', 'total_projects']
-                for field in count_fields:
-                    if field in first_result:
-                        count_val = first_result.get(field)
-                        # If count is 0 or None for a temporal query, validate against Neo4j
-                        if count_val is None or (isinstance(count_val, (int, float)) and count_val == 0):
-                            needs_validation = True
-                            break
-            
-            # Case 3: Check visualization data for count=0
-            if not needs_validation:
-                visualizations = response.get("visualizations", [])
-                if isinstance(visualizations, list):
-                    for viz in visualizations:
-                        if isinstance(viz, dict) and "data" in viz:
-                            viz_data = viz.get("data", [])
-                            if isinstance(viz_data, list) and len(viz_data) > 0:
-                                first_viz = viz_data[0]
-                                if isinstance(first_viz, dict):
-                                    # Check for "Project Count" = 0 or similar
-                                    for key, value in first_viz.items():
-                                        if "count" in key.lower() and isinstance(value, (int, float)) and value == 0:
-                                            needs_validation = True
-                                            break
-                        if needs_validation:
-                            break
-            
-            if not needs_validation:
-                return response
-
-            # Ensure top-level fields exist for downstream evidence gating.
-            if isinstance(response, dict) and not response.get("mode"):
-                # Best-effort inference: this guard only triggers for data-like intents.
-                response["mode"] = "A"
-
-            query_lower = (user_query or "").lower()
-            if not self._query_implies_list_or_report(query_lower):
-                return response
-
-            if "project" not in query_lower:
-                return response
-
-            year, quarter = self._extract_year_and_quarter(query_lower)
-            if not year or not quarter:
-                return response
-
-            # If Neo4j isn't configured/available, do nothing.
-            if not neo4j_client.connect():
-                return response
-
-            # Diagnostics: cheap count + encoding probes
-            total_rows = neo4j_client.execute_query(
-                "MATCH (p:EntityProject) RETURN count(p) AS total_projects"
-            )
-            total_projects = int(total_rows[0].get("total_projects", 0)) if total_rows else 0
-
-            year_rows = neo4j_client.execute_query(
-                "MATCH (p:EntityProject) WHERE p.year = $year "
-                "RETURN count(p) AS year_count, collect(DISTINCT p.quarter)[0..20] AS quarters_for_year",
-                {"year": year},
-            )
-            year_count = int(year_rows[0].get("year_count", 0)) if year_rows else 0
-            quarters_for_year = (year_rows[0].get("quarters_for_year") if year_rows else []) or []
-
-            exact_rows = neo4j_client.execute_query(
-                "MATCH (p:EntityProject) WHERE p.year = $year AND p.quarter = $quarter "
-                "RETURN count(p) AS exact_count",
-                {"year": year, "quarter": quarter},
-            )
-            exact_count = int(exact_rows[0].get("exact_count", 0)) if exact_rows else 0
-
-            # Attach diagnostics into summary_stats (keeps response shape stable)
-            if "data" not in response or not isinstance(response.get("data"), dict):
-                response["data"] = {"query_results": [], "summary_stats": {}}
-            if "summary_stats" not in response["data"] or not isinstance(response["data"].get("summary_stats"), dict):
-                response["data"]["summary_stats"] = {}
-
-            response["data"].setdefault("diagnostics", {})
-            response["data"].setdefault(
-                "query_plan",
-                {"primary_label": "EntityProject", "filters": {}, "limit": 50, "skip": 0},
-            )
-
-            guard_diagnostics = {
-                "entity": "EntityProject",
-                "year": year,
-                "quarter": quarter,
-                "total_projects": total_projects,
-                "year_count": year_count,
-                "quarters_for_year": quarters_for_year,
-                "exact_count": exact_count,
-            }
-
-            # Keep backward-compatible location (summary_stats) and new location (diagnostics).
-            response["data"]["summary_stats"]["empty_result_guard"] = guard_diagnostics
-            if isinstance(response["data"].get("diagnostics"), dict):
-                response["data"]["diagnostics"].setdefault("empty_result_guard", guard_diagnostics)
-
-            # Ensure query_plan reflects the intended filter even when the model omitted it.
-            if isinstance(response["data"].get("query_plan"), dict):
-                response["data"]["query_plan"].update(
-                    {
-                        "primary_label": "EntityProject",
-                        "filters": {"year": year, "quarter": quarter},
-                        "limit": 100,
-                        "skip": 0,
-                    }
-                )
-
-            # Ensure cypher_params exists (required by evidence gating).
-            if isinstance(response, dict) and not isinstance(response.get("cypher_params"), dict):
-                response["cypher_params"] = {"year": year, "quarter": quarter}
-
-            # If data exists for the requested slice but the model returned 0 rows, fetch correct results.
-            if exact_count > 0:
-                cypher_results_query = (
-                    "MATCH (p:EntityProject) "
-                    "WHERE p.year = $year AND p.quarter = $quarter "
-                    "RETURN "
-                    "  p.id AS id, "
-                    "  p.name AS name, "
-                    "  p.level AS level, "
-                    "  p.status AS status, "
-                    "  p.progress_percentage AS progress_percentage, "
-                    "  p.budget AS budget, "
-                    "  p.start_date AS start_date, "
-                    "  p.end_date AS end_date "
-                    "ORDER BY p.level, p.name "
-                    "LIMIT $limit"
-                )
-                rows = neo4j_client.execute_query(
-                    cypher_results_query,
-                    {"year": year, "quarter": quarter, "limit": 100},
-                )
-
-                cypher_stats_query = (
-                    "MATCH (p:EntityProject) "
-                    "WHERE p.year = $year AND p.quarter = $quarter "
-                    "RETURN "
-                    "  count(p) AS count_projects, "
-                    "  avg(p.progress_percentage) AS avg_progress, "
-                    "  sum(p.budget) AS total_budget"
-                )
-                stats = neo4j_client.execute_query(
-                    cypher_stats_query,
-                    {"year": year, "quarter": quarter},
-                )
-                if rows is not None:
-                    response["data"]["query_results"] = rows
-                if stats:
-                    response["data"]["summary_stats"].update(stats[0])
-
-                # Reflect the deterministic query we executed so downstream layers can cite it.
-                response["cypher_executed"] = cypher_results_query
-                response["cypher_params"] = {"year": year, "quarter": quarter, "limit": 100}
-
-                # Nudge the answer to reflect what was returned (avoid technical jargon).
-                answer = response.get("answer") if isinstance(response.get("answer"), str) else ""
-                if answer:
-                    answer += "\n\n"
-                response["answer"] = (
-                    answer
-                    + f"Automatic check: projects exist for {year} {quarter}. I retrieved the matching records using year/quarter filtering."
-                )
-                return response
-
-            # If projects exist but this quarter encoding doesn't match, add a helpful diagnostic.
-            if total_projects > 0 and exact_count == 0:
-                answer = response.get("answer") if isinstance(response.get("answer"), str) else ""
-                if answer:
-                    answer += "\n\n"
-                available = ", ".join(str(q) for q in quarters_for_year) if quarters_for_year else "<none>"
-                response["answer"] = (
-                    answer
-                    + f"Automatic check: projects exist, but none match the quarter value '{quarter}' for year {year}. "
-                    + f"Available quarter values for {year}: {available}."
-                )
-            elif total_projects == 0:
-                answer = response.get("answer") if isinstance(response.get("answer"), str) else ""
-                if answer:
-                    answer += "\n\n"
-                response["answer"] = answer + "Automatic check: no projects are currently loaded in the graph database."
-
-            return response
-
-        except Exception as e:
-            log_debug(2, "empty_result_guard_failed", {"error": str(e)})
-            return response
-
-    def _query_implies_list_or_report(self, query_lower: str) -> bool:
-        keywords = ["report", "list", "show", "generate", "status", "table", "summary"]
-        return any(k in query_lower for k in keywords)
-
-    def _extract_year_and_quarter(self, query_lower: str) -> tuple[Optional[int], Optional[int]]:
-        year_match = re.search(r"\b(20\d{2})\b", query_lower)
-        quarter_match = re.search(r"\bq([1-4])\b", query_lower)
-
-        year = int(year_match.group(1)) if year_match else None
-        quarter = int(quarter_match.group(1)) if quarter_match else None
-        return year, quarter
     
-    def _build_cognitive_prompt(self) -> str:
+    async def _build_cognitive_prompt(self) -> str:
         """
         Build Tier 1 prompt (Step 0 + Step 5) using cached data with datetoday injection.
         
-        Uses cached Tier-1 from init (no per-request DB calls).
         Returns assembled Tier 1 prompt with dynamic date and user context prepended.
+        
+        CRITICAL FIX: This method is called from async execute_query, but get_tier1_prompt
+        makes synchronous Supabase calls. We wrap it in asyncio.to_thread to prevent
+        blocking the event loop (which causes instant httpx timeouts).
         """
+        import asyncio
+        
         today = datetime.now().strftime("%B %d, %Y")
-        # Load Tier-1 fresh from DB (no cached prompt)
-        tier1_prompt = get_tier1_prompt(persona=self.persona, use_cache=False)
+        
+        # Load Tier-1 fresh from DB (no bundle switching, optimized tier1 is now universal)
+        # ASYNC FIX: Run blocking Supabase query in thread pool to avoid freezing event loop
+        tier1_prompt = await asyncio.to_thread(
+            get_tier1_prompt, 
+            persona=self.persona, 
+            use_cache=False
+        )
 
         # Replace date placeholders (support both <datetoday> and <date_today>)
         tier1_with_runtime = tier1_prompt.replace("<datetoday>", today).replace("<date_today>", today)
@@ -618,15 +388,15 @@ class CognitiveOrchestrator:
         
         return messages
     
-    def _call_llm(self, messages: List[Dict[str, str]], model_choice: Dict[str, Any]) -> str:
+    async def _call_llm(self, messages: List[Dict[str, str]], model_choice: Dict[str, Any]) -> str:
         """Route to OpenRouter or local LLM based on resolved model choice."""
         if model_choice.get("use_local"):
-            return self._call_local_llm(messages, model_choice.get("model_name"))
-        return self._call_openrouter_llm(messages, model_choice.get("model_name"))
+            return await self._call_local_llm(messages, model_choice.get("model_name"))
+        return await self._call_openrouter_llm(messages, model_choice.get("model_name"))
 
 
-    def _call_local_llm(self, messages: List[Dict[str, str]], model_name: Optional[str]) -> str:
-        """Call a local LLM via /v1/responses endpoint."""
+    async def _call_local_llm(self, messages: List[Dict[str, str]], model_name: Optional[str]) -> str:
+        """Call a local LLM via /v1/responses endpoint (async via httpx)."""
         # Separate system prompt and format conversation for Responses API
         system_instructions = []
         conversation_messages = []
@@ -669,17 +439,124 @@ class CognitiveOrchestrator:
             "allowed_tools": allowed_tools
         }]
 
-        endpoint_url = self.local_llm_base_url.rstrip("/") + "/v1/responses"
-
-        payload = {
-            "model": model_name or self.local_llm_model,
-            "input": conversation_messages,
-            "instructions": "\n\n".join(system_instructions),
-            "tools": tools,
-            "tool_choice": "auto",
-            "max_output_tokens": 8000,
-            "temperature": 0.1
-        }
+        use_responses = self._admin_settings_cached.provider.use_responses_api
+        
+        if use_responses:
+            endpoint_url = self.local_llm_base_url.rstrip("/") + "/v1/responses"
+            
+            # OpenAI Responses API format
+            # NOTE: LM Studio has a known bug (v0.3.30) where `instructions` field is IGNORED.
+            # WORKAROUND: Embed system instructions into `input` field instead.
+            # See: https://github.com/lmstudio-ai/lmstudio-bug-tracker (instructions not loaded)
+            
+            # Get the last user message as string input
+            user_input = ""
+            for msg in reversed(conversation_messages):
+                if msg.get("role") == "user":
+                    user_input = msg.get("content", "")
+                    break
+            
+            # WORKAROUND: Embed system instructions into input since `instructions` is bugged
+            system_prompt = "\n\n".join(system_instructions)
+            full_input = f"[SYSTEM INSTRUCTIONS]\n{system_prompt}\n\n[USER QUERY]\n{user_input}"
+            
+            # Build payload
+            payload = {
+                "model": model_name or self.local_llm_model,
+                "input": full_input,
+                "tools": tools,
+                "tool_choice": "auto"
+            }
+            # Add optional parameters if set
+            if self._admin_settings_cached.provider.max_output_tokens:
+                payload["max_output_tokens"] = self._admin_settings_cached.provider.max_output_tokens
+            if self._admin_settings_cached.provider.temperature is not None:
+                payload["temperature"] = self._admin_settings_cached.provider.temperature
+        else:
+            endpoint_url = self.local_llm_base_url.rstrip("/") + "/v1/chat/completions"
+            # Standard OpenAI chat completions format with Structured Output enforcement
+            chat_response_schema = {
+                "name": "ChatResponse",
+                "strict": True,
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "mode": { "type": "string", "enum": ["DATA_MODE", "CONVERSATION_MODE"] },
+                        "answer": { "type": "string" },
+                        "insights": { "type": "array", "items": { "type": "string" } },
+                        "reasoning_steps": { "type": "array", "items": { "type": "string" } },
+                        "tool_calls": { "type": "array", "items": { "type": "object" } },
+                        "memory_process": {
+                            "type": "object",
+                            "properties": {
+                                "intent": { "type": "string" },
+                                "thought_trace": { "type": "string" }
+                            },
+                            "required": ["intent", "thought_trace"],
+                            "additionalProperties": False
+                        },
+                        "analysis": { "type": "array", "items": { "type": "string" } },
+                        "evidence": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "claim": { "type": "string" },
+                                    "source": { "type": "string" },
+                                    "confidence": { "type": "number" }
+                                },
+                                "required": ["claim", "source", "confidence"],
+                                "additionalProperties": False
+                            }
+                        },
+                        "artifacts": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "type": { "type": "string", "enum": [
+                                        "column", "line", "pie", "radar", "scatter", "bubble", "combo", "table", "html",
+                                        "twin_knowledge", "excel", "markdown", "code", "media", "file", "json"
+                                    ] },
+                                    "title": { "type": "string" },
+                                    "config": { "type": "object" },
+                                    "data": { "type": ["string", "object", "array"] }
+                                },
+                                "required": ["type", "title"],
+                                "additionalProperties": True
+                            }
+                        },
+                        "data": {
+                            "type": "object",
+                            "properties": {
+                                "query_results": { "type": "array" },
+                                "summary_stats": { "type": "object" },
+                                "diagnostics": { "type": "object" }
+                            },
+                            "required": ["query_results"],
+                            "additionalProperties": True
+                        },
+                        "confidence": { "type": "number" },
+                        "cypher_executed": { "type": "string" }
+                    },
+                    "required": ["mode", "answer", "artifacts", "memory_process", "data"],
+                    "additionalProperties": False
+                }
+            }
+            
+            payload = {
+                "model": model_name or self.local_llm_model,
+                "messages": messages,
+                "response_format": {
+                    "type": "json_schema",
+                    "json_schema": chat_response_schema
+                },
+                "stream": False
+            }
+            if self._admin_settings_cached.provider.max_output_tokens:
+                payload["max_tokens"] = self._admin_settings_cached.provider.max_output_tokens
+            if self._admin_settings_cached.provider.temperature is not None:
+                payload["temperature"] = self._admin_settings_cached.provider.temperature
 
         headers = {"Content-Type": "application/json"}
 
@@ -688,16 +565,66 @@ class CognitiveOrchestrator:
                 "endpoint": endpoint_url,
                 "model": payload.get("model"),
                 "messages_count": len(conversation_messages),
+                "max_tokens": payload.get("max_tokens"),
+                "temperature": payload.get("temperature"),
                 "mcp_server_label": tools[0].get("server_label") if tools else None,
                 "mcp_server_url": tools[0].get("server_url") if tools else None
             })
 
-            resp = requests.post(
-                endpoint_url,
-                headers=headers,
-                json=payload,
-                timeout=self.local_llm_timeout,
+            # RAW LOGGING: Request Payload
+            log_debug(2, "local_llm_raw_request", {
+                "url": endpoint_url,
+                "payload": payload
+            })
+
+            # STRICT TIMEOUT CONFIGURATION
+            # Separate connect timeout (10s) from read timeout (from settings)
+            # This prevents instant failures from masquerading as read timeouts
+            timeout_config = httpx.Timeout(
+                connect=10.0,  # 10 seconds to establish TCP connection
+                read=float(self.local_llm_timeout) if self.local_llm_timeout else 300.0,
+                write=10.0,
+                pool=1.0
             )
+
+            try:
+                async with httpx.AsyncClient(timeout=timeout_config) as client:
+                    resp = await client.post(
+                        endpoint_url,
+                        headers=headers,
+                        json=payload,
+                    )
+            except httpx.ConnectError as e:
+                logger.error(f"Local LLM connection failed: {e}")
+                raise ValueError(
+                    f"Cannot connect to Local LLM at {endpoint_url}. "
+                    f"Verify LM Studio is running and listening on {self.local_llm_base_url}"
+                ) from e
+            except httpx.ReadTimeout as e:
+                logger.error(f"Local LLM read timeout after {self.local_llm_timeout}s: {e}")
+                raise ValueError(
+                    f"Local LLM did not respond within {self.local_llm_timeout} seconds. "
+                    f"Increase 'local_llm_timeout' in Admin Settings or check LM Studio logs."
+                ) from e
+            except httpx.HTTPStatusError as e:
+                # LM Studio returned an error (e.g., 500 if endpoint/format is wrong)
+                error_body = e.response.text[:1000] if e.response else "No response body"
+                logger.error(f"Local LLM HTTP error {e.response.status_code}: {error_body}")
+                
+                if e.response.status_code == 500:
+                    raise ValueError(
+                        f"LM Studio returned 500 Internal Server Error. "
+                        f"This usually means the endpoint or request format is unsupported. "
+                        f"Try setting 'use_responses_api: false' in Admin Settings to use /v1/chat/completions instead. "
+                        f"Error details: {error_body}"
+                    ) from e
+                raise
+            
+            # RAW LOGGING: Response Content
+            log_debug(2, "local_llm_raw_response", {
+                "status_code": resp.status_code,
+                "content": resp.text
+            })
             if resp.status_code != 200:
                 log_debug(2, "local_llm_error", {
                     "status_code": resp.status_code,
@@ -708,12 +635,12 @@ class CognitiveOrchestrator:
             resp.raise_for_status()
             data = resp.json()
 
-            # Extract output text from Responses API format
+            # Extract output text (Responses API shape)
             text_content = ""
             # Some providers may include aggregated output_text at the root
             if isinstance(data, dict) and isinstance(data.get("output_text"), str):
                 text_content = data.get("output_text") or ""
-
+            
             output = data.get("output")
             if isinstance(output, dict):
                 text_content = output.get("text") or ""
@@ -735,6 +662,14 @@ class CognitiveOrchestrator:
                     if text_content:
                         break
 
+            # Fallback for standard OpenAI Chat Completions format
+            if not text_content:
+                choices = data.get("choices", [])
+                if choices and isinstance(choices[0], dict):
+                    message = choices[0].get("message", {})
+                    if isinstance(message, dict):
+                        text_content = message.get("content") or ""
+
             log_debug(2, "local_llm_response", {
                 "status_code": resp.status_code,
                 "response_length": len(text_content) if text_content else 0,
@@ -746,18 +681,14 @@ class CognitiveOrchestrator:
             logger.error(f"Local LLM call failed: {exc}")
             raise
 
-    def _call_openrouter_llm(self, messages: List[Dict[str, str]], model_name: Optional[str] = None) -> str:
-        """Call OpenRouter Responses API with MCP tool definitions."""
+    async def _call_openrouter_llm(self, messages: List[Dict[str, str]], model_name: Optional[str] = None) -> str:
+        """Call OpenRouter Responses API with MCP tool definitions (async via httpx)."""
         if not self.openrouter_api_key:
             raise ValueError("OPENROUTER_API_KEY is required for OpenRouter requests")
-        # Normalize endpoint to Responses API when an env mistakenly points to completions
+        # Use endpoint EXACTLY as specified in settings (Zero Magic)
         api_endpoint = (self.api_endpoint or "").strip()
-        if "/chat/completions" in api_endpoint or api_endpoint.endswith("/completions"):
-            log_debug(2, "openrouter_endpoint_normalized", {
-                "from": api_endpoint,
-                "to": "https://openrouter.ai/api/v1/responses"
-            })
-            api_endpoint = "https://openrouter.ai/api/v1/responses"
+        if not api_endpoint:
+             raise ValueError("OpenRouter API Endpoint missing in Admin Settings")
 
         # Convert messages to Responses API input format
         input_messages = []
@@ -802,25 +733,25 @@ class CognitiveOrchestrator:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "mode": {"type": "string"},
-                        "tier": {"type": "string"},
-                        "elements": {"type": "array", "items": {"type": "string"}}
+                        "tier": {"type": "string", "enum": ["data_mode_definitions", "elements"], "description": "Mandatory tier selection"},
+                        "mode": {"type": "string", "description": "Interaction mode (A-J)"},
+                        "elements": {"type": "array", "items": {"type": "string"}, "description": "Specific atomic elements (only for tier='elements')"}
                     },
-                    "required": ["mode"]
+                    "required": ["tier"]
                 }
             },
             {
                 "type": "function",
                 "name": "read_neo4j_cypher",
-                "description": "Execute read-only Cypher query with optional params",
+                "description": "Execute read-only Cypher query with optional parameters",
                 "strict": None,
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "query": {"type": "string"},
-                        "params": {"type": "object"}
+                        "cypher_query": {"type": "string", "description": "The Cypher query to run"},
+                        "parameters": {"type": "object", "description": "Query parameters mapping"}
                     },
-                    "required": ["query"]
+                    "required": ["cypher_query"]
                 }
             }
         ]
@@ -829,10 +760,14 @@ class CognitiveOrchestrator:
             "model": model_name or self.model,
             "input": input_messages,
             "tools": tools,
-            "tool_choice": "auto",
-            "max_output_tokens": 8000,
-            "temperature": 0.1,
+            "tool_choice": "auto"
         }
+        
+        # Use settings EXACTLY (Zero Fallback)
+        if self._admin_settings_cached.provider.max_output_tokens:
+            request_payload["max_output_tokens"] = self._admin_settings_cached.provider.max_output_tokens
+        if self._admin_settings_cached.provider.temperature is not None:
+            request_payload["temperature"] = self._admin_settings_cached.provider.temperature
 
         headers = {
             "Authorization": f"Bearer {self.openrouter_api_key}",
@@ -863,14 +798,26 @@ class CognitiveOrchestrator:
                     "has_title": bool(headers.get("X-Title")),
                 })
 
+                # RAW LOGGING: Request Payload
+                log_debug(2, "openrouter_raw_request", {
+                    "url": api_endpoint if 'api_endpoint' in locals() else self.api_endpoint,
+                    "payload": request_payload
+                })
+
                 # Send
                 request_payload["model"] = chosen_model
-                response = requests.post(
-                    api_endpoint if 'api_endpoint' in locals() else self.api_endpoint,
-                    headers=headers,
-                    json=request_payload,
-                    timeout=300,
-                )
+                async with httpx.AsyncClient(timeout=300) as client:
+                    response = await client.post(
+                        api_endpoint if 'api_endpoint' in locals() else self.api_endpoint,
+                        headers=headers,
+                        json=request_payload,
+                    )
+                
+                # RAW LOGGING: Response Content
+                log_debug(2, "openrouter_raw_response", {
+                    "status_code": response.status_code,
+                    "content": response.text
+                })
 
                 if response.status_code != 200:
                     body_snippet = response.text[:2000]
@@ -883,12 +830,6 @@ class CognitiveOrchestrator:
                     logger.error(f"OpenRouter API error {response.status_code}: {body_snippet[:500]}")
                     log_debug(2, "openrouter_api_error", error_details)
 
-                    # Auto-fallback on OpenRouter policy blocks to alt model (single retry)
-                    if not attempted_alt and chosen_model != self.model_alt and response.status_code in (403, 404) and ("data policy" in body_snippet.lower() or "no endpoints found" in body_snippet.lower()):
-                        chosen_model = self.model_alt
-                        attempted_alt = True
-                        log_debug(2, "openrouter_retry_model", {"new_model": chosen_model})
-                        continue
 
                 # Raise if still not ok
                 response.raise_for_status()
@@ -1060,7 +1001,14 @@ class CognitiveOrchestrator:
         
         # Map Parsed JSON to Result
         if parsed_json and isinstance(parsed_json, dict):
-            for key in ["memory_process", "data", "visualizations", "analysis", "cypher_executed", "confidence"]:
+            # Prefer 'artifacts' over 'visualizations'
+            if "artifacts" in parsed_json:
+                result["artifacts"] = parsed_json["artifacts"]
+            elif "visualizations" in parsed_json:
+                result["artifacts"] = parsed_json["visualizations"]
+            
+            # Support rich reasoning/tooling fields for observability
+            for key in ["memory_process", "data", "analysis", "cypher_executed", "confidence", "reasoning_steps", "tool_calls"]:
                 if key in parsed_json:
                     result[key] = parsed_json[key]
             
@@ -1101,35 +1049,6 @@ class CognitiveOrchestrator:
         if isinstance(result.get("answer"), str):
             result["answer"] = re.sub(r'(\n\s*){3,}', '\n\n', result["answer"])
         
-        # HTML artifact detection
-        answer_str = str(result.get("answer", "")).strip()
-        if re.search(r"<!doctype html>|<html\b|<h[1-6]\b|<table\b|<div\b", answer_str, re.IGNORECASE):
-            code_block_match = re.search(r"```(?:html)?\s*([\s\S]*?)\s*```", answer_str, re.IGNORECASE)
-            if code_block_match:
-                clean_html = code_block_match.group(1).strip()
-            else:
-                clean_html = answer_str.strip()
-            
-            # Clean up excessive newlines in HTML content
-            # Remove multiple consecutive newlines (3+) -> single newline
-            clean_html = re.sub(r'(\n\s*){3,}', '\n', clean_html)
-            # Remove newlines between closing and opening tags (they render as unwanted whitespace)
-            clean_html = re.sub(r'>\s*\n\s*<', '><', clean_html)
-            # Remove leading/trailing whitespace from each line but preserve structure
-            clean_html = re.sub(r'\n\s+', '\n', clean_html)
-            clean_html = re.sub(r'\s+\n', '\n', clean_html)
-            
-            html_artifact = {
-                "type": "html",
-                "title": "HTML Report",
-                "content": clean_html
-            }
-            
-            if "artifacts" not in result:  # Updated to unified artifacts field
-                result["artifacts"] = []
-            result["artifacts"].append(html_artifact)
-            result["answer"] = "I have generated the HTML report for you. Please view it below."
-        
         return result
     
     def _is_valid_json_response(self, response: Dict[str, Any]) -> bool:
@@ -1141,87 +1060,77 @@ class CognitiveOrchestrator:
         required_keys = ["memory_process", "answer"]
         return all(key in response for key in required_keys)
     
-    def _auto_recover(
-        self,
-        messages: List[Dict[str, str]],
-        invalid_response: str
-    ) -> Dict[str, Any]:
-        """
-        Auto-recovery: Re-invoke LLM with correction prompt.
-        
-        Appends error message and asks LLM to fix the output.
-        """
-        correction_prompt = f"""
-The previous output was invalid JSON. Please fix it and return ONLY valid JSON.
 
-Previous output:
-{invalid_response}
+    
 
-Error: Missing required keys or invalid JSON structure.
+    # ==============================================================================
+    # LEGACY / MAGIC METHODS (Commented out for Zero Fallback Protocol)
+    # ==============================================================================
+    # def _apply_empty_result_guard(self, user_query: str, response: Dict[str, Any]) -> Dict[str, Any]:
+    #     """Safety net to prevent false "no data" outputs when data exists."""
+    #     try:
+    #         if not isinstance(response, dict): return response
+    #         mode = response.get("mode")
+    #         if mode not in ["DATA_MODE", "A"]: return response
+    #         data = response.get("data")
+    #         if not isinstance(data, dict):
+    #             data = {"query_results": [], "summary_stats": {}, "diagnostics": {}}
+    #             response["data"] = data
+    #         query_results = data.get("query_results")
+    #         needs_validation = not query_results
+    #         if not needs_validation: return response
+    #         query_plan = data.get("query_plan", {})
+    #         primary_label = query_plan.get("primary_label", "EntityProject")
+    #         query_lower = (user_query or "").lower()
+    #         year, quarter = self._extract_year_and_quarter(query_lower)
+    #         if not year or not quarter: return response
+    #         if not neo4j_client.connect(): return response
+    #         exact_rows = neo4j_client.execute_query(
+    #             f"MATCH (n:{primary_label}) WHERE n.year = $year AND n.quarter = $quarter RETURN count(n) AS exact_count",
+    #             {"year": year, "quarter": quarter},
+    #         )
+    #         exact_count = int(exact_rows[0].get("exact_count", 0)) if exact_rows else 0
+    #         if exact_count > 0:
+    #             fallback_query = f"MATCH (n:{primary_label}) WHERE n.year = $year AND n.quarter = $quarter RETURN n LIMIT 100"
+    #             rows = neo4j_client.execute_query(fallback_query, {"year": year, "quarter": quarter})
+    #             if rows:
+    #                 data["query_results"] = [dict(r['n']) for r in rows]
+    #                 response["cypher_executed"] = fallback_query
+    #         return response
+    #     except Exception as e:
+    #         log_debug(2, "empty_result_guard_failed", {"error": str(e)})
+    #         return response
+    #
+    # def _extract_year_and_quarter(self, query_lower: str) -> tuple[Optional[int], Optional[int]]:
+    #     year_match = re.search(r"\b(20\d{2})\b", query_lower)
+    #     quarter_match = re.search(r"\bq([1-4])\b", query_lower)
+    #     year = int(year_match.group(1)) if year_match else None
+    #     quarter = int(quarter_match.group(1)) if quarter_match else None
+    #     return year, quarter
+    #
+    # def _auto_recover(self, messages: List[Dict[str, str]], invalid_response: str) -> Dict[str, Any]:
+    #     """Auto-recovery: Re-invoke LLM with correction prompt."""
+    #     correction_prompt = f"The previous output was invalid JSON. Fix it: {invalid_response}"
+    #     recovery_messages = messages + [{"role": "assistant", "content": invalid_response}, {"role": "user", "content": correction_prompt}]
+    #     recovered_output = self._call_openrouter_llm(recovery_messages, self.model)
+    #     return self._parse_llm_output(recovered_output)
+    #
+    # def _apply_business_language(self, response: Dict[str, Any]) -> Dict[str, Any]:
+    #     """Apply business language translation rules."""
+    #     if "answer" in response and isinstance(response["answer"], str):
+    #         answer = response["answer"]
+    #         replacements = {r'\bNode\b': 'Entity', r'\bCypher\b': 'Query', r'\bID\b': 'Identifier'}
+    #         for pattern, replacement in replacements.items():
+    #             answer = re.sub(pattern, replacement, answer, flags=re.IGNORECASE)
+    #         response["answer"] = answer
+    #     return response
+    #
+    # def _log_metrics(self, session_id: str, response: Dict[str, Any], query: str):
+    #     """Log orchestration metrics."""
+    #     confidence = response.get("confidence", 0.0)
+    #     cypher = response.get("cypher_executed", None)
+    #     logger.info(f"[{session_id}] Metrics: query_len={len(query)}, confidence={confidence:.2f}, cypher={'Yes' if cypher else 'No'}")
 
-Please return a valid JSON response following the <response_template> structure.
-"""
-        
-        # Add correction request
-        recovery_messages = messages + [
-            {"role": "assistant", "content": invalid_response},
-            {"role": "user", "content": correction_prompt}
-        ]
-        
-        # Retry LLM call
-        recovered_output = self._call_openrouter_llm(recovery_messages, self.model)
-        return self._parse_llm_output(recovered_output)
-    
-    def _apply_business_language(self, response: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Apply business language translation rules.
-        
-        Replaces technical terms with business-friendly equivalents:
-        - "Node" -> "Entity"
-        - "Cypher" -> "Query"
-        - "L3" -> "Project Output" (context-dependent)
-        - "ID" -> "Identifier"
-        """
-        if "answer" in response and isinstance(response["answer"], str):
-            answer = response["answer"]
-            
-            # Business language replacements
-            replacements = {
-                r'\bNode\b': 'Entity',
-                r'\bCypher\b': 'Query',
-                r'\bL3\b': 'Output Level',
-                r'\bL2\b': 'Program Level',
-                r'\bL1\b': 'Portfolio Level',
-                r'\bID\b': 'Identifier'
-            }
-            
-            for pattern, replacement in replacements.items():
-                answer = re.sub(pattern, replacement, answer, flags=re.IGNORECASE)
-            
-            response["answer"] = answer
-        
-        return response
-    
-    def _log_metrics(self, session_id: str, response: Dict[str, Any], query: str):
-        """
-        Log orchestration metrics.
-        
-        Logs:
-        - Session ID
-        - Query length
-        - Response confidence
-        - Cypher executed (if any)
-        """
-        confidence = response.get("confidence", 0.0)
-        cypher = response.get("cypher_executed", None)
-        
-        logger.info(
-            f"[{session_id}] Metrics: "
-            f"query_len={len(query)}, "
-            f"confidence={confidence:.2f}, "
-            f"cypher={'Yes' if cypher else 'No'}"
-        )
-    
     def _error_response(self, error_message: str) -> Dict[str, Any]:
         """
         Generate standard error response.

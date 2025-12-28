@@ -305,6 +305,278 @@
       },
       "updated_at": "2025-12-25T22:44:43.156372Z",
       "updated_by": "mosabsayyed@gmail.com"
+    },
+    {
+      "mcp": {
+        "endpoints": [
+          {
+            "allowed_tools": [
+              "recall_memory",
+              "retrieve_instructions",
+              "read_neo4j_cypher"
+            ],
+            "label": "josoor-noor",
+            "url": "http://localhost:8201/mcp"
+          }
+        ],
+        "persona_bindings": {
+          "maestro": "",
+          "noor": "josoor-noor"
+        }
+      },
+      "provider": {
+        "local_llm_base_url": "http://localhost:1234",
+        "local_llm_enabled": true,
+        "local_llm_model": "functiongemma-270m-it",
+        "local_llm_timeout": 60,
+        "max_output_tokens": 8000,
+        "openrouter_api_endpoint": "https://openrouter.ai/api/v1/responses",
+        "openrouter_model_alt": null,
+        "openrouter_model_fallback": "",
+        "openrouter_model_primary": "google/gemini-2.5-flash",
+        "temperature": 0.1,
+        "use_responses_api": true
+      },
+      "updated_at": "2025-12-27T02:41:31.177814Z",
+      "updated_by": "mosabsayyed@gmail.com"
+    },
+    {
+      "mcp": {
+        "endpoints": [
+          {
+            "allowed_tools": [
+              "recall_memory",
+              "retrieve_instructions",
+              "read_neo4j_cypher"
+            ],
+            "label": "josoor-noor",
+            "url": "http://localhost:8201/mcp"
+          }
+        ],
+        "persona_bindings": {
+          "maestro": "",
+          "noor": "josoor-noor"
+        }
+      },
+      "provider": {
+        "local_llm_base_url": "http://localhost:1234",
+        "local_llm_enabled": true,
+        "local_llm_model": "qwen/qwen3-4b-thinking-2507",
+        "local_llm_timeout": 60,
+        "max_output_tokens": 8000,
+        "openrouter_api_endpoint": "https://openrouter.ai/api/v1/responses",
+        "openrouter_model_alt": null,
+        "openrouter_model_fallback": "",
+        "openrouter_model_primary": "google/gemini-2.5-flash",
+        "temperature": 0.1,
+        "use_responses_api": true
+      },
+      "updated_at": "2025-12-27T04:08:52.329942Z",
+      "updated_by": "mosabsayyed@gmail.com"
+    },
+    {
+      "mcp": {
+        "endpoints": [
+          {
+            "allowed_tools": [
+              "recall_memory",
+              "retrieve_instructions",
+              "read_neo4j_cypher"
+            ],
+            "label": "josoor-noor",
+            "url": "http://localhost:8201/mcp"
+          }
+        ],
+        "persona_bindings": {
+          "maestro": "",
+          "noor": "josoor-noor"
+        }
+      },
+      "provider": {
+        "local_llm_base_url": "http://localhost:1234",
+        "local_llm_enabled": true,
+        "local_llm_model": "gemma-3-270m-it",
+        "local_llm_timeout": 60,
+        "max_output_tokens": 8000,
+        "openrouter_api_endpoint": "https://openrouter.ai/api/v1/responses",
+        "openrouter_model_alt": null,
+        "openrouter_model_fallback": "",
+        "openrouter_model_primary": "google/gemini-2.5-flash",
+        "temperature": 0.1,
+        "use_responses_api": true
+      },
+      "updated_at": "2025-12-27T04:46:02.838241Z",
+      "updated_by": "mosabsayyed@gmail.com"
+    },
+    {
+      "mcp": {
+        "endpoints": [
+          {
+            "allowed_tools": [
+              "recall_memory",
+              "retrieve_instructions",
+              "read_neo4j_cypher"
+            ],
+            "label": "josoor-noor",
+            "url": "http://localhost:8201/mcp"
+          }
+        ],
+        "persona_bindings": {
+          "maestro": "",
+          "noor": "josoor-noor"
+        }
+      },
+      "provider": {
+        "local_llm_base_url": "http://localhost:1234",
+        "local_llm_enabled": true,
+        "local_llm_model": "gemma-3-270m-it",
+        "local_llm_timeout": 60,
+        "max_output_tokens": 8000,
+        "openrouter_api_endpoint": "https://openrouter.ai/api/v1/responses",
+        "openrouter_model_alt": null,
+        "openrouter_model_fallback": "",
+        "openrouter_model_primary": "google/gemini-2.5-flash",
+        "temperature": 0.1,
+        "use_responses_api": false
+      },
+      "updated_at": "2025-12-28T02:08:53.013911Z",
+      "updated_by": "mosabsayyed@gmail.com"
+    },
+    {
+      "mcp": {
+        "endpoints": [
+          {
+            "allowed_tools": [
+              "recall_memory",
+              "retrieve_instructions",
+              "read_neo4j_cypher"
+            ],
+            "label": "josoor-noor",
+            "url": "http://localhost:8201/mcp"
+          }
+        ],
+        "persona_bindings": {
+          "maestro": "",
+          "noor": "josoor-noor"
+        }
+      },
+      "provider": {
+        "local_llm_base_url": "http://localhost:1234",
+        "local_llm_enabled": true,
+        "local_llm_model": "gemma-3-270m-it",
+        "local_llm_timeout": 60,
+        "max_output_tokens": 8000,
+        "openrouter_api_endpoint": "https://openrouter.ai/api/v1/responses",
+        "openrouter_model_alt": null,
+        "openrouter_model_fallback": "",
+        "openrouter_model_primary": "google/gemini-2.5-flash",
+        "temperature": 0.1,
+        "use_responses_api": true
+      },
+      "updated_at": "2025-12-28T02:11:53.377725Z",
+      "updated_by": "mosabsayyed@gmail.com"
+    },
+    {
+      "mcp": {
+        "endpoints": [
+          {
+            "allowed_tools": [
+              "recall_memory",
+              "retrieve_instructions",
+              "read_neo4j_cypher"
+            ],
+            "label": "josoor-noor",
+            "url": "http://localhost:8201/mcp"
+          }
+        ],
+        "persona_bindings": {
+          "maestro": "",
+          "noor": "josoor-noor"
+        }
+      },
+      "provider": {
+        "local_llm_base_url": "http://localhost:1234",
+        "local_llm_enabled": true,
+        "local_llm_model": "functiongemma-270m-it",
+        "local_llm_timeout": 60,
+        "max_output_tokens": 8000,
+        "openrouter_api_endpoint": "https://openrouter.ai/api/v1/responses",
+        "openrouter_model_alt": null,
+        "openrouter_model_fallback": "",
+        "openrouter_model_primary": "google/gemini-2.5-flash",
+        "temperature": 0.1,
+        "use_responses_api": true
+      },
+      "updated_at": "2025-12-28T02:12:30.777351Z",
+      "updated_by": "mosabsayyed@gmail.com"
+    },
+    {
+      "mcp": {
+        "endpoints": [
+          {
+            "allowed_tools": [
+              "recall_memory",
+              "retrieve_instructions",
+              "read_neo4j_cypher"
+            ],
+            "label": "josoor-noor",
+            "url": "http://localhost:8201/mcp"
+          }
+        ],
+        "persona_bindings": {
+          "maestro": "",
+          "noor": "josoor-noor"
+        }
+      },
+      "provider": {
+        "local_llm_base_url": "http://localhost:1234",
+        "local_llm_enabled": true,
+        "local_llm_model": "qwen/qwen3-4b-thinking-2507",
+        "local_llm_timeout": 60,
+        "max_output_tokens": 8000,
+        "openrouter_api_endpoint": "https://openrouter.ai/api/v1/responses",
+        "openrouter_model_alt": null,
+        "openrouter_model_fallback": "",
+        "openrouter_model_primary": "google/gemini-2.5-flash",
+        "temperature": 0.1,
+        "use_responses_api": true
+      },
+      "updated_at": "2025-12-28T02:33:58.028085Z",
+      "updated_by": "mosabsayyed@gmail.com"
+    },
+    {
+      "mcp": {
+        "endpoints": [
+          {
+            "allowed_tools": [
+              "recall_memory",
+              "retrieve_instructions",
+              "read_neo4j_cypher"
+            ],
+            "label": "josoor-noor",
+            "url": "http://localhost:8201/mcp"
+          }
+        ],
+        "persona_bindings": {
+          "maestro": "",
+          "noor": "josoor-noor"
+        }
+      },
+      "provider": {
+        "local_llm_base_url": "http://localhost:1234",
+        "local_llm_enabled": true,
+        "local_llm_model": "qwen/qwen3-4b-thinking-2507",
+        "local_llm_timeout": 201,
+        "max_output_tokens": 8000,
+        "openrouter_api_endpoint": "https://openrouter.ai/api/v1/responses",
+        "openrouter_model_alt": null,
+        "openrouter_model_fallback": "",
+        "openrouter_model_primary": "google/gemini-2.5-flash",
+        "temperature": 0.1,
+        "use_responses_api": true
+      },
+      "updated_at": "2025-12-28T04:21:49.779736Z",
+      "updated_by": "mosabsayyed@gmail.com"
     }
   ],
   "mcp": {
@@ -320,15 +592,15 @@
       }
     ],
     "persona_bindings": {
-      "maestro": "josoor-noor",
+      "maestro": "",
       "noor": "josoor-noor"
     }
   },
   "provider": {
     "local_llm_base_url": "http://localhost:1234",
     "local_llm_enabled": true,
-    "local_llm_model": "zai-org/glm-4.6v-flash",
-    "local_llm_timeout": 60,
+    "local_llm_model": "qwen/qwen3-4b-thinking-2507",
+    "local_llm_timeout": 201,
     "max_output_tokens": 8000,
     "openrouter_api_endpoint": "https://openrouter.ai/api/v1/responses",
     "openrouter_model_alt": null,
@@ -337,6 +609,6 @@
     "temperature": 0.1,
     "use_responses_api": true
   },
-  "updated_at": "2025-12-25T22:44:43.156372Z",
+  "updated_at": "2025-12-28T04:21:49.779736Z",
   "updated_by": "mosabsayyed@gmail.com"
 }

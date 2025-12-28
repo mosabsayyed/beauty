@@ -156,7 +156,8 @@ export function NeoGraph({
     backgroundColor: "rgba(0,0,0,0)",
     onNodeHover: setHoverNode,
     onNodeClick: (node: any) => onNodeClick && onNodeClick(node),
-    cooldownTicks: 100
+    cooldownTicks: 100,
+    linkLineDash: (link: any) => (link.properties?.status === 'critical' || link.properties?.virtual) ? [5, 5] : null, // NEW: Support dashed lines for virtual/gap edges
   };
 
   return (

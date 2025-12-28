@@ -96,19 +96,37 @@ async def setup_tables():
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON messages(conversation_id);")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_gap_recs_recommender_id ON gap_recommendations(recommender_id);")
         
-        # Insert default persona
-        print("Inserting default transformation analyst persona...")
-        await conn.execute("""
-            INSERT INTO personas (name, display_name, description, system_prompt, is_active)
-            VALUES (
+        # Insert all three personas (noor, maestro, transformation_analyst)
+        print("Inserting personas...")
+        personas_to_seed = [
+            (
+                'noor',
+                'Noor',
+                'Staff-facing AI assistant for agency operations',
+                'You are Noor, the Cognitive Digital Twin for agency staff. You assist with operational questions, data analysis, and institutional memory recall. Be helpful, empathetic, and data-driven.',
+                True
+            ),
+            (
+                'maestro',
+                'Maestro',
+                'Executive-facing AI assistant for strategic decisions',
+                'You are Maestro, the Cognitive Digital Twin for agency executives. You provide strategic insights, high-level analytics, and decision support. Be concise, authoritative, and insight-focused.',
+                True
+            ),
+            (
                 'transformation_analyst',
                 'Transformation Analyst',
-                'Expert AI assistant for enterprise transformation analytics and insights',
-                'You are an expert transformation analyst for JOSOOR - a platform for enterprise transformation analytics. You help users understand their transformation data, analyze capabilities, projects, IT systems, and provide strategic insights. Be helpful, analytical, and provide data-driven recommendations.',
-                TRUE
+                'Default AI assistant for enterprise transformation analytics',
+                'You are a transformation analyst for JOSOOR. You help users understand transformation data, analyze capabilities, projects, and provide strategic insights. Be analytical and data-driven.',
+                True
             )
-            ON CONFLICT (name) DO NOTHING;
-        """)
+        ]
+        for name, display_name, description, system_prompt, is_active in personas_to_seed:
+            await conn.execute("""
+                INSERT INTO personas (name, display_name, description, system_prompt, is_active)
+                VALUES ($1, $2, $3, $4, $5)
+                ON CONFLICT (name) DO NOTHING;
+            """, name, display_name, description, system_prompt, is_active)
         
         print("✅ All app tables created successfully!")
         

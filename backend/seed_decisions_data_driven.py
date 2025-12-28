@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import List, Dict, Any
 
-from app.db.supabase_client import supabase_client
+from app.db.supabase_client_async import supabase_client
 from app.db.neo4j_client import neo4j_client
 from app.services.embedding_service import get_embedding_service
 

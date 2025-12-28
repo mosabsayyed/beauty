@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { NeoGraph } from '../../../components/graphv001/components/NeoGraph';
 import { DependencyKnots } from './DependencyKnots';
 import { MetricDetailsPanel } from './MetricDetailsPanel';
+import { GapRecommendationsPanel } from './GapRecommendationsPanel';
 import '../josoor.css';
 
-interface DependencyDeskProps {
-  quarter: string;
+// Context Interface matches JosoorFrame
+interface JosoorContext {
   year: string;
+  quarter: string;
 }
+
+
 
 // Chain Filter Mapping (Internal Metadata for Legend/Style)
 const CHAIN_META: Record<string, { labels: string[], colors: Record<string, string> }> = {
@@ -91,19 +96,22 @@ const CHAIN_KEY_MAP: Record<string, string> = {
   '2.0_24': 'internal_efficiency'
 };
 
-export const DependencyDesk: React.FC<DependencyDeskProps> = ({ quarter, year }) => {
+export const DependencyDesk: React.FC = () => {
+  const { year, quarter } = useOutletContext<JosoorContext>();
   const [selectedChainId, setSelectedChainId] = useState<string>('2.0_18');
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [activeKpiFilter, setActiveKpiFilter] = useState<any | null>(null);
+  const [analyzeGapsMode, setAnalyzeGapsMode] = useState<boolean>(false); // NEW STATE
 
   const { data: rawGraphData, isLoading: graphLoading, isError: graphError, isFetching: graphFetching, refetch: refetchGraph } = useQuery({
-    queryKey: ['businessChain', selectedChainId, year, focusedNodeId],
+    queryKey: ['businessChain', selectedChainId, year, focusedNodeId, analyzeGapsMode], // Added analyzeGapsMode
     queryFn: async () => {
       const yearVal = (year === 'All' || !year) ? 'All' : year;
       const chainKey = CHAIN_KEY_MAP[selectedChainId] || 'sector_ops';
       
       const idParam = focusedNodeId ? `&id=${encodeURIComponent(focusedNodeId)}` : '';
-      const url = `/api/business-chain/${chainKey}?year=${yearVal}${idParam}`;
+      const gapParam = analyzeGapsMode ? '&analyzeGaps=true' : '';
+      const url = `/api/business-chain/${chainKey}?year=${yearVal}${idParam}${gapParam}`;
       
       console.log(`[DependencyDesk] Fetching graph: ${url}`);
       const res = await fetch(url);
@@ -179,19 +187,16 @@ export const DependencyDesk: React.FC<DependencyDeskProps> = ({ quarter, year })
       {/* KPI STRIP */}
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
         {/* ANALYZE GAPS BUTTON (Restored) */}
+        {/* ANALYZE GAPS BUTTON (Restored) */}
         <button 
             onClick={() => {
-                const challengedNodes = graphData.nodes.filter((n: any) => n.val === 30).map((n: any) => n.id);
-                setActiveKpiFilter({
-                    title: 'Gap Analysis',
-                    affected_ids: challengedNodes,
-                    status: 'warning'
-                });
+                setAnalyzeGapsMode(prev => !prev);
+                setActiveKpiFilter(null);
             }}
             className="v2-btn"
             style={{ 
-                background: 'var(--accent-gold)', 
-                color: '#000', 
+                background: analyzeGapsMode ? '#EF4444' : 'var(--accent-gold)', 
+                color: '#fff', 
                 fontWeight: 'bold', 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -203,7 +208,7 @@ export const DependencyDesk: React.FC<DependencyDeskProps> = ({ quarter, year })
                 cursor: 'pointer'
             }}
         >
-            <span>⚠️</span> Analyze Gaps
+            <span>{analyzeGapsMode ? '❌' : '⚠️'}</span> {analyzeGapsMode ? 'Exit & Reset' : 'Analyze Gaps'}
         </button>
 
         {kpisLoading ? (
@@ -359,7 +364,13 @@ export const DependencyDesk: React.FC<DependencyDeskProps> = ({ quarter, year })
 
         {/* SIDE PANEL: CONDITIONAL */}
         <div style={{ height: '550px', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-            {activeKpiFilter ? (
+            {analyzeGapsMode ? (
+                 <GapRecommendationsPanel 
+                    year={year} 
+                    quarter={quarter} 
+                    onClose={() => setAnalyzeGapsMode(false)} 
+                 />
+            ) : activeKpiFilter ? (
                  <MetricDetailsPanel 
                     metricTitle={activeKpiFilter.title}
                     affectedIds={activeKpiFilter.affected_ids || []}
@@ -371,7 +382,7 @@ export const DependencyDesk: React.FC<DependencyDeskProps> = ({ quarter, year })
                 <div className="v2-panel" style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--component-text-muted)', flexDirection: 'column', gap: '1rem' }}>
                     <div style={{ fontSize: '2rem', opacity: 0.5 }}>📊</div>
                     <div style={{ fontSize: '0.8rem', textAlign: 'center' }}>
-                        Select a Health Metric<br/>to view affected nodes
+                        Select "Analyze Gaps" or a Health Metric<br/>to view details
                     </div>
                 </div>
             )}

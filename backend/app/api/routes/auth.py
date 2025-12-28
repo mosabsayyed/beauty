@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
-from app.db.supabase_client import supabase_client # Assuming user storage in Supabase
+from app.db.supabase_client_async import supabase_client # Assuming user storage in Supabase
 from app.services.user_service import UserService, user_service, User # Import UserService and User model
 from app.utils import auth_utils # Import auth_utils
 from datetime import timedelta

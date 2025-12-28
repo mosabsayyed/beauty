@@ -19,7 +19,7 @@ import os
 import asyncio
 from typing import List, Dict
 
-from app.db.supabase_client import supabase_client
+from app.db.supabase_client_async import supabase_client
 
 # New Tier 1 content, split into atomic elements for assembly ordering
 NEW_TIER1_ELEMENTS: List[Dict[str, str]] = [

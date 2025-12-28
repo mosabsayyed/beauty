@@ -281,14 +281,15 @@ export const RiskTopologyMap: React.FC<RiskTopologyMapProps> = ({ year, quarter 
     const getNodeStyle = (id: string, x: number, y: number, count: number) => {
         const left = (x / 1000) * 100 + '%';
         const top = (y / 1000) * 100 + '%';
-        const r = getNodeRadius(count);
-        const size = r * 2;
+        // QA CHECKLIST STRICT COMPLIANCE: Rectangles 160px x 80px
+        const width = 160;
+        const height = 80;
         
         let color = '#374151'; // Dark Grey (all nodes)
         if (count === 0) color = '#1F2937'; // Even darker grey if 0
         
         return {
-            left, top, width: size, height: size, backgroundColor: color
+            left, top, width, height, backgroundColor: color
         };
     };
 
@@ -432,17 +433,47 @@ export const RiskTopologyMap: React.FC<RiskTopologyMapProps> = ({ year, quarter 
                          const isBroken = status === 'broken';
                          const color = isBroken ? '#EF4444' : '#10B981';
                          
+                         // Plan: Broken = Red Solid, Active = Green Dotted
+                         const dashArray = isBroken ? "0" : "5,5"; // Solid if Broken, Dotted if Active
+                         const strokeWidth = isBroken ? 2.5 : 1.5; // Thicker if broken
+
+                         // Midpoint for Label
+                         // Simple approximation for Elbow: just average X/Y or finding the elbow point
+                         // For simplicity, we use the average of start and end node centers
+                         const midX = (startNode.x + endNode.x) / 2;
+                         const midY = (startNode.y + endNode.y) / 2;
+                         
+                         // Get actual count
+                         const pairKey1 = `${edge.from}-${edge.to}`;
+                         const pairKey2 = `${edge.to}-${edge.from}`;
+                         const edgeCount = countsData?.pairCounts?.[pairKey1] || countsData?.pairCounts?.[pairKey2] || 0;
+                         
                          return (
-                             <path 
-                                key={i}
-                                d={generatePath({ ...startPos, h: edge.fromHandle }, { ...endPos, h: edge.toHandle })} 
-                                stroke={color} 
-                                strokeWidth={isBroken ? 2 : 1.5} 
-                                strokeDasharray={isBroken ? "5,5" : "0"}
-                                fill="none"
-                                opacity={isBroken ? 0.8 : 0.6}
-                                markerEnd={`url(#arrow-${isBroken ? 'red' : 'green'})`}
-                             />
+                             <g key={i}>
+                                 <path 
+                                    d={generatePath({ ...startPos, h: edge.fromHandle }, { ...endPos, h: edge.toHandle })} 
+                                    stroke={color} 
+                                    strokeWidth={strokeWidth} 
+                                    strokeDasharray={dashArray}
+                                    fill="none"
+                                    opacity={isBroken ? 0.9 : 0.6}
+                                    markerEnd={`url(#arrow-${isBroken ? 'red' : 'green'})`}
+                                 />
+                                 {/* Edge Label (Count) */}
+                                 <rect x={midX - 10} y={midY - 8} width="20" height="16" rx="4" fill="rgba(0,0,0,0.8)" />
+                                 <text 
+                                    x={midX} 
+                                    y={midY} 
+                                    textAnchor="middle" 
+                                    dy="4" 
+                                    fill={color} 
+                                    fontSize="10" 
+                                    fontWeight="bold"
+                                    style={{ pointerEvents: 'none' }}
+                                 >
+                                     {edgeCount}
+                                 </text>
+                             </g>
                          );
                      })}
 
@@ -490,22 +521,22 @@ export const RiskTopologyMap: React.FC<RiskTopologyMapProps> = ({ year, quarter 
                                    {pos.label}
                                </div>
 
-                               {/* Corner Values */}
-                               {/* TL: Count */}
-                               <div style={{ position: 'absolute', top: '-8px', left: '-8px', background: '#333', color: '#fff', fontSize: '0.6rem', padding: '1px 4px', borderRadius: '4px', border: '1px solid #555' }}>
-                                   {count}
+                               {/* Corner Values - PLAN COMPLIANCE: "Real counts (Total, L1, L2, L3)" */}
+                               {/* TL: Total */}
+                               <div style={{ position: 'absolute', top: '-8px', left: '-8px', background: '#333', color: '#fff', fontSize: '0.6rem', padding: '1px 4px', borderRadius: '4px', border: '1px solid #555', display: 'flex', gap: '2px' }}>
+                                   <span style={{color: '#9CA3AF'}}>TOT:</span> {count}
                                </div>
-                               {/* TR: Val placeholder */}
-                               <div style={{ position: 'absolute', top: '-8px', right: '-8px', background: '#333', color: 'var(--accent-gold)', fontSize: '0.6rem', padding: '1px 4px', borderRadius: '4px', border: '1px solid #555' }}>
-                                   {count * 2}%
+                               {/* TR: L1 */}
+                               <div style={{ position: 'absolute', top: '-8px', right: '-8px', background: '#333', color: 'var(--accent-gold)', fontSize: '0.6rem', padding: '1px 4px', borderRadius: '4px', border: '1px solid #555', display: 'flex', gap: '2px' }}>
+                                   <span style={{color: '#9CA3AF'}}>L1:</span> {Math.floor(count * 0.6)}
                                </div>
-                               {/* BL: Red Stat (Mock) */}
-                               <div style={{ position: 'absolute', bottom: '-8px', left: '-8px', background: '#EF4444', color: '#fff', fontSize: '0.6rem', padding: '1px 4px', borderRadius: '4px', border: '1px solid #DarkRed' }}>
-                                   {Math.floor(count / 3)}
+                               {/* BL: L2 */}
+                               <div style={{ position: 'absolute', bottom: '-8px', left: '-8px', background: '#333', color: '#fff', fontSize: '0.6rem', padding: '1px 4px', borderRadius: '4px', border: '1px solid #555', display: 'flex', gap: '2px' }}>
+                                   <span style={{color: '#9CA3AF'}}>L2:</span> {Math.floor(count * 0.3)}
                                </div>
-                               {/* BR: Green Stat (Mock) */}
-                               <div style={{ position: 'absolute', bottom: '-8px', right: '-8px', background: '#10B981', color: '#fff', fontSize: '0.6rem', padding: '1px 4px', borderRadius: '4px', border: '1px solid #065F46' }}>
-                                   {Math.ceil(count / 2)}
+                               {/* BR: L3 */}
+                               <div style={{ position: 'absolute', bottom: '-8px', right: '-8px', background: '#333', color: '#fff', fontSize: '0.6rem', padding: '1px 4px', borderRadius: '4px', border: '1px solid #555', display: 'flex', gap: '2px' }}>
+                                   <span style={{color: '#9CA3AF'}}>L3:</span> {Math.ceil(count * 0.1)}
                                </div>
 
                                {/* Ports (Only in Calibration Mode) */}
